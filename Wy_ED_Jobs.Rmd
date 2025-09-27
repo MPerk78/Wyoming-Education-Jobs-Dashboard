@@ -1,0 +1,1655 @@
+---
+title: "R Job Scrape"
+author: "Mark Perkins"
+date: "2025-09-18"
+output: html_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# This Markdown file contains all the code to scrape data from Wyoming's k12 and higher education job postings
+
+## Part 1: Wyoming K12 Data
+
+### Loop K12 data pulled from all districts that use applitrack
+```{r loop with district sites on applitrack, message=FALSE, warning=FALSE, echo=TRUE}
+# Load required libraries
+library(rvest)
+library(RSelenium)
+library(dplyr)
+library(readr)
+
+# Read the CSV file
+csv_file <- "Frontline_Job_Links.csv"
+job_links <- read_csv(csv_file)
+
+# Start RSelenium with Firefox browser
+rD <- suppressMessages(rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL))
+
+remDr <- rD$client
+
+# Initialize list to store job data from all URLs
+all_jobs_data <- list()
+
+# Iterate over each row in the CSV file
+for (i in 1:nrow(job_links)) {
+  url <- job_links$JobSite[i]
+  school_district <- job_links$`School District`[i]  # Extract the School District
+  
+  # Load the page
+  remDr$navigate(url)
+  
+  # Wait for dynamic content to load (adjust time as needed)
+  Sys.sleep(10)  # Adjust as needed based on page loading time
+  
+  # Get page source and parse with rvest
+  page_source <- remDr$getPageSource()[[1]]
+  soup <- read_html(page_source)
+  
+  # Extract job listings
+  list_items <- soup %>%
+    html_nodes("ul.postingsList")
+  
+  # Debug: print the number of job listings found
+  cat("Number of job listings found at", url, ":", length(list_items), "\n")
+  
+  # Initialize list to store job data for the current URL
+  jobs_data <- list()
+  
+  # Iterate over each job listing
+  for (item in list_items) {
+    current_job <- list()
+    
+    # Extract job title
+    current_job$title <- item %>%
+      html_node("table.title td#wrapword") %>%
+      html_text(trim = TRUE)
+    
+    # Debug: print the extracted title
+    cat("Job Title:", current_job$title, "\n")
+    
+    # Extract additional details
+    labels <- item %>%
+      html_nodes("li span.label") %>%
+      html_text(trim = TRUE)
+    
+    values <- item %>%
+      html_nodes("li span.normal") %>%
+      html_text(trim = TRUE)
+    
+    # Debug: print the labels and values found
+    cat("Labels found:", labels, "\n")
+    cat("Values found:", values, "\n")
+    
+    # Initialize the variables for the fields
+    position_set <- FALSE
+    
+    # Match labels and values
+    j <- 1
+    for (k in seq_along(labels)) {  # Changed i to k to avoid conflict
+      label <- labels[k]
+      if (label == "Position Type:") {
+        current_job$position <- values[j]
+        if (j + 1 <= length(values) && !grepl(":", values[j + 1])) {
+          current_job$position2 <- values[j + 1]
+          j <- j + 1
+        } else {
+          current_job$position2 <- NULL
+        }
+        position_set <- TRUE
+      } else if (label == "Date Posted:") {
+        current_job$date_posted <- values[j]
+      } else if (label == "Location:") {
+        current_job$location <- values[j]
+      } else if (label == "Closing Date:") {
+        current_job$closing_date <- values[j]
+      }
+      j <- j + 1
+    }
+    
+    # Add the School District information
+    current_job$school_district <- school_district
+
+    # Append current job data
+    invisible(jobs_data <- c(jobs_data, list(current_job)))
+  }
+  
+  # Append jobs data for the current URL to the overall jobs data
+  all_jobs_data <- c(all_jobs_data, jobs_data)
+}
+
+# Close the RSelenium session
+remDr$close()
+rD$server$stop()
+
+# Convert list of all job data to data frame
+all_jobs_df <- bind_rows(all_jobs_data)%>%
+  mutate(
+    new_position = if_else(grepl("^\\d", position2), position, position),
+    new_position2 = if_else(grepl("^\\d", position2), NA_character_, position2),
+    new_date_posted = if_else(grepl("^\\d", position2), position2, date_posted),
+    new_location = if_else(grepl("^\\d", position2), date_posted, location),
+    new_closing_date = if_else(grepl("^\\d", position2), location, closing_date)
+  ) %>%
+  select(
+    title, 
+    new_position, 
+    new_position2, 
+    new_date_posted, 
+    new_location, 
+    new_closing_date, 
+    school_district
+  ) %>%
+  rename(
+    position = new_position,
+    position2 = new_position2,
+    date_posted = new_date_posted,
+    location = new_location,
+    closing_date = new_closing_date
+  )
+
+all_jobs_df<- left_join(all_jobs_df, job_links, by = c("school_district" = "School District"))
+
+# Save data frame to CSV file
+write.csv(all_jobs_df, "all_job_listings.csv", row.names = FALSE)
+
+```
+
+### Loop k12 data from districts that use Tedd k12
+```{r tedk12, message=FALSE, warning=FALSE, echo=TRUE}
+
+# Load required libraries
+library(rvest)
+library(RSelenium)
+library(dplyr)
+library(readr)
+library(purrr)
+
+# Read the CSV file containing the URLs
+tedjoblinks <- read.csv("tedk12_job_links.csv", stringsAsFactors = FALSE)
+
+# Initialize an empty data frame to store the job data
+all_ted_data <- data.frame(
+  title = character(),
+  date_posted = character(),
+  position = character(),
+  location = character(),
+  url = character(),
+  stringsAsFactors = FALSE
+)
+
+# Loop through each URL in the CSV file
+for (i in 1:nrow(tedjoblinks)) {
+  url <- tedjoblinks$Job.Link[i]  # Using the Job.Link column for URLs
+  
+  # Read the HTML content of the page
+  page <- read_html(url)
+  
+  # Extract job title, posting date, type, and location
+  jobs <- page %>%
+    html_nodes("tr") %>% # Assuming each job is within a <tr> element
+    map_df(~{
+      title <- .x %>%
+        html_node("td:nth-child(1) a") %>%
+        html_text(trim = TRUE)
+      
+      date_posted <- .x %>%
+        html_node("td:nth-child(2)") %>%
+        html_text(trim = TRUE)
+      
+      position <- .x %>%
+        html_node("td:nth-child(3)") %>%
+        html_text(trim = TRUE)
+      
+      location <- .x %>%
+        html_node("td:nth-child(4)") %>%
+        html_text(trim = TRUE)
+      
+      data.frame(
+        title = title,
+        date_posted = date_posted,
+        position = position,
+        location = location,
+        url = url,  # Add the URL to the data frame
+        stringsAsFactors = FALSE
+      )
+    })
+  
+  # Append the jobs data to the all_jobs_data data frame
+  all_ted_data <- bind_rows(all_ted_data, jobs)
+}
+
+# Remove rows with NA or "Job Title" in the job_title column
+all_ted_data <- all_ted_data %>%
+  filter(!is.na(title) & title != "Job Title")
+
+all_ted_data<-left_join(all_ted_data, tedjoblinks, by = c("url" = "Job.Link"))
+
+
+# Save the extracted data to a CSV file
+write.csv(all_ted_data, "all_tedk12_job_listings.csv", row.names = FALSE)
+
+```
+
+### Loop k12 data from all districts that use springer school
+```{r jobs from spring school, message=FALSE, warning=FALSE, echo=TRUE}
+
+library(RSelenium)
+library(rvest)
+library(dplyr)
+
+# Start RSelenium
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Read the CSV file containing the URLs
+springerjoblinks <- read.csv("springer_job_links.csv", stringsAsFactors = FALSE)
+
+# Initialize an empty data frame to store the job data
+all_springer_data <- data.frame(
+  title = character(),
+  date_posted = character(),
+  position = character(),
+  location = character(),
+  url = character(),
+  district = character(),
+  stringsAsFactors = FALSE
+)
+
+# Function to wait for an element to appear
+wait_for_element <- function(remDr, css_selector, timeout = 10) {
+  for (i in 1:timeout) {
+    element <- tryCatch(
+      remDr$findElement(using = "css selector", css_selector),
+      error = function(e) NULL
+    )
+    if (!is.null(element)) return(element)
+    Sys.sleep(1)
+  }
+  stop(paste("Element not found:", css_selector))
+}
+
+# Function to scrape job details from a page
+scrape_jobs <- function(remDr, url) {
+  remDr$navigate(url)
+  Sys.sleep(5) # Allow the page to load
+  
+  # Try to close the pop-up if it exists
+  tryCatch({
+    close_button <- remDr$findElement(using = "css selector", "#navigate-away-from-section-dialog-btn-cancel")
+    close_button$clickElement()
+  }, error = function(e) {
+    message("No pop-up found or unable to close: ", e$message)
+  })
+  
+  # Scroll and click the "More Jobs" button until all jobs are loaded
+  job_count <- 0
+  max_click_attempts <- 30
+  extra_clicks <- 3 # Extra clicks to ensure everything is loaded
+  attempts <- 0
+  
+  repeat {
+    # Scroll to the bottom of the page multiple times
+    for (scroll in 1:5) {
+      remDr$executeScript("window.scrollTo(0, document.body.scrollHeight);")
+      Sys.sleep(1.5)
+    }
+    
+    # Check the current job count
+    page_source <- remDr$getPageSource()[[1]]
+    page <- read_html(page_source)
+    new_job_count <- length(html_nodes(page, xpath = "//div[contains(@class, 'card-body')]"))
+    
+    # Break if no new jobs are being loaded
+    if (new_job_count == job_count) {
+      if (extra_clicks > 0) {
+        message("Extra click buffer: ", extra_clicks, " remaining...")
+        extra_clicks <- extra_clicks - 1
+      } else {
+        message("All jobs loaded.")
+        break
+      }
+    } else {
+      job_count <- new_job_count
+      extra_clicks <- 3 # Reset buffer if new jobs appear
+    }
+    
+    # Click the "More Jobs" button if available
+    more_jobs_button <- tryCatch({
+      wait_for_element(remDr, ".pds-secondary-btn")
+    }, error = function(e) NULL)
+    
+    if (!is.null(more_jobs_button)) {
+      more_jobs_button$clickElement()
+      Sys.sleep(3) # Allow new jobs to load
+      attempts <- attempts + 1
+    } else {
+      message("No 'More Jobs' button found.")
+      break
+    }
+    
+    if (attempts >= max_click_attempts) {
+      message("Reached maximum click attempts.")
+      break
+    }
+  }
+  
+  # Extract job details
+  jobs_data <- page %>%
+    html_nodes(xpath = "//div[contains(@class, 'card-body')]") %>%
+    map_df(~{
+      tibble(
+        title = .x %>% html_node(xpath = ".//div[contains(@class, 'card-title')]/div") %>% html_text(trim = TRUE),
+        date_posted = .x %>% html_node(xpath = ".//p[contains(text(), 'Sep') or contains(text(), 'Oct')]") %>% html_text(trim = TRUE),
+        position = .x %>% html_node(xpath = ".//div[contains(@class, 'card-title')]/div") %>% html_text(trim = TRUE),
+        location = .x %>% html_node(xpath = ".//p[not(contains(text(), 'Sep')) and not(contains(text(), 'Oct'))]") %>% html_text(trim = TRUE),
+        url = url
+      )
+    })
+  
+  return(jobs_data)
+}
+
+# Loop through each URL in the CSV file
+for (i in 1:nrow(springerjoblinks)) {
+  url <- springerjoblinks$`Job.Link`[i]
+  message(paste("Processing URL:", url))
+  
+  job_data <- scrape_jobs(remDr, url)
+  
+  if (nrow(job_data) > 0) {
+    all_springer_data <- bind_rows(all_springer_data, job_data)
+    message(paste("Scraped", nrow(job_data), "jobs from:", url))
+  } else {
+    message("No jobs found at:", url)
+  }
+}
+
+# Join additional details from the original CSV
+all_springer_data <- left_join(all_springer_data, springerjoblinks, by = c("url" = "Job.Link"))
+
+# Deduplicate rows
+all_springer_data <- all_springer_data %>%
+  dplyr::select(-district)
+
+# Save the extracted data to a CSV file
+write.csv(all_springer_data, "all_springer_job_listings.csv", row.names = FALSE)
+
+# Close RSelenium
+remDr$close()
+rD$server$stop()
+
+
+```
+
+### Combine all the k12 data include a few manual pulls from unique district sites
+#### Be sure to update your manually scraped data
+#### This will populate your app folder for your Shiny application
+```{r combine all the data into one dataframe, echo=TRUE, warning=FALSE, message=FALSE}
+library(stringr)
+library(tidyverse)
+library(dplyr)
+
+frontline<- read.csv("all_job_listings.csv")%>%
+  rename(url = JobSite)
+
+frontline<-  dplyr::select(frontline, title, date_posted, position, location, url, school_district)%>%
+  rename(District = school_district)
+
+ted<- read.csv("all_tedk12_job_listings.csv")
+
+springer<- read.csv("all_springer_job_listings.csv")
+
+other<- readxl::read_excel("otherjobs.xlsx")
+
+combined<- rbind(frontline, ted, springer, other)%>%
+  mutate(Archive_Date = Sys.Date())
+
+file_name <- paste0("combined_", Sys.Date(), ".csv")
+
+# Write the data to a CSV file with the new file name
+write.csv(combined, file=file.path('Archivek12_data',file_name))
+
+# Code current data to categorize positions in the "position" column of the "combinedclean" dataset
+
+combinedclean <- combined %>%
+  mutate(
+    position = case_when(
+       # Paraprofessional-related positions
+      grepl("Paraprofessional|Para|Paraeducator", title, ignore.case = TRUE) ~ "Paraprofessional",
+
+     # Substitute
+      grepl("Sub|Substitute", title, ignore.case = TRUE) ~ "Substitute",
+     
+      # Support Services-related positions
+      grepl("Counselor|Psychologist|Therapist|Pathologist|Occupational|Alternative Behavior Program|Audiologist|Lifeguard|Interpreter|Translator|Monitor|Safety Patrol|Social Worker|Technology Intern|Tutor|Instructional Facilitator|Resource Officer|Behavior|Occupational|Aide|Aid|Support", 
+            title, ignore.case = TRUE) ~ "Support Services",
+      
+      # Teacher-related positions
+      grepl("Teacher|Instructor|Interventionist|English|Math|Library|Media|Language Arts|Science|Educator", 
+            title, ignore.case = TRUE) ~ "Teacher",
+      
+      # Coach-related positions
+      grepl("Coach|Athletic|Sports|Track|Football|Basketball|Golf|Soccer|Wrestling|Cheer|BB|Volleyball|Aquatics|Ski", 
+            title, ignore.case = TRUE) ~ "Athletics",
+
+      # Custodial/Maintenance-related positions
+      grepl("Custodian|Custodial|Maintenance|Cleaner|Snow Removal|Facility|Electrician|HVAC", 
+            title, ignore.case = TRUE) ~ "Custodial/Maintenance",
+      
+      # Transportation-related positions
+      grepl("Bus Driver|Driver|Transportation|Route|Bus|Mechanic|Bus Mechanic|Bus Monitor",
+            title, ignore.case = TRUE) ~ "Transportation",
+
+     
+      # Administration-related positions
+      grepl("Principal|Director|Coordinator|Administrator|Supervisor|Administrative", 
+            title, ignore.case = TRUE) ~ "Administration",
+      
+      # Staff-related positions
+      grepl("Secretary|Office Clerk|Office Manager|Desk Clerk|Aide", title, ignore.case = TRUE) ~ "Staff",
+
+      # Food Services-related positions
+      grepl("Food|Cook|Nutrition|Cafeteria|Dishwasher", title, ignore.case = TRUE) ~ "Food Services",
+
+      # Student Teaching-related positions
+      grepl("Daycare|After School|Head Start", title, ignore.case = TRUE) ~ "Child Care",
+      
+      # Other positions
+      TRUE ~ "Other"
+    )
+  )%>%
+  dplyr::select(title, date_posted, position, location, url, District)
+
+write.csv(combinedclean, file=file.path('Wy_Ed_Jobs','combinedclean.csv'))
+
+
+#Munge the archived data and send files to Shiny
+csv_files <- list.files("Archivek12_Data", pattern = "\\.csv$", full.names = TRUE)
+
+combined_k12_data <- csv_files %>%
+  lapply(function(file) read.csv(file, colClasses = c("Archive_Date" = "character"))) %>%
+  bind_rows() %>%
+  select(-X, -date_posted)
+
+combined_k12_data <- combined_k12_data %>%
+  mutate(Archive_Date = case_when(
+    grepl("/", Archive_Date) ~ as.Date(Archive_Date, format = "%m/%d/%Y"),
+    grepl("-", Archive_Date) ~ as.Date(Archive_Date, format = "%Y-%m-%d"),
+    TRUE ~ as.Date(NA)  # Corrected this line
+  ))
+
+dates <- as.data.frame(unique(combined_k12_data$Archive_Date))
+
+
+combined_k12_data$Archive_Date <- as.Date(combined_k12_data$Archive_Date)
+
+###################################################
+# Create Categories
+
+combinedclean <- combined_k12_data %>%
+  mutate(
+    position = case_when(
+       # Paraprofessional-related positions
+      grepl("Paraprofessional|Para|Paraeducator", title, ignore.case = TRUE) ~ "Paraprofessional",
+
+     # Substitute
+      grepl("Sub|Substitute", title, ignore.case = TRUE) ~ "Substitute",
+     
+      # Support Services-related positions
+      grepl("Counselor|Psychologist|Therapist|Pathologist|Occupational|Alternative Behavior Program|Audiologist|Lifeguard|Interpreter|Translator|Monitor|Safety Patrol|Social Worker|Technology Intern|Tutor|Instructional Facilitator|Resource Officer|Behavior|Occupational|Aide|Aid|Support", 
+            title, ignore.case = TRUE) ~ "Support Services",
+      
+      # Teacher-related positions
+      grepl("Teacher|Instructor|Interventionist|English|Math|Library|Media|Language Arts|Science|Educator", 
+            title, ignore.case = TRUE) ~ "Teacher",
+      
+      # Coach-related positions
+      grepl("Coach|Athletic|Sports|Track|Football|Basketball|Golf|Soccer|Wrestling|Cheer|BB|Volleyball|Aquatics|Ski", 
+            title, ignore.case = TRUE) ~ "Athletics",
+
+      # Custodial/Maintenance-related positions
+      grepl("Custodian|Custodial|Maintenance|Cleaner|Snow Removal|Facility|Electrician|HVAC", 
+            title, ignore.case = TRUE) ~ "Custodial/Maintenance",
+      
+      # Transportation-related positions
+      grepl("Bus Driver|Driver|Transportation|Route|Bus|Mechanic|Bus Mechanic|Bus Monitor",
+            title, ignore.case = TRUE) ~ "Transportation",
+
+     
+      # Administration-related positions
+      grepl("Principal|Director|Coordinator|Administrator|Supervisor|Administrative", 
+            title, ignore.case = TRUE) ~ "Administration",
+      
+      # Staff-related positions
+      grepl("Secretary|Office Clerk|Office Manager|Desk Clerk|Aide", title, ignore.case = TRUE) ~ "Staff",
+
+      # Food Services-related positions
+      grepl("Food|Cook|Nutrition|Cafeteria|Dishwasher", title, ignore.case = TRUE) ~ "Food Services",
+
+      # Student Teaching-related positions
+      grepl("Daycare|After School|Head Start", title, ignore.case = TRUE) ~ "Child Care",
+      
+      # Other positions
+      TRUE ~ "Other"
+    )
+  )%>%
+  dplyr::select(title, Archive_Date, position, location, url, District)
+
+
+k12jobs <- combinedclean %>%
+  filter(position == "Teacher")
+
+# Define the category keywords with enhanced regex
+category_keywords <- list(
+  "Technical Education" = "\\b(Welding|Weld|CTE|Automotive|Auto(?!nomy)|Wood|Woods|Industrial Arts|Shop)\\b",
+  
+  "Agriculture Education" = "\\b(Agriculture|Ag Teacher|FFA)\\b",
+  
+  "Computer Science Education" = "\\b(Computer Science|Information Technology|\\bIT\\b|Technology Education(?! Teacher Assistant))\\b",
+  
+  "Early Childhood Education" = "\\b(Early Childhood|Pre[- ]?K(?!indergarten)|Preschool|Birth to age|Ages 3-5)\\b",
+  
+  "Elementary Education" = "\\b(Elementary|Kindergarten|1st|2nd|3rd|4th|5th|First|Second|Third|Fourth|Fifth|Grade [1-6])\\b",
+  
+  "English Language Arts Education" = "(?i)\\b(English(?!\\s+as\\s+a\\s+Second\\s+Language|\\s+Learner|\\s+Language\\s+Learner)|ELA|Language Arts(?!\\s*Coordinator))\\b",
+
+  "Family and Consumer Science" = "\\b(Family and Consumer Science|FCS|Home Economics)\\b",
+  
+  "Language Education" = "\\b(ESL|ELL|English as a Second Language|Bilingual|Spanish|French|Arapaho|Dual Language|World Language|Foreign Language)\\b",
+  "Mathematics Education" = "\\b(Mathematics|\\bMath\\b)\\b",
+  
+  "Music Education" = "\\b(Music|Orchestra|Band)\\b",
+  
+  "Health Science" = "\\b(Nurse Educator|Health Science)\\b",
+  
+  "Science Education" = "\\b(Science|Biology|Chemistry|Physics|Earth Science)\\b",
+  
+  "Social Studies Education" = "\\b(Social Studies|History|Geography|Civics|Political Science)\\b",
+  
+  "Special Education" = "\\b(Resource Teacher|Special Education|SPED|Exceptional Children|Deaf|Visually Impaired)\\b",
+  
+  "Physical Education" = "(?i)\\b(Physical Education|P\\.?E\\.?|PE\\s*/\\s*Health|Health\\s*/\\s*PE|Health and Physical Education)\\b",
+  
+  "Business and Economics" = "\\b(Business|Economics|Econ)\\b",
+  
+  "Substitute Teaching" = "\\b(Substitute)\\b",
+  
+  "Virtual Education" = "\\b(Virtual|Online|Remote)\\b",
+  
+  "Art Teacher" = "\\b(Art Teacher|\\bArt\\b)\\b",
+  
+  "STEM Teacher" = "\\b(STEM)\\b",
+  
+  "CTE Teacher" = "\\b(Career and Technical Education|CTE Teacher)\\b"
+)
+
+k12jobs <- k12jobs %>%
+  mutate(
+    Category = map_chr(str_to_lower(title), function(title) {
+      matched <- NULL
+      for (category in names(category_keywords)) {
+        pattern <- category_keywords[[category]]
+        if (str_detect(title, regex(pattern, ignore_case = TRUE))) {
+          matched <- category
+          break
+        }
+      }
+      if (is.null(matched)) "Uncategorized" else matched
+    })
+  )
+
+
+# Mutate the Category variable based on title using the keywords
+k12jobs <- k12jobs %>%
+  mutate(Category = case_when(
+    str_detect(title, regex(category_keywords[["Special Education"]], ignore_case = TRUE)) ~ "Special Education",  # Match Special Education first
+    str_detect(title, regex(category_keywords[["Technical Education"]], ignore_case = TRUE)) ~ "Technical Education",
+    str_detect(title, regex(category_keywords[["Agriculture Education"]], ignore_case = TRUE)) ~ "Agriculture Education",
+    str_detect(title, regex(category_keywords[["Computer Science Education"]], ignore_case = TRUE)) ~ "Computer Science Education",
+    str_detect(title, regex(category_keywords[["Early Childhood Education"]], ignore_case = TRUE)) ~ "Early Childhood Education",
+    str_detect(title, regex(category_keywords[["Elementary Education"]], ignore_case = TRUE)) ~ "Elementary Education",
+    str_detect(title, regex(category_keywords[["English Language Arts Education"]], ignore_case = TRUE)) ~ "English Language Arts Education",
+    str_detect(title, regex(category_keywords[["Family and Consumer Science"]], ignore_case = TRUE)) ~ "Family and Consumer Science",
+    str_detect(title, regex(category_keywords[["Language Education"]], ignore_case = TRUE)) ~ "Language Education",
+    str_detect(title, regex(category_keywords[["Mathematics Education"]], ignore_case = TRUE)) ~ "Mathematics Education",
+    str_detect(title, regex(category_keywords[["Music Education"]], ignore_case = TRUE)) ~ "Music Education",
+    str_detect(title, regex(category_keywords[["Physical Education"]], ignore_case = TRUE)) ~ "Physical Education",  # Match Physical Education second
+    str_detect(title, regex(category_keywords[["Health Science"]], ignore_case = TRUE)) ~ "Health Science",
+    str_detect(title, regex(category_keywords[["Science Education"]], ignore_case = TRUE)) ~ "Science Education",
+    str_detect(title, regex(category_keywords[["Social Studies Education"]], ignore_case = TRUE)) ~ "Social Studies Education",
+    str_detect(title, regex(category_keywords[["Business and Economics"]], ignore_case = TRUE)) ~ "Business and Economics",
+    str_detect(title, regex(category_keywords[["Substitute Teaching"]], ignore_case = TRUE)) ~ "Substitute Teaching",
+    str_detect(title, regex(category_keywords[["Virtual Education"]], ignore_case = TRUE)) ~ "Virtual Education",
+    str_detect(title, regex(category_keywords[["Art Teacher"]], ignore_case = TRUE)) ~ "Art Teacher",
+    str_detect(title, regex(category_keywords[["STEM Teacher"]], ignore_case = TRUE)) ~ "STEM Teacher",
+    str_detect(title, regex(category_keywords[["CTE Teacher"]], ignore_case = TRUE)) ~ "CTE Teacher",
+    TRUE ~ "Uncategorized"  # Default case for uncategorized titles
+  ))
+k12jobs <- k12jobs %>%
+  mutate(Broad_Category = case_when(
+    Category == "Agriculture Education" ~ "CTE",
+    Category == "Art Teacher" ~ "Art",
+    Category == "Business and Economics" ~ "CTE",
+    Category == "Computer Science Education" ~ "CTE",
+    Category == "Early Childhood Education" ~ "Early Childhood",
+    Category == "Elementary Education" ~ "Elementary",
+    Category == "English Language Arts Education" ~ "English Language Arts Secondary",
+    Category == "Family and Consumer Science" ~ "CTE",
+    Category == "Health Science" ~ "CTE",
+    Category == "Language Education" ~ "Lanugage",
+    Category == "Mathematics Education" ~ "STEM",
+    Category == "Music Education" ~ "Music",
+    Category == "Physical Education" ~ "Physical Education",
+    Category == "STEM Teacher" ~ "STEM",
+    Category == "Science Education" ~ "STEM",
+    Category == "Social Studies Education" ~ "Secondary Social Studies",
+    Category == "Special Education" ~ "Special Education",
+    Category == "Technical Education" ~ "CTE",
+    Category == "Uncategorized" ~ "Other",
+    Category == "Virtual Education" ~ "Other",
+    TRUE ~ "Other"  # Default case to handle any unexpected categories
+  ))
+
+write.csv(k12jobs, file=file.path('Wy_Ed_Jobs','k12jobanalysis.csv'))
+
+
+#Database for all dates by category 
+k12sum <- k12jobs %>%
+  group_by(Broad_Category, Archive_Date) %>%
+  summarize(
+    sum = n_distinct(title)
+  ) %>%
+  ungroup() %>%
+  mutate(District = "Total") %>%
+  select(Broad_Category, Archive_Date, District, sum)
+
+k12sumdistrict <- k12jobs %>%
+  group_by(Broad_Category, Archive_Date, District) %>%
+  summarize(
+    sum = n_distinct(title)
+  ) %>%
+  ungroup()
+
+Allsum <- bind_rows(k12sum, k12sumdistrict)
+write.csv(Allsum, file=file.path('Wy_Ed_Jobs','allsum.csv'))
+
+#Database for all data now by category
+k12now <- k12jobs %>%
+  filter(Archive_Date == max(Archive_Date))
+
+k12nowsum <- k12now %>%
+  group_by(Broad_Category) %>%
+  summarize(
+    Sum = n_distinct(title)
+  ) %>%
+  ungroup() %>%
+  mutate(District = "Total")
+
+k12districtnowsum <- k12now %>%
+  group_by(Broad_Category, District) %>%
+  summarize(
+    Sum = n_distinct(title)
+  ) %>%
+  ungroup() %>%
+  select(Broad_Category, Sum, District)
+
+Allnow <- bind_rows(k12nowsum, k12districtnowsum)
+
+write.csv(Allnow, file=file.path('Wy_Ed_Jobs','allnow.csv'))
+
+```
+
+## Time to scrape Wyoming Higher Education Data
+### This chunk scrapes LCCC's data
+```{r Get Jobs from LCCC, message=FALSE, warning=FALSE, echo=TRUE}
+
+library(rvest)
+library(RSelenium)
+library(dplyr)
+
+# Start RSelenium with Firefox browser
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Function to scrape job postings from a given page URL
+scrape_jobs <- function(url) {
+  remDr$navigate(url)
+  
+ # Scroll to bottom once
+remDr$executeScript("window.scrollTo(0, document.body.scrollHeight);")
+
+# Wait up to ~8 seconds for all job elements to appear
+for(i in 1:16) {     # 16 × 0.5 sec = 8 sec total
+  job_nodes <- remDr$findElements(using = "css selector",
+                                  value = ".item-details-link")
+  if(length(job_nodes) >= 30) break
+  Sys.sleep(0.5)
+}
+
+
+  # Re-fetch the page after waiting for all jobs to load
+  page_source <- remDr$getPageSource()[[1]]
+  soup <- read_html(page_source)
+  
+  # Safely try to fetch job titles, links, locations, and posted dates
+  job_titles <- tryCatch({
+    soup %>% html_nodes(".item-details-link") %>% html_text(trim = TRUE)
+  }, error = function(e) character(0))
+
+  job_links <- tryCatch({
+    soup %>% html_nodes(".item-details-link") %>% html_attr("href") %>%
+      paste0("https://www.governmentjobs.com/careers/lcccwy?page=", .)
+  }, error = function(e) character(0))
+
+  # **Update to capture the Location** correctly for all jobs, including the last one
+  job_location <- tryCatch({
+    soup %>% html_nodes(".list-meta li:nth-child(1)") %>% html_text(trim = TRUE)
+  }, error = function(e) character(0))
+  
+  
+  posted_date <- tryCatch({
+    soup %>% html_nodes(".list-entry-starts span") %>% html_text(trim = TRUE)
+  }, error = function(e) character(0))
+
+  # Ensure all vectors have the same length
+  max_length <- max(length(job_titles), length(job_links), length(job_location), length(posted_date))
+  
+  job_titles <- c(job_titles, rep(NA, max_length - length(job_titles)))
+  job_links <- c(job_links, rep(NA, max_length - length(job_links)))
+  job_location <- c(job_location, rep(NA, max_length - length(job_location)))
+  posted_date <- c(posted_date, rep(NA, max_length - length(posted_date)))
+
+  # Create dataframe
+  jobs_df <- data.frame(
+    Title = job_titles,
+    Location = job_location,
+    Link = job_links,
+    Posted_Date = posted_date,
+    stringsAsFactors = FALSE
+  )
+
+  return(jobs_df)
+}
+
+# Scrape multiple pages
+all_jobs <- list()
+
+all_jobs <- list()
+
+page <- 1
+repeat {
+  url <- paste0("https://www.governmentjobs.com/careers/lcccwy?page=", page)
+  cat("Scraping:", url, "\n")
+
+  jobs_df <- tryCatch({
+    scrape_jobs(url)
+  }, error = function(e) {
+    cat("Error scraping page", page, ":", e$message, "\n")
+    return(data.frame())
+  })
+
+  if (all(is.na(jobs_df$Title)) || nrow(jobs_df) == 0) {
+    cat("No job titles found on page", page, ". Assuming end of listings.\n")
+    break
+  } else {
+    all_jobs[[length(all_jobs) + 1]] <- jobs_df
+    cat("Scraped page", page, "\n")
+    page <- page + 1  # Don't forget to increment the page!
+  }
+
+  Sys.sleep(1)  # Be nice to the server
+}
+
+# Now outside the loop — combine and clean
+lccc <- bind_rows(all_jobs) %>%
+  mutate(Institution = "Laramie County Community College") %>%
+  distinct(Title, .keep_all = TRUE)
+
+# Close Selenium
+remDr$close()
+rD$server$stop()
+
+# Cleanup and print results
+lccc <- lccc %>%
+  select(Title, Location, Posted_Date, Institution, Link)
+
+print(lccc)
+
+```
+
+### This pulls data from Casper College
+```{r casper college, message=FALSE, warning=FALSE, echo=TRUE}
+
+# Define the URLs for page 1 and page 2
+urls <- c("https://www.schooljobs.com/careers/caspercollege", 
+          "https://www.schooljobs.com/careers/caspercollege?page=2")
+
+# Start RSelenium with Firefox browser
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Initialize an empty data frame to store all job listings
+casper <- data.frame()
+
+# Loop over both pages to scrape data
+for (url in urls) {
+  
+  remDr$navigate(url)
+  
+  # Wait for dynamic content to load
+  Sys.sleep(10)  # Adjust based on page loading time
+  
+  # Get page source and parse with rvest
+  page_source <- remDr$getPageSource()[[1]]
+  soup <- read_html(page_source)
+  
+  # Extract job titles and links
+  job_titles <- soup %>% 
+    html_nodes(".item-details-link") %>% 
+    html_text(trim = TRUE)
+  
+  job_links <- soup %>% 
+    html_nodes(".item-details-link") %>% 
+    html_attr("href")
+  
+  # Prepend the base URL to the relative links
+  job_links <- paste0("https://www.schooljobs.com/careers/caspercollege", job_links)
+  
+  # Extract department details if available
+  departments <- soup %>% 
+    html_nodes(".item-details-link") %>% 
+    html_attr("data-department-name")
+  
+  # If departments are missing, assign NA
+  if (length(departments) == 0) departments <- rep(NA, length(job_titles))
+  
+  # Extract the job location
+  job_locations <- soup %>% 
+    html_nodes(".list-meta li:nth-child(1)") %>% 
+    html_text(trim = TRUE)
+  
+  # If job locations are missing, assign NA
+  if (length(job_locations) == 0) job_locations <- rep(NA, length(job_titles))
+  
+  # Check if no jobs were found
+  if (length(job_titles) == 0) {
+    page_jobs <- data.frame(
+      Title = "No Jobs",
+      Location = NA,
+      Department = NA,
+      Link = url,
+      Posted_Date = NA,
+      Institution = "Casper College",
+      stringsAsFactors = FALSE
+    )
+  } else {
+    # Combine data into a dataframe if jobs are found
+    page_jobs <- data.frame(
+      Title = job_titles,
+      Location = job_locations,
+      Department = departments,
+      Link = job_links,
+      stringsAsFactors = FALSE
+    )
+    
+    # Add the current date and additional columns
+    page_jobs <- page_jobs %>%
+      mutate(Posted_Date = Sys.Date()) %>%
+      mutate(Institution = "Casper College") %>%
+      mutate(Posted_Date = format(as.Date(Posted_Date, format = "%Y-%m-%d"), "%m/%d/%Y"))
+  }
+  
+  # Append the jobs from this page to the casper dataframe
+  casper <- rbind(casper, page_jobs)
+}
+
+# Remove duplicates
+casper <- casper %>%
+  unique()
+
+# Ensure columns are in the desired order
+casper <- casper %>%
+  select(Title, Location, Posted_Date, Institution, Link)%>%
+  filter(Title != "No Jobs")
+
+
+# Print the dataframe
+print(casper)
+
+# Close RSelenium
+remDr$close()
+rD$server$stop()
+
+
+```
+
+
+### This pulls jobs data from Western Wyoming
+```{r western wyoming, echo=TRUE, message=FALSE, warning=FALSE}
+library(rvest)
+library(RSelenium)
+library(dplyr)
+
+# Start RSelenium with Firefox browser
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Function to extract job postings from a page
+extract_jobs <- function(page_url) {
+  remDr$navigate(page_url)
+  Sys.sleep(10)  # allow load
+  page_source <- remDr$getPageSource()[[1]]
+  soup <- read_html(page_source)
+  
+  # Job titles
+  job_titles <- soup %>%
+    html_nodes("div.panel-body.h4.bg-primary span.text-default a") %>%
+    html_text(trim = TRUE)
+  
+  # Posted dates from panel-footer
+  job_footers <- soup %>%
+    html_nodes("div.panel-footer") %>%
+    html_text(trim = TRUE)
+  job_dates <- sapply(strsplit(job_footers, "\\|"), function(x) trimws(x[2]))
+  
+  # Location not provided
+  job_locations <- rep(NA, length(job_titles))
+  
+  # Combine
+  jobs_df <- data.frame(
+    Title = job_titles,
+    Location = job_locations,
+    Posted_Date = job_dates,
+    stringsAsFactors = FALSE
+  )
+  
+  return(jobs_df)
+}
+
+
+# Initialize an empty data frame to store all jobs
+all_jobs <- data.frame()
+
+# Scrape both pages
+for (page in 1:2) {
+  page_url <- paste0("https://wwccwy.peopleadmin.com/postings/search?page=", page)
+  page_jobs <- extract_jobs(page_url)
+  
+  if (nrow(page_jobs) > 0) {
+    all_jobs <- bind_rows(all_jobs, page_jobs)
+    cat("Scraped page", page, "\n")
+  } else {
+    cat("No data found on page", page, "\n")
+  }
+}
+
+# Add the current date to the dataframe
+western <- all_jobs %>%
+  mutate(Institution = "Western Wyoming Community College")%>%
+  mutate(Link = "https://wwccwy.peopleadmin.com/postings/search?page=")
+
+# Print the dataframe
+print(western)
+
+# Close RSelenium
+remDr$close()
+rD$server$stop()
+
+```
+
+
+### This pulls data from Central Wyoming college
+```{r central wyoming, message=FALSE, echo=TRUE, warning=FALSE}
+library(rvest)
+library(RSelenium)
+library(dplyr)
+
+# Start RSelenium with Firefox browser
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Function to extract job postings from a page
+extract_jobs <- function(page_url) {
+  # Navigate to the page
+  remDr$navigate(page_url)
+  
+  # Wait for dynamic content to load
+  Sys.sleep(10)  # Adjust as needed based on page loading time
+  
+  # Get page source and parse with rvest
+  page_source <- remDr$getPageSource()[[1]]
+  soup <- read_html(page_source)
+  
+  # Extract job details
+  job_titles <- soup %>% 
+    html_nodes(".list-item .item-details-link") %>% 
+    html_text(trim = TRUE)
+  
+  job_dates <- soup %>% 
+    html_nodes(".list-published .list-entry-starts span") %>% 
+    html_text(trim = TRUE)
+  
+  job_locations <- soup %>% 
+    html_nodes(".list-item ul.list-meta li:nth-child(1)") %>% 
+    html_text(trim = TRUE)
+  
+  # Combine data into a dataframe
+  jobs_df <- data.frame(
+    Title = job_titles,
+    Location = job_locations,
+    Posted_Date = job_dates,
+    stringsAsFactors = FALSE
+  )
+  
+  return(jobs_df)
+}
+
+# Initialize an empty data frame to store all jobs
+all_jobs <- data.frame()
+
+# Scrape both pages
+for (page in 1:3) {
+  page_url <- if (page == 1) {
+    "https://www.schooljobs.com/careers/cwc"
+  } else {
+    paste0("https://www.schooljobs.com/careers/cwc?page= ", page)
+  }
+  
+  page_jobs <- extract_jobs(page_url)
+  
+  if (nrow(page_jobs) > 0) {
+    all_jobs <- bind_rows(all_jobs, page_jobs)
+    cat("Scraped page", page, "\n")
+  } else {
+    cat("No data found on page", page, "\n")
+  }
+}
+
+# Add the current date to the dataframe
+central <- all_jobs %>%
+  mutate(Institution = "Central Wyoming College")%>%
+  mutate(Link = "https://www.schooljobs.com/careers/cwc")
+
+# Print the dataframe
+print(central)
+
+# Close RSelenium
+remDr$close()
+rD$server$stop()
+
+
+```
+
+### This pulls jobs data from Eastern Wyoming college
+```{r Eastern, message=FALSE, warning=FALSE, echo=TRUE}
+library(rvest)
+library(RSelenium)
+library(dplyr)
+
+# Start RSelenium with Firefox browser
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Function to extract job postings from a page
+extract_jobs <- function(page_url) {
+  # Navigate to the page
+  remDr$navigate(page_url)
+  
+  # Wait for dynamic content to load
+  Sys.sleep(10)  # Adjust as needed based on page loading time
+  
+  # Get page source and parse with rvest
+  page_source <- remDr$getPageSource()[[1]]
+  soup <- read_html(page_source)
+  
+  # Extract job titles
+  job_titles <- soup %>% 
+    html_nodes(".job-title a") %>% 
+    html_text()
+  
+  # Combine data into a dataframe
+  jobs_df <- data.frame(
+    Title = job_titles,
+    stringsAsFactors = FALSE
+  )
+  
+  return(jobs_df)
+}
+
+# Initialize an empty data frame to store all jobs
+all_jobs <- data.frame()
+
+# Scrape both pages (assuming pagination exists)
+for (page in 1:2) {  # Adjust the range if more pages are available
+  page_url <- paste0("https://ewc.peopleadmin.com/postings/search?page=", page)
+  page_jobs <- extract_jobs(page_url)
+  
+  if (nrow(page_jobs) > 0) {
+    all_jobs <- bind_rows(all_jobs, page_jobs)
+    cat("Scraped page", page, "\n")
+  } else {
+    cat("No data found on page", page, "\n")
+  }
+}
+
+eastern<- all_jobs%>%
+  mutate(Location = "Eastern Wyoming Campus")%>%
+  mutate(Posted_Date = Sys.Date())%>%
+  mutate(Institution = "Eastern Wyoming Commmunity College")%>%
+  mutate(Link = "https://ewc.peopleadmin.com/postings/search?page=")%>%
+  mutate(Posted_Date = format(as.Date(Posted_Date, format = "%Y-%m-%d"), "%m/%d/%Y"))
+
+eastern<- eastern%>%
+  filter(Title != "Job Title")
+
+# Print the dataframe
+print(eastern)
+
+# Close RSelenium
+remDr$close()
+rD$server$stop()
+
+```
+
+### This pulls data Gillette college
+```{r gillette, message=FALSE, echo=TRUE, warning=FALSE}
+library(rvest)
+library(RSelenium)
+library(dplyr)
+
+# Start RSelenium with Firefox browser
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Function to extract job postings from a page
+extract_jobs <- function(page_url) {
+  # Navigate to the page
+  remDr$navigate(page_url)
+  
+  # Wait for dynamic content to load
+  Sys.sleep(10)  # Adjust as needed based on page loading time
+  
+  # Get page source and parse with rvest
+  page_source <- remDr$getPageSource()[[1]]
+  soup <- read_html(page_source)
+  
+  # Extract job details
+  job_titles <- soup %>% 
+    html_nodes(".list-item .item-details-link") %>% 
+    html_text(trim = TRUE)
+  
+  job_dates <- soup %>% 
+    html_nodes(".list-published .list-entry-starts span") %>% 
+    html_text(trim = TRUE)
+  
+  job_locations <- soup %>% 
+    html_nodes(".list-item ul.list-meta li:nth-child(1)") %>% 
+    html_text(trim = TRUE)
+  
+  # Combine data into a dataframe
+  jobs_df <- data.frame(
+    Title = job_titles,
+    Location = job_locations,
+    Posted_Date = job_dates,
+    stringsAsFactors = FALSE
+  )
+  
+  return(jobs_df)
+}
+
+# Initialize an empty data frame to store all jobs
+all_jobs <- data.frame()
+
+# Scrape both pages
+for (page in 1:5) {
+  page_url <- if (page == 1) {
+    "https://www.schooljobs.com/careers/gillettecollege"
+  } else {
+    paste0("https://www.schooljobs.com/careers/gillettecollege?page= ", page)
+  }
+  
+  page_jobs <- extract_jobs(page_url)
+  
+  if (nrow(page_jobs) > 0) {
+    all_jobs <- bind_rows(all_jobs, page_jobs)
+    cat("Scraped page", page, "\n")
+  } else {
+    cat("No data found on page", page, "\n")
+  }
+}
+
+# Add the current date to the dataframe
+gillette <- all_jobs %>%
+  mutate(Institution = "Gillette College")%>%
+  mutate(Link = "https://www.schooljobs.com/careers/gillettecollege")
+
+# Print the dataframe
+print(central)
+
+# Close RSelenium
+remDr$close()
+rD$server$stop()
+
+```
+
+### This pulls data from Sheridan College
+```{r sheridan, echo=TRUE, message=FALSE, warning=FALSE}
+library(rvest)
+library(RSelenium)
+library(dplyr)
+
+# Start RSelenium with Firefox browser
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Function to extract job postings from a page
+extract_jobs <- function(page_url) {
+  # Navigate to the page
+  remDr$navigate(page_url)
+  
+  # Wait for dynamic content to load
+  Sys.sleep(10)  # Adjust as needed based on page loading time
+  
+  # Get page source and parse with rvest
+  page_source <- remDr$getPageSource()[[1]]
+  soup <- read_html(page_source)
+  
+  # Extract job titles and locations
+  job_titles <- soup %>%
+    html_nodes(".row .job-title h3 a") %>%
+    html_text()
+  
+  locations <- soup %>%
+    html_nodes(".row .col-md-2.col-xs-12.job-title.job-title-text-wrap.col-md-push-2:nth-child(4)") %>%
+    html_text()
+  
+  # Combine data into a dataframe
+  jobs_df <- data.frame(
+    Title = job_titles,
+    Location = locations,
+    stringsAsFactors = FALSE
+  )
+  
+  return(jobs_df)
+}
+
+# Initialize an empty data frame to store all jobs
+all_jobs <- data.frame()
+
+# Scrape the first 3 pages
+for (page in 1:3) {
+  page_url <- paste0("https://jobs.sheridan.edu/postings/search?page=", page)
+  page_jobs <- extract_jobs(page_url)
+  
+  if (nrow(page_jobs) > 0) {
+    all_jobs <- bind_rows(all_jobs, page_jobs)
+    cat("Scraped page", page, "\n")
+  } else {
+    cat("No data found on page", page, "\n")
+  }
+}
+
+sheridan<- all_jobs%>%
+  mutate(Posted_Date = Sys.Date())%>%
+  mutate(Institution = "Sheridan College")%>%
+  mutate(Link = "https://jobs.sheridan.edu/postings/search?page=")%>%
+  mutate(Posted_Date = format(as.Date(Posted_Date, format = "%Y-%m-%d"), "%m/%d/%Y"))
+  
+
+# Print the dataframe
+print(sheridan)
+
+# Close RSelenium
+remDr$close()
+rD$server$stop()
+
+
+```
+
+### This pulls data from Northwest College
+```{r Northwest, message=FALSE, warning=FALSE, echo=TRUE}
+library(rvest)
+library(RSelenium)
+library(dplyr)
+
+# Start RSelenium with Firefox browser
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Function to extract job postings from a page
+extract_jobs <- function(page_url) {
+  # Navigate to the page
+  remDr$navigate(page_url)
+  
+  # Wait for dynamic content to load
+  Sys.sleep(10)  # Adjust as needed based on page loading time
+  
+  # Get page source and parse with rvest
+  page_source <- remDr$getPageSource()[[1]]
+  soup <- read_html(page_source)
+  
+  # Extract job titles, posted dates, and locations
+  job_titles <- soup %>%
+    html_nodes(".row.row-table .job-title h3 a") %>%
+    html_text()
+  
+  posted_dates <- soup %>%
+    html_nodes(".row.row-table .tbody-cell.col-3:nth-child(1)") %>%
+    html_text()
+  
+  locations <- soup %>%
+    html_nodes(".row.row-table .tbody-cell.col-3:nth-child(3)") %>%
+    html_text()
+  
+  # Combine data into a dataframe
+  jobs_df <- data.frame(
+    Title = job_titles,
+    Posted_Date = posted_dates,
+    Location = locations,
+    stringsAsFactors = FALSE
+  )
+  
+  return(jobs_df)
+}
+
+# Initialize an empty data frame to store all jobs
+all_jobs <- data.frame()
+
+# Scrape the first 3 pages
+for (page in 1:3) {
+  page_url <- paste0("https://northwestcollege.simplehire.com/postings/search?page=", page)
+  page_jobs <- extract_jobs(page_url)
+  
+  if (nrow(page_jobs) > 0) {
+    all_jobs <- bind_rows(all_jobs, page_jobs)
+    cat("Scraped page", page, "\n")
+  } else {
+    cat("No data found on page", page, "\n")
+  }
+}
+
+northwest<- all_jobs%>%
+  mutate(Institution = "Northwest College")%>%
+  mutate(Link = "https://northwestcollege.simplehire.com/postings/search?page=")%>%
+  select(Title, Location, Posted_Date, Institution, Link)
+
+# Print the dataframe
+print(northwest)
+
+# Close RSelenium
+remDr$close()
+rD$server$stop()
+
+```
+
+
+
+### This pulls data from the University of Wyoming
+```{r university of Wyoming}
+library(RSelenium)
+library(dplyr)
+
+# Initialize RSelenium
+rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
+remDr <- rD$client
+
+# Navigate to the website
+url <- "https://eeik.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/requisitions?"
+remDr$navigate(url)
+
+# Handle location sharing prompt
+handle_location_prompt <- function(driver) {
+  # Attempt to find the "Yes" button or equivalent on the location prompt
+  tryCatch({
+    # Wait for the prompt to appear
+    Sys.sleep(2)
+    
+    # Adjust the CSS selector as needed based on actual button
+    prompt_buttons <- driver$findElements(using = 'css selector', 'button[data-test="allow-location"]')
+    
+    # Click the "Yes" button if it exists
+    if (length(prompt_buttons) > 0) {
+      prompt_buttons[[1]]$clickElement()
+      cat("Clicked on the 'Yes' button to allow location sharing.\n")
+    } else {
+      cat("Location sharing prompt not found.\n")
+    }
+  }, error = function(e) {
+    cat("Error handling location prompt: ", e$message, "\n")
+  })
+}
+
+# Handle location sharing prompt
+handle_location_prompt(remDr)
+
+# Scroll to load all job listings
+scroll_pause_time <- 3
+last_height <- remDr$executeScript("return document.body.scrollHeight")[[1]]
+
+repeat {
+  remDr$executeScript("window.scrollTo(0, document.body.scrollHeight);")
+  Sys.sleep(scroll_pause_time) # Wait for new jobs to load
+  
+  new_height <- remDr$executeScript("return document.body.scrollHeight")[[1]]
+  if (new_height == last_height) {
+    break
+  }
+  last_height <- new_height
+}
+
+# Extract job titles
+titles <- remDr$findElements(using = 'css selector', ".job-tile__title")
+job_titles <- sapply(titles, function(x) { x$getElementText() }) %>% unlist()
+cat("Number of job titles extracted: ", length(job_titles), "\n")
+
+# Extract job locations
+locations <- remDr$findElements(using = 'css selector', "span[data-bind='html: primaryLocation']")
+job_locations <- sapply(locations, function(x) { x$getElementText() }) %>% unlist()
+cat("Number of job locations extracted: ", length(job_locations), "\n")
+
+# Combine into a data frame
+wyjob_data <- data.frame(
+  Title = job_titles,
+  Location = job_locations,
+  stringsAsFactors = FALSE
+)
+
+# Close the RSelenium client and server
+remDr$close()
+rD$server$stop()
+
+# Process the data
+UW <- wyjob_data %>%
+  mutate(Institution = "University of Wyoming") %>%
+  mutate(Link = "https://eeik.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/requisitions?") %>%
+  mutate(Posted_Date = Sys.Date()) %>%
+  mutate(Posted_Date = format(as.Date(Posted_Date, format = "%Y-%m-%d"), "%m/%d/%Y")) %>%
+  select(Title, Location, Posted_Date, Institution, Link)
+
+# Print the final data
+print(UW)
+
+```
+
+### Combine all the Higher Education data
+#### This will populate your app folder for your Shiny application
+```{r munge he data, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(writexl)
+library(tidyverse)
+library(readxl)
+
+# Combine all datasets
+hedata <- rbind(lccc, casper, western, central, eastern, gillette, sheridan, northwest, UW)
+
+hedata$Posted_Date<- as.character(hedata$Posted_Date)
+
+hedata <- hedata %>%
+  mutate(Archive_Date = Sys.Date())
+
+# Save data with a time stamp
+file_name <- paste0("hedata_", Sys.Date(), ".xlsx")
+
+write_xlsx(hedata, path = file_name)
+
+write_xlsx(hedata, path = file.path("Archived_HE_data", file_name))
+write_xlsx(hedata, path = file.path("Wy_Ed_Jobs", "hedata.xlsx"))
+
+csv_files <- list.files("Archived_HE_data", pattern = "\\.xlsx$", full.names = TRUE)
+
+combined_HE_data <- csv_files %>%
+  lapply(read_xlsx) %>%   
+  bind_rows()
+
+combined_HE_data$Archive_Date <- as.Date(combined_HE_data$Archive_Date)
+
+combined_cat <- combined_HE_data %>%
+  mutate(Job_Type = case_when(
+    # Instructor/Teacher/Faculty
+    grepl("Instructor|Instructional|Teacher|Faculty|Adjunct|Professor|Lecturer|Post Doc|Subject Matter Expert|Librarian|Educator", Title, ignore.case = TRUE) ~ "Instructor/Teacher/Faculty",
+    
+    # Student Positions
+    grepl("Student Worker|Student Position|Work Study|Students Only|Student Library Aid|Student Employment", Title, ignore.case = TRUE) ~ "Student Positions",
+    
+    # Healthcare
+    grepl("Nurse|Wellbeing|Health|Medicine|Medical Support Assistant", Title, ignore.case = TRUE) ~ "Healthcare",
+    
+    # Temporary Position
+    grepl("Pooled Position|Temporary|Monthly Pooled", Title, ignore.case = TRUE) ~ "Temporary Position",
+    
+    # Staff (consolidated all office assistant/associate roles)
+    grepl("Hourly|Administrative Assistant|Administrative Associate|Secretary|Library Assistant|Office Assistant|Office Associate", 
+          Title, ignore.case = TRUE) ~ "Staff",
+    
+    # Advising
+    grepl("Advisor|Advising|Enrollment Counselor|Financial Aid Counselor|Night ESL Class Aide|Part-time Academic Support Services Pool- Academic Support Tutor|Peer Tutor|Tribal Education Assistant", Title, ignore.case = TRUE) ~ "Advising and Student Services",
+    
+    # Professional
+    grepl("Admissions|Coordinator|Registrar|Executive Assistant|Professional|Statistician|Proctor|Exec Assistant|Exec Assistant to President|Grant Writer|Graphic Designer|Negotiator|Botanist|College Relations|Controller|Database|Officer|Auditor|Web Site|Special Assistant|Retention Mentor|Buyer Assistant|Buyer, Textbooks|GEAR UP Event & College Coordination|Ombudsperson - Office of the President|Data Analyst|Employee Relations Specialist|Finance Technician|Grant Support Specialist|Marketing & Comm Spec.|Program Specialist", 
+          Title, ignore.case = TRUE) ~ "Professional",
+    
+    # Administration
+    grepl("\\bDean\\b|Vice President|Provost|Chief|Business Manager|Enrollment Specialist|Finance Technician|HR Records Specialist", Title, ignore.case = TRUE) ~ "Administration",
+    
+    # Coaching or Athletics
+    grepl("coach|Athletic|Athletics", Title, ignore.case = TRUE) ~ "Coaching or Athletics",
+    
+    # Accounting/Finance
+    grepl("Accountant|Receivable|Accounts", Title, ignore.case = TRUE) ~ "Accounting/Finance",
+    
+    # Research & Science (only actual research/scientific roles)
+    grepl("Research Associate|Laboratory Technician|Research Scientist", Title, ignore.case = TRUE) ~ "Research & Science",
+    
+    # Technical
+    grepl("Control Specialist|Engineer|IT Support Technician|Information Security Analyst|Programmer Analyst|Network Specialist|Specialist|Data Operation Engineer|Design Engineer|GIS Specialist", Title, ignore.case = TRUE) ~ "Technical",
+    
+    # Maintenance & Service
+    grepl("Maintenance|Technician|Facilities|Grounds|HVAC|Plumber|Carpenter|Cook|Baker|Logistics Handler|Meat Plant Technician", Title, ignore.case = TRUE) ~ "Maintenance & Service",
+    
+    # Support Services
+    grepl("Safety|Security|Custodian|Laborer|Driver|Cleaner|Facilities|Grounds|Library Information Specialist|Museum Exhibit Specialist|Specialist, Student Services|Campus Services I|Children's Center Part-Time Aide|KEY Camp Counselor|Lifeguard|Resident Assistant|Outdoor Recreation Lab Room|Part-Time Bookstore Sales Clerk|Physics Work-Study Assistant|Student Service Assistant|Subject Matter Expert, Life Enrichment Class", 
+          Title, ignore.case = TRUE) ~ "Support Services",
+    
+    # Culinary
+    grepl("Chef|Cook|Dining", Title, ignore.case = TRUE) ~ "Culinary",
+    
+    # Management
+    grepl("Coordinator|Director|\\bDirector\\b|Manager|Supervisor|Assoc Director|Assoc Dir|Assist Dir|Asst Dir", 
+          Title, ignore.case = TRUE) ~ "Management",
+    
+    TRUE ~ "Other"
+  ))
+
+facultydata <- combined_cat %>%
+  filter(Job_Type == "Instructor/Teacher/Faculty") %>%
+  mutate(Category = case_when(
+    grepl("Law|Legal|College of Law", Title, ignore.case = TRUE) ~ "Legal",  # New category for law-related faculty
+    
+    grepl("\\bAgricultural Communications\\b|Agricultural", Title, ignore.case = TRUE) ~ "CTE",  # Keeping this up top
+    
+    grepl("Math", Title, ignore.case = TRUE) ~ "Math",
+   
+    grepl("Philosophy|English|Communication( Studies)?|Literature|Mass Communication", Title, ignore.case = TRUE) ~ "Humanities",  # More specific for Communication
+    
+    grepl("\\bComputer Science\\b|Computer|Zoology|Information Technology|Computing", Title, ignore.case = TRUE) ~ "CTE",
+    
+    grepl("Chemistry|Biology|Physics|Astronomy|Lab|Geology|Science|Artificial Intelligence", Title, ignore.case = TRUE) ~ "Science",
+    
+    grepl("History", Title, ignore.case = TRUE) ~ "History",
+    
+    grepl("Business|Accounting|Finance", Title, ignore.case = TRUE) ~ "CTE",
+    
+    grepl("Physical|Outdoor Activity|Athletic Trainer|Kinesiology|Strength", Title, ignore.case = TRUE) ~ "Physical Education",
+    
+    grepl("Health Technology|Nursing|Dental Hygiene|EMS|Medical|Medicine|Nutritional|Nutrition|Pharmacy", Title, ignore.case = TRUE) ~ "CTE",  # Removed generic "Health" to avoid misclassification
+    
+    grepl("Culinary|Hospitality|Tourism", Title, ignore.case = TRUE) ~ "Culinary/Hospitality",
+    
+    grepl("Technology|Equine|Industrial|Electrical|Instrumentation|CDL|Massage|Criminal Justice|Maintenance|Powerline|Substation|Construction|Diesel|Heavy Equipment|Supply Chain|Machine Tool|Welding|Mechanical|Engineering|Engineer|Energy|Printmaking", 
+          Title, ignore.case = TRUE) ~ "CTE",
+    
+    grepl("Art|Graphic Design|Theater|Theatre|Acting|Music|Ceramics", Title, ignore.case = TRUE) ~ "The Arts",
+    
+    grepl("Criminal Justice", Title, ignore.case = TRUE) ~ "Criminal Justice",
+    
+    grepl("Human Services|Family", Title, ignore.case = TRUE) ~ "Human Services",
+    
+    grepl("Psychology|Anthropology|Sociology|Politics|Behavior|Social Work", Title, ignore.case = TRUE) ~ "Social Science",
+    
+    grepl("Spanish", Title, ignore.case = TRUE) ~ "Language",
+    
+    grepl("Education|Curriculum|Educational|Early Childhood", Title, ignore.case = TRUE) ~ "Education",
+    
+    grepl("library|librarian", Title, ignore.case = TRUE) ~ "Library",
+    
+    TRUE ~ "Uncategorized"
+  ))
+
+hesum <- facultydata %>%
+  group_by(Category, Archive_Date) %>%
+  summarize(
+    sum = n()
+  ) %>%
+  ungroup()%>%
+  mutate(Institution = "Total")%>%
+  select(Category, Archive_Date, Institution, sum)
+
+hesuminst<- facultydata%>%
+  group_by(Category, Archive_Date, Institution)%>%
+  summarise(
+    sum = n()
+  )%>%
+  ungroup()
+
+Allsum_he<-rbind(hesum, hesuminst)
+write.csv(Allsum_he, file = file.path("Wy_Ed_Jobs", "allsum_he.csv"))
+
+henow<- facultydata%>%
+  filter(Archive_Date == max(Archive_Date))
+
+henowsum <- henow %>%
+  group_by(Category) %>%
+  summarize(
+    Sum = n()
+  ) %>%
+  ungroup()%>%
+  mutate(Institution = "Total")
+
+henowinstsum<- henow %>%
+  group_by(Category, Institution)%>%
+  summarize(
+    Sum = n()
+  ) %>%
+  ungroup()%>%
+  select(Category, Sum, Institution)
+
+Allnow_he<- rbind(henowsum, henowinstsum)
+
+write.csv(Allnow_he, file = file.path("Wy_Ed_Jobs", "allnow_he.csv"))
+```
+
+
+

@@ -1,0 +1,12 @@
+name: Wy_Ed_Jobs
+title: Wy_Ed_Jobs
+username: marksresearch
+account: marksresearch
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15484944
+bundleId: 10957856
+url: https://marksresearch.shinyapps.io/Wy_Ed_Jobs/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
