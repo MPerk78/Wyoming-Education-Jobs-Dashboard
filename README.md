@@ -49,7 +49,7 @@ Installation:
    library(readxl)
    library(scales)
    library(shiny)
-   library(shinyDashboard)
+   library(shinydashboard)
    library(shinythemes)
    library(shinyWidgets)
    library(shinyjs)
@@ -71,4 +71,5 @@ No License Required for this
 
 Contact:
 For questions or support, contact [Mark Perkins / mperki17@uwyo.edu].
+
 
