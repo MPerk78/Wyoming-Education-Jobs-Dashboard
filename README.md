@@ -66,10 +66,13 @@ Usage:
 - Use the filters to explore job postings by district, school, academic year, or degree type.
 - Export filtered data for reporting or analysis by clicking the Export button.
 
-License:
-No License Required for this
+Licensing:
+- Code in this repository is licensed under the MIT License.
+- Processed datasets and archived CSV files are licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) license.
+- See the LICENSE and DATA_LICENSE.md files for full terms.
 
 Contact:
 For questions or support, contact [Mark Perkins / mperki17@uwyo.edu].
+
 
 
