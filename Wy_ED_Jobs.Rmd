@@ -1102,7 +1102,8 @@ all_jobs <- do.call(rbind, lapply(1:2, function(p) {
 }))
 
 # Add Institution column
-western <- all_jobs %>% mutate(Institution = "Western Wyoming Community College")
+western <- all_jobs %>% mutate(Institution = "Western Wyoming Community College")%>%
+  dplyr::select(Title, Location, Posted_Date, Institution, Link)
 
 # Save CSV
 write.csv(western, "WWCC_job_listings.csv", row.names = FALSE)
@@ -1275,8 +1276,8 @@ eastern <- all_jobs %>%
   mutate(
     Location = "Eastern Wyoming Campus",
     Institution = "Eastern Wyoming Community College",
-    Posted_Date = map_chr(Posted_Date, convert_to_relative_date)
-  ) %>%
+    Posted_Date = map_chr(Posted_Date, convert_to_relative_date)) %>%
+  dplyr::select(Title, Location, Posted_Date, Institution, Link)%>%
   distinct()
 
 print(eastern)
@@ -1450,8 +1451,8 @@ sheridan <- all_jobs %>%
   mutate(
     Location = "Sheridan College Campus",
     Institution = "Sheridan College",
-    Posted_Date = map_chr(Posted_Date, convert_to_relative_date)
-  ) %>%
+    Posted_Date = map_chr(Posted_Date, convert_to_relative_date))%>%
+  dplyr::select(Title, Location, Posted_Date, Institution, Link)%>%
   distinct()
 
 print(sheridan)
@@ -1459,8 +1460,6 @@ print(sheridan)
 # Close RSelenium
 remDr$close()
 rD$server$stop()
-
-
 
 ```
 
