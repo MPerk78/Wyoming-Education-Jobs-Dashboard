@@ -59,7 +59,7 @@ hesum_he$Category<- as.factor(hesum_he$Category)
 henowsum_he <- read.csv("allnow_he.csv") %>%
   filter(Category != "Uncategorized")
 
-last_refreshed_date <- "January 2, 2026"
+last_refreshed_date <- "January 9, 2026"
 
 #--------------------------------------------------
 # UI
@@ -158,41 +158,102 @@ ui <- dashboardPage(
       ),
       
       # ------------------ K-12 ------------------
-      tabItem(tabName = "k12_table", DTOutput("k12_jobs")),
-      tabItem(tabName = "k12_collmap", leafletOutput("k12_map", height = 800)),
-      tabItem(tabName = "k12_trends",
-              selectInput("district_trend", "Choose district:",
-                          choices = sort(unique(k12sum$District)), selected = "Total"),
-              sliderInput("k12_scroll", "Scroll timeline:",
-                min = min(k12sum$Archive_Date),
-                max = max(k12sum$Archive_Date),
-                value = c(
-                  max(k12sum$Archive_Date) - 365,
-                  max(k12sum$Archive_Date)),
-                timeFormat = "%Y-%m-%d",
-                width = "100%"),
-              plotlyOutput("k12_longitudinal_plot")),
-      tabItem(tabName = "k12_current",
-              selectInput("district_current", "Select District:",
-                          choices = sort(unique(k12nowsum$District)), selected = "Total"),
-              plotlyOutput("k12_current_plot")),
+      tabItem(
+        tabName = "k12_trends",
+        
+        # Row for category + district
+        fluidRow(
+          column(
+            width = 6,  # half the row
+            selectInput(
+              "broad_category",
+              "Choose Teacher Category (Hold Ctrl for multiple selections)",
+              choices  = sort(unique(k12sum$Broad_Category)),
+              selected = sort(unique(k12sum$Broad_Category)),
+              multiple = TRUE,
+              selectize = FALSE,
+              width = "100%"
+            )
+          ),
+          column(
+            width = 6,  # other half
+            selectInput(
+              "district_trend",
+              "Choose District:",
+              choices = sort(unique(k12sum$District)),
+              selected = "Total",
+              width = "100%"
+            )
+          )
+        ),
+        
+        # Timeline slider (full width)
+        sliderInput(
+          "k12_scroll",
+          "Scroll timeline:",
+          min = min(k12sum$Archive_Date),
+          max = max(k12sum$Archive_Date),
+          value = c(max(k12sum$Archive_Date) - 365,
+                    max(k12sum$Archive_Date)),
+          timeFormat = "%Y-%m-%d",
+          width = "100%"
+        ),
+        
+        # Plot output
+        plotlyOutput("k12_longitudinal_plot")
+      ),
+      
       
       # ------------------ Higher Ed ------------------
       tabItem(tabName = "he_table", DTOutput("he_jobs")),
       tabItem(tabName = "he_collmap", leafletOutput("he_map", height = 800)),
-      tabItem(tabName = "he_trends",
-              selectInput("inst_trend", "Select Institution:",
-                          choices = sort(unique(hesum_he$Institution)), selected = "Total"),
-              textOutput("he_slider_label"),
-              sliderInput("he_scroll","Scroll timeline:",
-                          min = min(hesum_he$Archive_Date),
-                          max = max(hesum_he$Archive_Date),
-                          value = c(
-                            max(hesum_he$Archive_Date) - 365,  
-                            max(hesum_he$Archive_Date)),
-                          timeFormat = "%Y-%m-%d",
-                          width = "100%"),
-              plotlyOutput("he_longitudinal_plot")),
+      tabItem(
+        tabName = "he_trends",
+        
+        # Row for Category + Institution
+        fluidRow(
+          column(
+            width = 6,
+            selectInput(
+              "he_category",
+              "Choose Category (Hold Ctrl for multiple selections)",
+              choices  = sort(unique(hesum_he$Category)),
+              selected = sort(unique(hesum_he$Category)),
+              multiple = TRUE,
+              selectize = FALSE,
+              width = "100%"
+            )
+          ),
+          column(
+            width = 6,
+            selectInput(
+              "inst_trend",
+              "Select Institution:",
+              choices = sort(unique(hesum_he$Institution)),
+              selected = "Total",
+              width = "100%"
+            )
+          )
+        ),
+        
+        # Timeline slider (full width)
+        textOutput("he_slider_label"),  # optional label
+        sliderInput(
+          "he_scroll",
+          "Scroll timeline:",
+          min = min(hesum_he$Archive_Date),
+          max = max(hesum_he$Archive_Date),
+          value = c(
+            max(hesum_he$Archive_Date) - 365,
+            max(hesum_he$Archive_Date)
+          ),
+          timeFormat = "%Y-%m-%d",
+          width = "100%"
+        ),
+        
+        # Plot output
+        plotlyOutput("he_longitudinal_plot")),
+      
       tabItem(tabName = "he_current",
               selectInput("inst_current", "Select Institution:",
                           choices = sort(unique(henowsum_he$Institution)), selected = "Total"),
@@ -238,7 +299,22 @@ server <- function(input, output, session) {
       )
   })
   
+  # ---- DATA SCOPE: District + Broad Category ----------------------------
   
+  filtered_k12sum <- reactive({
+    req(input$district_trend, input$broad_category)
+    
+    k12sum %>%
+      dplyr::filter(
+        # District filter
+        input$district_trend == "Total" |
+          District == input$district_trend,
+        
+        # Broad category filter
+        input$broad_category == "All" |
+          Broad_Category == input$broad_category
+      )
+  })
   
  
 # K-12 longitudinal plot
@@ -247,11 +323,13 @@ server <- function(input, output, session) {
     req(nrow(df) > 0, input$k12_scroll)
     
     df %>%
-      filter(
+      dplyr::filter(
         Archive_Date >= input$k12_scroll[1],
         Archive_Date <= input$k12_scroll[2]
       )
   })
+  
+  # ---- OUTPUT: LONGITUDINAL PLOT ----------------------------------------
   
   
   output$k12_longitudinal_plot <- renderPlotly({
@@ -293,7 +371,6 @@ server <- function(input, output, session) {
     
     ggplotly(p, height = 500, tooltip = "text")
   })
-  
 
   
   output$k12_current_plot <- renderPlotly({
@@ -335,21 +412,25 @@ server <- function(input, output, session) {
   })
   
   
-  # Longitudinal Higher Education Data 
-  # Reactive filtered dataset by institution
+  # ---- Reactive filtered dataset by institution + Category ----
   filtered_hesum <- reactive({
-    req(input$inst_trend)
-    if (input$inst_trend == "Total") {
+    req(input$inst_trend, input$he_category)
+    
+    # Filter by institution
+    df <- if (input$inst_trend == "Total") {
       hesum_he
     } else {
       hesum_he %>% filter(Institution == input$inst_trend)
     }
+    
+    # Filter by Category (vector match)
+    df %>% filter(Category %in% input$he_category)
   })
   
-  # Number of weeks visible at a time
+  # ---- Number of weeks visible at a time ----
   WINDOW_WEEKS <- 52
   
-  # Update slider based on filtered data
+  # ---- Update slider based on filtered data ----
   observe({
     df <- filtered_hesum()
     req(nrow(df) > 0)
@@ -363,7 +444,7 @@ server <- function(input, output, session) {
       "he_scroll",
       min = min(he_dates),
       max = max(he_dates),
-      value = c(max(he_dates) - WINDOW_WEEKS*7, max(he_dates)),  # last 52 weeks
+      value = c(max(he_dates) - WINDOW_WEEKS*7, max(he_dates)),
       timeFormat = "%Y-%m-%d"
     )
     
@@ -371,7 +452,7 @@ server <- function(input, output, session) {
     session$userData$he_dates <- he_dates
   })
   
-  # Reactive dataset filtered by date window
+  # ---- Reactive dataset filtered by date window ----
   he_windowed <- reactive({
     df <- filtered_hesum()
     req(input$he_scroll)
@@ -384,18 +465,16 @@ server <- function(input, output, session) {
       arrange(Archive_Date)
   })
   
-  # Optional: show slider range
+  # ---- Optional: show slider range ----
   output$he_slider_label <- renderText({
     req(input$he_scroll)
     paste0("Showing: ", input$he_scroll[1], " to ", input$he_scroll[2])
   })
   
-  
-  
-  # Render plot
+  # ---- Render plot ----
   output$he_longitudinal_plot <- renderPlotly({
     df <- he_windowed()
-    validate(need(nrow(df) > 0, "No data for selected institution/date range."))
+    validate(need(nrow(df) > 0, "No data for selected institution/category/date range."))
     
     # Ensure one row per Category × Archive_Date and sort properly
     df <- df %>%
@@ -431,6 +510,7 @@ server <- function(input, output, session) {
     
     ggplotly(p, height = 500, tooltip = "text")
   })
+  
   
   
   
