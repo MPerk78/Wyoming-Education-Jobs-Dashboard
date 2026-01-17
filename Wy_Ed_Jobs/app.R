@@ -59,7 +59,7 @@ hesum_he$Category<- as.factor(hesum_he$Category)
 henowsum_he <- read.csv("allnow_he.csv") %>%
   filter(Category != "Uncategorized")
 
-last_refreshed_date <- "January 9, 2026"
+last_refreshed_date <- "January 16, 2026"
 
 #--------------------------------------------------
 # UI
@@ -157,6 +157,17 @@ ui <- dashboardPage(
         )
       ),
       
+      tabItem(
+        tabName = "k12_table",
+        DTOutput("k12_jobs")
+      ),
+      tabItem(
+        tabName = "k12_collmap",
+        leafletOutput("k12_map", height = 800)
+      ),
+      
+      
+      
       # ------------------ K-12 ------------------
       tabItem(
         tabName = "k12_trends",
@@ -203,6 +214,18 @@ ui <- dashboardPage(
         plotlyOutput("k12_longitudinal_plot")
       ),
       
+      tabItem(
+        tabName = "k12_current",
+        
+        selectInput(
+          "district_current",
+          "Choose District:",
+          choices = sort(unique(k12nowsum$District)),
+          selected = "Total"
+        ),
+        
+        plotlyOutput("k12_current_plot")
+      ),
       
       # ------------------ Higher Ed ------------------
       tabItem(tabName = "he_table", DTOutput("he_jobs")),
@@ -268,11 +291,7 @@ ui <- dashboardPage(
 #--------------------------------------------------
 server <- function(input, output, session) {
   
-  #------------Filter for longitudinal plot--------
-  filtered_k12sum <- reactive({
-    req(input$district_trend)
-    k12sum %>% filter(District %in% input$district_trend)
-  })
+  
   
   
   # -------- K-12 --------
@@ -301,6 +320,8 @@ server <- function(input, output, session) {
   
   # ---- DATA SCOPE: District + Broad Category ----------------------------
   
+  #------------Filter for longitudinal plot--------
+  
   filtered_k12sum <- reactive({
     req(input$district_trend, input$broad_category)
     
@@ -310,9 +331,8 @@ server <- function(input, output, session) {
         input$district_trend == "Total" |
           District == input$district_trend,
         
-        # Broad category filter
-        input$broad_category == "All" |
-          Broad_Category == input$broad_category
+        # Broad category filter (MULTI-SELECT SAFE)
+        Broad_Category %in% input$broad_category
       )
   })
   
@@ -322,12 +342,22 @@ server <- function(input, output, session) {
     df <- filtered_k12sum()
     req(nrow(df) > 0, input$k12_scroll)
     
-    df %>%
-      dplyr::filter(
+    df <- df %>%
+      filter(
         Archive_Date >= input$k12_scroll[1],
         Archive_Date <= input$k12_scroll[2]
       )
+    
+    # Aggregate to ensure one row per Broad_Category x Archive_Date
+    df <- df %>%
+      group_by(Broad_Category, Archive_Date) %>%
+      summarise(sum = sum(sum), .groups = "drop") %>%
+      arrange(Broad_Category, Archive_Date)
+    
+    df
   })
+  
+  
   
   # ---- OUTPUT: LONGITUDINAL PLOT ----------------------------------------
   
@@ -339,25 +369,26 @@ server <- function(input, output, session) {
       need(nrow(df) > 0, "No data for selected districts.")
     )
     
-    p <- ggplot(
-      df,
-      aes(
-        x = Archive_Date,
-        y = sum,
-        color = Broad_Category,
-        group = Broad_Category,
-        text = paste0(
-          "Date: ", Archive_Date, "<br>",
-          "Category: ", Broad_Category, "<br>",
-          "Postings: ", sum
-        )
+    # Get the exact dates in the filtered data
+    all_dates <- sort(unique(df$Archive_Date))
+    
+    p <- ggplot(df, aes(
+      x = Archive_Date,
+      y = sum,
+      color = Broad_Category,
+      group = Broad_Category,
+      text = paste0(
+        "Date: ", Archive_Date, "<br>",
+        "Category: ", Broad_Category, "<br>",
+        "Postings: ", sum
       )
-    ) +
+    )) +
       geom_line() +
       geom_point(size = 1) +
-      labs(
-        x = "Archive Date",
-        y = "Number of Postings"
+      labs(x = "Archive Date", y = "Number of Postings") +
+      scale_x_date(
+        breaks = all_dates,      # show every date exactly
+        labels = scales::date_format("%b %d")
       ) +
       theme_minimal() +
       theme(
@@ -371,6 +402,7 @@ server <- function(input, output, session) {
     
     ggplotly(p, height = 500, tooltip = "text")
   })
+  
 
   
   output$k12_current_plot <- renderPlotly({
