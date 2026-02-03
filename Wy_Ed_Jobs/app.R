@@ -59,14 +59,14 @@ hesum_he$Category<- as.factor(hesum_he$Category)
 henowsum_he <- read.csv("allnow_he.csv") %>%
   filter(Category != "Uncategorized")
 
-last_refreshed_date <- "January 16, 2026"
+last_refreshed_date <- "January 30, 2026"
 
 #--------------------------------------------------
 # UI
 #--------------------------------------------------
 ui <- dashboardPage(
   skin = 'black',
-  dashboardHeader(title = "Wyoming Education Careers"),
+  dashboardHeader(title = "Wyoming Education Careers (In development)"),
   dashboardSidebar(
     sidebarMenu(
       menuItem("Introduction", tabName = "intro", icon = icon("home")),
@@ -121,8 +121,8 @@ ui <- dashboardPage(
               position: absolute;
               top: 50px;  
               right: 20px;
-              width: 120px;
-              height: auto;
+              width: auto;
+              height: 85px;
               z-index: 10;
             }
             .refresh-info {
@@ -149,7 +149,7 @@ ui <- dashboardPage(
           ")),
           div(class = "intro-background",
               div(class = "refresh-info", paste("Refreshed on:", last_refreshed_date)),
-              img(src = "coed.jpg", class = "coed-logo"),
+              img(src = "mark.png", class = "coed-logo"),
               div(class = "intro-text",
                   h1("Education Jobs in Wyoming")
               )
@@ -337,7 +337,7 @@ server <- function(input, output, session) {
   })
   
  
-# K-12 longitudinal plot
+  # K-12 longitudinal plot
   df_windowed <- reactive({
     df <- filtered_k12sum()
     req(nrow(df) > 0, input$k12_scroll)
@@ -350,12 +350,15 @@ server <- function(input, output, session) {
     
     # Aggregate to ensure one row per Broad_Category x Archive_Date
     df <- df %>%
+      filter(District != "Total") %>%  # remove total row to prevent double-counting
       group_by(Broad_Category, Archive_Date) %>%
       summarise(sum = sum(sum), .groups = "drop") %>%
       arrange(Broad_Category, Archive_Date)
     
     df
   })
+  
+
   
   
   
