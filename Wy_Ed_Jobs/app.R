@@ -59,7 +59,7 @@ hesum_he$Category<- as.factor(hesum_he$Category)
 henowsum_he <- read.csv("allnow_he.csv") %>%
   filter(Category != "Uncategorized")
 
-last_refreshed_date <- "January 30, 2026"
+last_refreshed_date <- "February 27, 2026"
 
 #--------------------------------------------------
 # UI
@@ -359,9 +359,6 @@ server <- function(input, output, session) {
   })
   
 
-  
-  
-  
   # ---- OUTPUT: LONGITUDINAL PLOT ----------------------------------------
   
   
