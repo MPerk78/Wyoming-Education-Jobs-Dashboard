@@ -294,4 +294,14 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     (IPEDS est.)".
   * [x] QCEW county context (2026-10-31): `qcew_school_pay.R` (shared) -- average pay of public school employees by
     county (all roles), shown in the district map popup.
+  * [x] UW salary book (2026-10-31): IPEDS lumps each college's managers into one average, and UW reports only its top
+    111 there ($159K), so UW assistant directors and business managers showed $159K. `uw_salary_book.R` (WY only) parses
+    UW's published "Salary Information - Departmental Listing" (FY2026: 3,084 salaried staff, department/title/salary,
+    no names); UW staff postings get the median salary of UW staff with the same title, else the same role before the
+    first comma, with 3+ holders (Business Manager $60,894 from 40; Assistant Director $60,756 from 44). Unmatched UW
+    management titles show nothing rather than $159K. BLS OEWS was checked and rejected for this: postsecondary
+    administrators' 25th percentile is $81K (MT) / $108K (WY). HE Jobs column renamed "Typical pay (est.)", source on hover.
+  * [x] Hourly-pool, work-study, student and intern postings no longer get an annual IPEDS figure (shared
+    `is_salaried_staff_posting()`); e.g. UW Student Media hourly jobs had shown $68,490. "Executive Assistant" is office
+    support, not management.
   * [ ] Declined: ACS county earnings (less specific than QCEW for the same question).

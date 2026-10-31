@@ -69,17 +69,27 @@ fetch_ipeds_staff_salaries <- function(fips, unitids, start_year = as.integer(fo
   stop("No IPEDS non-instructional staff salary data for fips ", fips, " since ", start_year - lookback)
 }
 
-# The IPEDS staff category for a higher-ed posting title. NA for faculty
-# postings (classify_he_job_type()) and for titles no category fits.
-# Checked in order, so "Administrative Assistant to the Director" is office
-# support and "Athletic Trainer" is healthcare, not sports.
+# Hourly-pool, work-study, student and intern postings. The figures here are
+# for full-time salaried staff, so these get none ("Hourly Pooled - Broadcast
+# Studio Manager, Student Media" is a student job, not management).
+HOURLY_OR_STUDENT_TITLE <- "pooled|work[- ]?study|\\bintern(ship)?s?\\b|student (employee|worker|technician|assistant|aide|staff)|\\bfws\\b"
+
+# A higher-ed posting for salaried staff: not faculty, not hourly or student.
+is_salaried_staff_posting <- function(title) {
+  !classify_he_job_type(title) %in% c("Instructor/Teacher/Faculty", "Adjunct/Part-Time Faculty") &
+    !grepl(HOURLY_OR_STUDENT_TITLE, tolower(as.character(title)))
+}
+
+# The IPEDS staff category for a higher-ed posting title. NA for faculty,
+# hourly and student postings (is_salaried_staff_posting()) and for titles
+# no category fits. Checked in order, so "Administrative Assistant to the
+# Director" is office support and "Athletic Trainer" is healthcare, not sports.
 ipeds_staff_category_for_title <- function(title) {
   t <- tolower(as.character(title))
-  faculty <- classify_he_job_type(title) %in% c("Instructor/Teacher/Faculty", "Adjunct/Part-Time Faculty")
   code <- dplyr::case_when(
     grepl("nurse|\\brn\\b|physician|clinic|pharmac|athletic trainer|therapist|medical|dental", t) ~ 9L,
     grepl("research (assistant|associate|scientist|technician|technologist|specialist|coordinator)|postdoc", t) ~ 2L,
-    grepl("administrative (assistant|associate|support|specialist)|secretar|receptionist|\\bclerk|office (assistant|associate|specialist)|program assistant|data entry", t) ~ 12L,
+    grepl("(administrative|executive) (assistant|associate|support|specialist)|secretar|receptionist|\\bclerk|office (assistant|associate|specialist)|program assistant|data entry", t) ~ 12L,
     grepl("director|\\bdean\\b|vice president|provost|president|chancellor|\\bchief\\b|manager|superintendent", t) ~ 5L,
     grepl("account|financ|budget|payroll|purchas|procure|auditor|bursar|human resources|\\bhr\\b|benefits", t) ~ 6L,
     grepl("\\bit\\b|information technology|developer|programmer|software|network|systems? admin|database|engineer|\\bweb|cyber|scientist|laboratory|lab tech", t) ~ 7L,
@@ -92,7 +102,7 @@ ipeds_staff_category_for_title <- function(title) {
     grepl("driver|delivery|warehouse|shipping|\\bmail", t) ~ 14L,
     TRUE ~ NA_integer_
   )
-  ifelse(faculty, NA_integer_, code)
+  ifelse(is_salaried_staff_posting(title), code, NA_integer_)
 }
 
 # Adds Est_* to higher-ed postings: the institution's IPEDS average for the

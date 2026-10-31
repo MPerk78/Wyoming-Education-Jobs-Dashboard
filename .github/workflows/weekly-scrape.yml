@@ -255,6 +255,7 @@ jobs:
             Wy_Ed_Jobs/combinedclean.csv \
             Wy_Ed_Jobs/oews_role_wages.csv \
             Wy_Ed_Jobs/ipeds_staff_salaries.csv \
+            Wy_Ed_Jobs/uw_salary_book.csv \
             Wy_Ed_Jobs/qcew_county_school_pay.csv \
             Wy_Ed_Jobs/allsum.csv \
             Wy_Ed_Jobs/allnow.csv \

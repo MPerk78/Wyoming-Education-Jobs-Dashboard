@@ -103,10 +103,14 @@ format_bls_estimate <- function(est_pay, est_unit, occupation, area, has_posted_
 
 # Same for higher-ed staff postings: the institution's IPEDS average for the
 # posting's staff category ("IPEDS average for full-time management staff,
-# Montana State University").
-format_ipeds_estimate <- function(est_pay, est_unit, category, institution, has_posted_pay) {
-  format_pay_estimate(est_pay, est_unit, paste0("IPEDS average for full-time ", category, " staff, ", institution),
-                      has_posted_pay)
+# Casper College"), or for UW the median in its own salary book ("Median
+# FY2026 salary of UW staff titled Business Manager (40 UW staff), UW
+# salary book").
+format_he_estimate <- function(est_pay, est_unit, category, institution, year, source, has_posted_pay) {
+  tooltip <- ifelse(!is.na(source) & source == "UW salary book",
+                    paste0("Median ", year, " salary of UW staff titled ", category, ", UW salary book"),
+                    paste0("IPEDS average for full-time ", category, " staff, ", institution))
+  format_pay_estimate(est_pay, est_unit, tooltip, has_posted_pay)
 }
 
 format_pay_estimate <- function(est_pay, est_unit, tooltip, has_posted_pay) {
@@ -589,14 +593,15 @@ k12nowsum <- read.csv("allnow.csv", fileEncoding = "UTF-8") %>%
 ccdata <- read_xlsx("hedata.xlsx")
 # Optional posted-pay columns, padded the same way as combinedclean.csv's.
 for (col in c("Pay_Min", "Pay_Max", "Pay_Unit", "Pay_Text",
-              "Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year")) {
+              "Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year", "Est_Source")) {
   if (!col %in% names(ccdata)) ccdata[[col]] <- NA
 }
 ccdata <- ccdata %>%
   validate_and_pad_schema(c("Institution", "Title", "Location", "Posted_Date", "Link"), "hedata.xlsx") %>%
   mutate(`Posted Pay` = format_posted_pay(Pay_Min, Pay_Max, Pay_Unit),
-         `Typical pay (IPEDS est.)` = format_ipeds_estimate(Est_Pay, Est_Pay_Unit, Est_Occupation, Est_Area, !is.na(Pay_Min))) %>%
-  select(Institution, Title, Location, `Posted Pay`, `Typical pay (IPEDS est.)`, Posted_Date, Link,
+         `Typical pay (est.)` = format_he_estimate(Est_Pay, Est_Pay_Unit, Est_Occupation, Est_Area, Est_Year, Est_Source,
+                                                   !is.na(Pay_Min))) %>%
+  select(Institution, Title, Location, `Posted Pay`, `Typical pay (est.)`, Posted_Date, Link,
          Pay_Min, Pay_Max, Pay_Unit, Est_Pay, Est_Pay_Unit) %>%
   arrange(Institution, Title) %>%
   mutate(
@@ -631,8 +636,8 @@ he_salary_lookup <- mapdata2_he %>%
 ccdata <- ccdata %>%
   left_join(he_salary_lookup, by = c("Institution" = "Name")) %>%
   # Figure for the map's pay bands: posted pay, else the institution's IPEDS
-  # faculty average on a full-time faculty posting, else its IPEDS average
-  # for the posting's staff category.
+  # faculty average on a full-time faculty posting, else the staff estimate
+  # (UW salary book median, or the IPEDS average for the staff category).
   mutate(
     .faculty_avg = Appointment == "Faculty/instructor (non-adjunct)" & !is.na(Faculty_Avg_Salary),
     .fallback_value = ifelse(.faculty_avg, Faculty_Avg_Salary, Est_Pay),
@@ -640,7 +645,7 @@ ccdata <- ccdata %>%
     .Pay_Value = posting_pay_value(Pay_Min, Pay_Max, Pay_Unit, .fallback_value, .fallback_unit)$value,
     .Pay_Unit = posting_pay_value(Pay_Min, Pay_Max, Pay_Unit, .fallback_value, .fallback_unit)$unit
   ) %>%
-  select(Institution, Title, Location, Appointment, `Posted Pay`, `Typical pay (IPEDS est.)`, `Avg Faculty Salary`,
+  select(Institution, Title, Location, Appointment, `Posted Pay`, `Typical pay (est.)`, `Avg Faculty Salary`,
          `Posted / listed`, Link, .Pay_Value, .Pay_Unit)
 
 hesum_he <- read.csv("allsum_he.csv") %>%
@@ -1831,7 +1836,7 @@ ui <- dashboardPage(
           ),
           uiOutput("he_filter_status")
         ),
-        p(class = "help-block", style = "margin-bottom: 8px;", "Posted Pay is the pay the job posting itself states (hourly, annual, or per credit hour, as written); blank where the posting gives no figure. Typical pay (IPEDS est.) fills in for staff postings that state none: the college's average pay for its full-time staff in that job category (IPEDS; hover for the category), not this job's offer. Avg Faculty Salary reflects full-time instructional staff compensation from IPEDS via Urban Institute."),
+        p(class = "help-block", style = "margin-bottom: 8px;", "Posted Pay is the pay the job posting itself states (hourly, annual, or per credit hour, as written); blank where the posting gives no figure. Typical pay (est.) fills in for salaried staff postings that state none, not this job's offer: for the University of Wyoming, the median salary of UW staff with the same title in UW's published salary book; for the other colleges, the college's average pay for its full-time staff in that job category (IPEDS). Hover for the source. Hourly and student jobs get no estimate. Avg Faculty Salary reflects full-time instructional staff compensation from IPEDS via Urban Institute."),
         DTOutput("he_jobs")
       ),
       tabItem(

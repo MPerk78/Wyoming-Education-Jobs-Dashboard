@@ -39,6 +39,17 @@ test_that("ipeds_staff_category_for_title maps staff titles and leaves faculty o
                c(12L, 5L, 6L, 7L, 4L, 9L, 8L, 10L, 13L, 3L, NA, NA, NA))
 })
 
+test_that("hourly, student and intern postings get no staff category; executive assistants are office support", {
+  # Real titles that were given annual averages (UW, LCCC, Gillette, MSU-Northern).
+  titles <- c("Hourly Pooled - Broadcast Studio Manager, Student Media", "Work Study - Office Aide, Accounting",
+              "FWS Grounds Worker (Student)", "Student Staff, IT Pathway Technical Support",
+              "Hourly Pooled - Marketing Intern, Website - Institutional Advancement",
+              "Monthly Pooled -  Apartment Live-In Assistant, Housing", "Executive Assistant to the President",
+              "Student Success Coordinator")
+  expect_equal(ipeds_staff_category_for_title(titles), c(NA, NA, NA, NA, NA, NA, 12L, NA))
+  expect_equal(is_salaried_staff_posting(titles), c(rep(FALSE, 6), TRUE, TRUE))
+})
+
 test_that("attach_ipeds_staff_estimates fills Est_* from the institution's category average", {
   staff <- data.frame(IPEDS_UNITID = c(1L, 1L), Staff_Category = c(5L, 12L),
                       Category_Label = c("management", "office and administrative support"),

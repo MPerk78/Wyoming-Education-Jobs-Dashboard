@@ -854,6 +854,13 @@ if (file.exists(staff_path)) {
                                                           colClasses = c(Year = "character")),
                                          he_unitids$IPEDS_UNITID[match(canonicalize_he_institution(hedata$Institution), he_unitids$Name)])
 }
+# University of Wyoming staff postings use UW's own salary book instead
+# (uw_salary_book.R): the median salary of UW staff with the same title.
+source("uw_salary_book.R")
+uw_book_path <- file.path("Wy_Ed_Jobs", "uw_salary_book.csv")
+if (file.exists(uw_book_path) && "Est_Pay" %in% names(hedata)) {
+  hedata <- attach_uw_salary_book_estimates(hedata, read.csv(uw_book_path, stringsAsFactors = FALSE))
+}
 write_xlsx(hedata, path = file.path("Wy_Ed_Jobs", "hedata.xlsx"))
 
 # Fix historical institution-name typos before anything downstream keys off
@@ -878,7 +885,7 @@ this_week_he_cat <- hedata %>%
 this_week_facultydata <- this_week_he_cat %>%
   filter(Job_Type %in% c("Instructor/Teacher/Faculty", "Adjunct/Part-Time Faculty")) %>%
   mutate(Category = classify_he_faculty_category(Title)) %>%
-  select(-all_of(POSTED_PAY_COLUMNS), -any_of(c("Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year")))
+  select(-all_of(POSTED_PAY_COLUMNS), -any_of(c("Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year", "Est_Source")))
 
 #--------------------------------------------------------------------------
 # Append this week's newly classified rows onto the existing accumulated
@@ -978,6 +985,13 @@ local({
     write.csv(staff, file.path("Wy_Ed_Jobs", "ipeds_staff_salaries.csv"), row.names = FALSE)
   }
 })
+
+# University of Wyoming salary book (uw_salary_book.R), read by the HE munge
+# step on the next run. Downloaded only when UW links a new book; a failed
+# check keeps the committed file.
+source("uw_salary_book.R")
+tryCatch(refresh_uw_salary_book(file.path("Wy_Ed_Jobs", "uw_salary_book.csv")),
+         error = function(e) message("UW salary book refresh skipped: ", conditionMessage(e)))
 
 # Static geo/link fields (Longitude, Latitude, Link, County) stay hand-
 # maintained -- only the salary figures get refreshed from IPEDS each run.

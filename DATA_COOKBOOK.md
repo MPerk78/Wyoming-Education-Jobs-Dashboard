@@ -162,8 +162,20 @@ One row per open posting across all 9 public HE institutions, every job type (no
 | `Pay_Max` | number | Highest stated amount (equals `Pay_Min` for a single figure). |
 | `Pay_Unit` | text | `hour`, `day`, `month`, `year`, `credit hour`, or `stipend`; `NA` when the stated unit is implausible for the amount (e.g. Gillette's $900 "Hourly" adjunct rate). |
 | `Pay_Text` | text | The board's own pay wording the figure was read from, e.g. "Full-Time - $61,356.00 - $76,695.00 Annually". |
-| `Est_Pay` / `Est_Pay_Unit` / `Est_Occupation` / `Est_Area` / `Est_Year` | number / text | For non-faculty postings: the institution's IPEDS average pay for full-time staff in the posting's category (`attach_ipeds_staff_estimates()` in `ipeds_staff_salaries.R`, from `ipeds_staff_salaries.csv`), per year; `Est_Occupation` is the category, `Est_Area` the institution. The app's labeled fallback ("Typical pay (IPEDS est.)") where no pay is posted. Not in the raw archive (added after it is written) or in `facultydata.csv`. |
+| `Est_Pay` / `Est_Pay_Unit` / `Est_Occupation` / `Est_Area` / `Est_Year` / `Est_Source` | number / text | For salaried staff postings (not faculty, hourly-pool, work-study, student or intern): per year. University of Wyoming: the median salary of UW staff with the same title in UW's salary book, else with the same role before the title's first comma, with at least 3 holders (`attach_uw_salary_book_estimates()` in `uw_salary_book.R`, from `uw_salary_book.csv`); `Est_Occupation` is the title matched and its staff count, `Est_Year` the fiscal year, `Est_Source` "UW salary book". A UW title the book can't match keeps its IPEDS figure, except IPEDS "management" (UW reports only its top managers there), which is left blank. Other colleges: the institution's IPEDS average pay for full-time staff in the posting's category (`attach_ipeds_staff_estimates()` in `ipeds_staff_salaries.R`, from `ipeds_staff_salaries.csv`); `Est_Occupation` is the category, `Est_Area` the institution, `Est_Source` "IPEDS". The app's labeled fallback ("Typical pay (est.)") where no pay is posted. Not in the raw archive (added after it is written) or in `facultydata.csv`. |
 | `Archive_Date` | date | |
+
+### `uw_salary_book.csv` — University of Wyoming salaried staff by department and title (annual)
+
+One row per salaried UW employee (no names) from UW's "Salary Information - Departmental Listing" PDF, linked from its operating-budget page (older years on the budget & salary archive page). Published each fall (FY2026 as of 2026-10-31, 3,084 rows). `refresh_uw_salary_book()` re-downloads only when the page links a different file and keeps the existing file on any failure. The book's own department totals match the parsed rows for 245 of 246 FY2026 departments; the Intercollegiate Athletics Directors Office total includes $275,004 not listed as a row. Read by the HE munge step for UW staff postings' `Est_*`.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Department` | text | As printed; long names that wrap in the PDF are joined. |
+| `Title` | text | As printed, abbreviations included ("Asst Dir", "Mgr"); wrapped titles joined. |
+| `Salary` | number | Scheduled salary as of September 1: annual base plus pay for added duties. |
+| `Fiscal_Year` | text | e.g. "FY2026", from the PDF's heading. |
+| `Source_URL` | text | The PDF parsed; the refresh compares it with the page's current link. |
 
 ### `ipeds_staff_salaries.csv` — IPEDS pay for full-time non-faculty staff, by category (annual)
 
