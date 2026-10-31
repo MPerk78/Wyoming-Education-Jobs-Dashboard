@@ -408,11 +408,20 @@ extract_posted_pay <- function(text) {
       # Only the amount's own sentence decides whether it's a bonus/fee, so a
       # "signing bonus." just before "Starting salary: $X" doesn't veto $X.
       near_before <- sub("^.*[.;!]\\s", "", near_before)
-      if (grepl("bonus|fee|reimburs|insurance|retire|deductible|allowance|incentive|signing|relocation|tuition|premium|contribut|match|donat|scholarship|award|grant of|differential|up to \\$", paste(near_before, substr(after, 1, 25)))) next
+      if (grepl("bonus|fee|reimburs|insurance|retire|deductible|allowance|incentive|signing|relocation|tuition|premium|contribut|match|donat|scholarship|award|grant of|differential|repayment|forgiveness", paste(near_before, substr(after, 1, 25)))) next
+      # "up to $3,000 of loan repayment": a ceiling on a benefit, not pay --
+      # unless a pay word leads it ("Salary: up to $60,000").
+      if (grepl("up to\\s*$", near_before) && !grepl("salary|wage|pay|rate|compensation", near_before)) next
+      # An amount said to go toward something else ("$800/month toward
+      # health, dental and vision", "$200 monthly for housing").
+      if (grepl("^[^.;]{0,15}\\b(for|toward|towards)\\b[^.;]{0,12}(housing|rent|utilit|health|dental|vision|medical|insurance|benefit)", after)) next
       # A benefits package's stated value ("Benefits at FVCC (Worth ~$25K)")
       # isn't pay. Only value wording counts, so "benefits eligible, $45,000"
       # and "$52,000 plus benefits" are still read as pay.
       if (grepl("\\bworth\\b|valued at|benefits? (package )?value", near_before)) next
+      # District housing offered with the job ("3 houses and 7 apartments
+      # starting at $350 per month") is a cost, not pay.
+      if (grepl("apartment|housing|\\bhouses?\\b|\\brent\\b|\\brental|\\blease|teacherage|utilities", near_before)) next
       cap <- function(k) if (cl[j, k] > 0) substr(t, cs[j, k], cs[j, k] + cl[j, k] - 1) else NA_character_
       lo <- to_num(cap(1), cap(2)); hi <- if (!is.na(cap(3))) to_num(cap(3), cap(4)) else lo
       # "$0.00" is a board's blank pay field (NEOGOV prints "Adjunct - $0.00

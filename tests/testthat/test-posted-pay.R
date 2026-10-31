@@ -104,3 +104,25 @@ test_that("parse_neogov_html keeps every posting when the card pay can't be read
   expect_true(all(POSTED_PAY_COLUMNS %in% names(out)))
   expect_true(all(is.na(out$Pay_Min)))
 })
+
+test_that("extract_posted_pay skips district housing costs", {
+  # Real OPI wording (Richey), 2026-10-31.
+  p <- extract_posted_pay(c(
+    "Our district owns housing which includes 3 houses and 7 apartments starting at $350 per month! Utilities included.",
+    "Teacherage available for $400/month. Salary: $42,000 per year",
+    "Starting salary is $45,500; current staff average $52,000"
+  ))
+  expect_equal(p$Pay_Min, c(NA, 42000, 45500))
+})
+
+test_that("extract_posted_pay skips amounts that go toward something else, and benefit ceilings", {
+  # Real OPI wording (Turner, Judith Gap, Polson), 2026-10-31.
+  p <- extract_posted_pay(c(
+    "first contract year at no cost and only $200 monthly for housing/utilities every year",
+    "development opportunities, and $800/month toward health, dental, and vision",
+    "The program provides for up to $3,000 of state funded loan repayment",
+    "Salary: up to $60,000 DOE",
+    "Salary: $52,000 per year for the 2026-27 school year"
+  ))
+  expect_equal(p$Pay_Min, c(NA, NA, NA, 60000, 52000))
+})

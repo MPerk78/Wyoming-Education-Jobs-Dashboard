@@ -29,6 +29,34 @@ One row per open K-12 posting, all position types (not just teachers). Powers th
 
 **Byte-identical rows are dropped** (`combined %>% distinct()`, before `classify_k12_position()` overwrites the raw `position` column) — some direct-platform pages list one opening once per building it applies to, and the modern scraper emits an identical row for each. Rows distinguished by any field, including a per-building `position` value in older SchoolSpring snapshots, are kept. This is why the per-district row count here equals that week's `k12_district_weekly_totals.csv` `n` exactly.
 
+**Pay columns**: `Pay_Min`/`Pay_Max`/`Pay_Unit`/`Pay_Text` are the pay the posting itself states (`extract_posted_pay()`), NA where it states none. `Est_Pay`/`Est_Pay_Unit`/`Est_Occupation`/`Est_Area`/`Est_Year` are the BLS OEWS regional median for the posting's role (`attach_oews_estimates()` in `bls_oews_scraper.R`, from `oews_role_wages.csv`), the app's labeled fallback ("Typical pay (BLS est.)") where no pay is posted. The area comes from the district's county; rows with no county use the statewide figure.
+
+### `oews_role_wages.csv` — BLS OEWS regional pay by role (annual)
+
+One row per OEWS area x occupation: the state, each metro area and each nonmetropolitan area (Casper, Cheyenne; Western and Eastern Wyoming), for the 17 occupations K-12 postings are matched to (`OEWS_OCCUPATIONS` in `bls_oews_scraper.R`). Fetched from the BLS Public Data API, which serves only the latest year; the pipeline checks for a newer year each run (one API query) and rewrites the file only when BLS publishes one. A failed check keeps the existing file. `BLS_API_KEY` raises the API limits but isn't required.
+
+| Column | Type | Notes |
+|---|---|---|
+| `Area_Code` | text | OEWS area code (keep as text: metro codes have leading zeros, e.g. `0013740`). |
+| `Area_Name` | text | |
+| `SOC` | text | 2018 SOC code without the dash, e.g. `259045`. |
+| `Occupation` | text | |
+| `Annual_Median` | number | Annual median wage. `NA` where BLS suppresses the figure for that area. |
+| `Hourly_Median` | number | Hourly median, fetched only for roles usually paid hourly; `NA` where BLS publishes none (school-year roles such as teaching assistants). |
+| `Year` | text | Reference year (May). |
+
+### `qcew_county_school_pay.csv` — average pay of public school employees by county (annual)
+
+BLS Quarterly Census of Employment and Wages, NAICS 6111 (elementary and secondary schools), local-government ownership (public school districts): one row per county with a published figure -- only the counties BLS releases -- 3 of Wyoming's 23 for 2025 (Campbell, Fremont, Sweetwater); the rest are withheld for confidentiality. All roles together, so it's county context in the map popup ("... public school employees averaged $X in 2025"), not a figure for any posting. Fetched each run from QCEW's open-data CSV files (latest year with annual averages); a failed fetch keeps the existing file.
+
+| Column | Type | Notes |
+|---|---|---|
+| `County` | text | "Yellowstone County" (joined to `salarymap2.csv`'s `County` with any ", State" suffix dropped). |
+| `County_FIPS` | text | Five-digit county FIPS. |
+| `School_Employment` | number | Annual average employment. |
+| `Avg_Annual_Pay` | number | Annual average pay per employee. |
+| `Year` | text | |
+
 ### `k12jobanalysis.csv` — full history, Teacher postings only
 
 Row-level history of every Teacher-position posting ever scraped, one row per posting per week it appeared. Powers "New This Week," the teacher-vacancy-rate numerator, and every teacher trend chart. **Accumulated** — grows by one week's rows per run.
@@ -134,7 +162,21 @@ One row per open posting across all 9 public HE institutions, every job type (no
 | `Pay_Max` | number | Highest stated amount (equals `Pay_Min` for a single figure). |
 | `Pay_Unit` | text | `hour`, `day`, `month`, `year`, `credit hour`, or `stipend`; `NA` when the stated unit is implausible for the amount (e.g. Gillette's $900 "Hourly" adjunct rate). |
 | `Pay_Text` | text | The board's own pay wording the figure was read from, e.g. "Full-Time - $61,356.00 - $76,695.00 Annually". |
+| `Est_Pay` / `Est_Pay_Unit` / `Est_Occupation` / `Est_Area` / `Est_Year` | number / text | For non-faculty postings: the institution's IPEDS average pay for full-time staff in the posting's category (`attach_ipeds_staff_estimates()` in `ipeds_staff_salaries.R`, from `ipeds_staff_salaries.csv`), per year; `Est_Occupation` is the category, `Est_Area` the institution. The app's labeled fallback ("Typical pay (IPEDS est.)") where no pay is posted. Not in the raw archive (added after it is written) or in `facultydata.csv`. |
 | `Archive_Date` | date | |
+
+### `ipeds_staff_salaries.csv` — IPEDS pay for full-time non-faculty staff, by category (annual)
+
+One row per institution x IPEDS occupational category with at least 3 full-time staff (smaller groups are too noisy to show): the Urban Institute Education Data Portal's `college-university/ipeds/salaries-noninstructional-staff` endpoint, latest available year (2024 as of 2026-10-31; 8 institutions). Refreshed by the HE salary chunk each run and read by the next run's HE munge step; a failed fetch keeps the existing file.
+
+| Column | Type | Notes |
+|---|---|---|
+| `IPEDS_UNITID` | integer | Joins to `salarymap.csv`'s `IPEDS_UNITID`. |
+| `Staff_Category` | integer | Urban's `staff_category` code (2 research ... 14 production and transportation). |
+| `Category_Label` | text | Shortened label shown in the app's tooltip. |
+| `Staff_Count` | number | Full-time non-instructional staff in the category. |
+| `Avg_Salary` | number | Salary outlays / staff count, rounded. |
+| `Year` | text | IPEDS year. |
 
 ### `facultydata.csv` — full history, faculty + adjunct postings only
 

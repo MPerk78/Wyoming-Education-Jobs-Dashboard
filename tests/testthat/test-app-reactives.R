@@ -573,18 +573,21 @@ test_that("Map multi-dimensional filters and reset reactive controls function wi
     expect_true(nrow(albany_df) > 0)
     expect_true(all(albany_df$County == albany_county))
 
-    # Salary tier filters
-    session$setInputs(map_county = "all", map_salary_tier = "70k_plus")
-    s70 <- map_filtered()
-    expect_true(nrow(s70) > 0)
-
-    session$setInputs(map_salary_tier = "60k_70k")
-    s60 <- map_filtered()
-    expect_true(nrow(s60) > 0)
-
-    session$setInputs(map_salary_tier = "under_60k")
-    s_under <- map_filtered()
-    expect_true(nrow(s_under) > 0)
+    # Pay bands: each dot keeps only its postings in the band (compared in
+    # their own unit), and its count is exactly those postings.
+    for (band in names(env$PAY_BANDS)) {
+      session$setInputs(map_county = "all", map_salary_tier = band)
+      b <- map_filtered()
+      expect_true(all(b$SearchActive & b$DisplayCount > 0 & b$DisplayCount <= b$CurrentCount), info = band)
+      k12_dots <- b[b$Type == "K-12 District", ]
+      in_band <- env$combineddata[env$in_pay_band(env$combineddata$.Pay_Value, env$combineddata$.Pay_Unit, band), ]
+      expect_equal(sum(k12_dots$DisplayCount), sum(in_band$District %in% k12_dots$Name), info = band)
+    }
+    # The low annual band reaches paraprofessional postings -- the old filter's
+    # one teacher figure per district never put them there.
+    low_annual <- names(env$PAY_BANDS)[vapply(env$PAY_BANDS, function(b) b$unit == "year" && b$lo == 0, logical(1))]
+    low <- env$combineddata[env$in_pay_band(env$combineddata$.Pay_Value, env$combineddata$.Pay_Unit, low_annual), ]
+    expect_gt(sum(low$Position == "Paraprofessional"), 0)
 
     # Posting volume filters
     session$setInputs(map_salary_tier = "all", map_urgency = "5_plus")

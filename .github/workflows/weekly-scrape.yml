@@ -83,6 +83,9 @@ jobs:
         env:
           CHROMOTE_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
           CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+          # Optional: raises the BLS OEWS API limits (bls_oews_scraper.R); the
+          # once-a-year refresh also fits the keyless limits.
+          BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
         run: |
           Rscript -e 'rmarkdown::render("Wy_ED_Jobs.Rmd")'
 
@@ -250,6 +253,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add \
             Wy_Ed_Jobs/combinedclean.csv \
+            Wy_Ed_Jobs/oews_role_wages.csv \
+            Wy_Ed_Jobs/ipeds_staff_salaries.csv \
+            Wy_Ed_Jobs/qcew_county_school_pay.csv \
             Wy_Ed_Jobs/allsum.csv \
             Wy_Ed_Jobs/allnow.csv \
             Wy_Ed_Jobs/allsum_he.csv \

@@ -280,5 +280,18 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     self-check) flags a source whose postings still arrive but whose share with stated pay fell to <=20% of its own
     average (needs 2+ archived weeks with pay, avg share >=40%, 3+ postings), into the weekly drift issue. Pure logic
     in `drift_check.R` (`flag_pay_coverage_drop()`), tested.
-  * [ ] Map salary filter on posted pay (and WDE602 role figures where none is posted); BLS OEWS regional benchmarks as
-    a labeled fallback.
+  * [x] Map pay filter rebuilt on posted pay (2026-10-31): "Pay" bands in each posting's own unit (hourly: under $18 /
+    $18-25 / $25+; annual: MT under $50k / $50-60k / $60k+, WY under $60k / $60-70k / $70k+), nothing converted. A posting
+    counts by its posted pay (range midpoint), else its district/institution role figure, else the estimate below; day
+    rates and stipends only under "All". The band narrows each dot to its matching postings, and "View N matching jobs"
+    carries it to the Jobs tab.
+  * [x] BLS OEWS fallback (2026-10-31): `bls_oews_scraper.R` (shared) pulls May-2025 regional medians for 17 school roles
+    via the BLS API (bls.gov downloads refuse scripts), refreshing `oews_role_wages.csv` only when BLS publishes a new
+    year. Each K-12 posting gets `Est_*` from its district's county area (statewide where unknown or suppressed); coaches
+    get none. Jobs table: "Typical pay (BLS est.)" with role/area on hover, shown only where no pay is posted.
+  * [x] IPEDS staff fallback (2026-10-31): `ipeds_staff_salaries.R` (shared) -- each college's average pay for full-time
+    non-faculty staff by IPEDS category; HE staff postings get `Est_*` by title -> category. HE Jobs table: "Typical pay
+    (IPEDS est.)".
+  * [x] QCEW county context (2026-10-31): `qcew_school_pay.R` (shared) -- average pay of public school employees by
+    county (all roles), shown in the district map popup.
+  * [ ] Declined: ACS county earnings (less specific than QCEW for the same question).
