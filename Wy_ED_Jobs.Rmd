@@ -664,7 +664,7 @@ western_raw <- safe_scrape(
 
 western <- western_raw %>%
   mutate(Institution = "Western Wyoming Community College") %>%
-  select(Title, Location, Posted_Date, Institution, Link)
+  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
 
 print(western)
 
@@ -708,7 +708,7 @@ eastern_raw <- safe_scrape(
 
 eastern <- eastern_raw %>%
   mutate(Institution = "Eastern Wyoming Community College") %>%
-  select(Title, Location, Posted_Date, Institution, Link)
+  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
 
 print(eastern)
 
@@ -751,7 +751,7 @@ sheridan_raw <- safe_scrape(
 
 sheridan <- sheridan_raw %>%
   mutate(Institution = "Sheridan College") %>%
-  select(Title, Location, Posted_Date, Institution, Link)
+  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
 
 print(sheridan)
 
@@ -775,7 +775,7 @@ northwest_raw <- safe_scrape(
 
 northwest <- northwest_raw %>%
   mutate(Institution = "Northwest College") %>%
-  select(Title, Location, Posted_Date, Institution, Link)
+  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
 
 print(northwest)
 
@@ -801,7 +801,7 @@ UW_raw <- safe_scrape(
 
 UW <- UW_raw %>%
   mutate(Institution = "University of Wyoming") %>%
-  select(Title, Location, Posted_Date, Institution, Link)
+  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
 
 print(UW)
 
@@ -816,8 +816,9 @@ library(tidyverse)
 library(readxl)
 
 # Combine all datasets. Pay_* is the pay the posting states: the NEOGOV
-# colleges (LCCC, Casper, Central, Gillette) carry it, every other source is
-# NA. It's kept in hedata.xlsx and the raw archive, but not in the
+# colleges (LCCC, Casper, Central, Gillette), the PeopleAdmin ones (Western,
+# Eastern, Sheridan, Northwest) and UW carry it (NA where a posting states
+# none). It's kept in hedata.xlsx and the raw archive, but not in the
 # accumulated facultydata.csv below.
 hedata <- list(lccc, casper, western, central, eastern, gillette, sheridan, northwest, UW) %>%
   lapply(function(df) {

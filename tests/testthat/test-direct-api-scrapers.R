@@ -45,7 +45,8 @@ test_that("fetch_uw_postings paginates through finder arguments and preserves ea
     fetch_uw_postings(
       api_base = "https://example.test/requisitions",
       ui_base = "https://example.test/jobs",
-      page_size = 2
+      page_size = 2,
+      fetch_pay = FALSE
     )
   )
 
@@ -89,14 +90,14 @@ test_that("fetch_uw_postings rejects repeated Oracle pages and overlapping IDs",
   expect_error(
     httr2::with_mocked_responses(
       response_sequence_mock(list(first_page, first_page)),
-      fetch_uw_postings(api_base = "https://example.test/requisitions", page_size = 2)
+      fetch_uw_postings(api_base = "https://example.test/requisitions", page_size = 2, fetch_pay = FALSE)
     ),
     "repeated a page"
   )
   expect_error(
     httr2::with_mocked_responses(
       response_sequence_mock(list(first_page, overlapping_page)),
-      fetch_uw_postings(api_base = "https://example.test/requisitions", page_size = 2)
+      fetch_uw_postings(api_base = "https://example.test/requisitions", page_size = 2, fetch_pay = FALSE)
     ),
     "repeated requisition Id"
   )

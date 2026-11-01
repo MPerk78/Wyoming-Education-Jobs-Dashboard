@@ -386,8 +386,11 @@ extract_posted_pay <- function(text) {
                     Pay_Unit = NA_character_, Pay_Text = NA_character_,
                     stringsAsFactors = FALSE)
   # "\\*{0,2}" tolerates footnote marks ("$20.60* - $21.95*/hr").
-  amount <- "\\$\\s?((?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d{1,2})?)\\s?([kK](?![a-z]))?\\*{0,2}"
-  pattern <- paste0(amount, "(?:\\s*(?:-|\u2013|\u2014|to)(?:\\s+(?:a\\s+)?max(?:imum)?(?:\\s+of)?)?\\s*\\$?\\s?((?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d{1,2})?)\\s?([kK](?![a-z]))?\\*{0,2})?")
+  # Up to three decimals: Montana University System classified rates are
+  # posted to the tenth of a cent ("$17.820 to $22.00 hourly").
+  amount <- "\\$\\s?((?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d{1,3})?)\\s?([kK](?![a-z]))?\\*{0,2}"
+  # A range may repeat the unit after its low end ("$23.684/hr - $29.604/hr").
+  pattern <- paste0(amount, "(?:(?:\\s?/\\s?(?:hr|hour))?\\s*(?:-|\u2013|\u2014|to)(?:\\s+(?:a\\s+)?max(?:imum)?(?:\\s+of)?)?\\s*\\$?\\s?((?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d{1,3})?)\\s?([kK](?![a-z]))?\\*{0,2})?")
   to_num <- function(x, k) {
     v <- suppressWarnings(as.numeric(gsub(",", "", x)))
     ifelse(!is.na(k) & nzchar(k), v * 1000, v)
@@ -433,7 +436,7 @@ extract_posted_pay <- function(text) {
           grepl("daily rate[^.]{0,60}$", before) ~ "day",
         grepl("^[^a-z]{0,3}(/|per|a)?\\s*(month|mo\\b)|^[^a-z]{0,3}monthly", after) ~ "month",
         grepl("^[^a-z]{0,3}(/|per|a)?\\s*(year|yr\\b|annum)|^[^a-z]{0,3}annual", after) ~ "year",
-        grepl("^[^a-z]{0,3}(/|per|a)?\\s*credit", after) ~ "credit hour",
+        grepl("^[^a-z]{0,3}(/|per|a)?\\s*(1\\s+)?(semester\\s+)?credit", after) ~ "credit hour",
         grepl("^[^a-z]{0,3}(/|per|a)?\\s*(season|unit|event|game|stipend)", after) |
           grepl("stipend[^.$]{0,20}$", before) ~ "stipend",
         grepl("hourly[^.$]{0,25}$|hour(ly)? (rate|wage)[^.$]{0,15}$|per hour[^.$]{0,10}$", before) ~ "hour",

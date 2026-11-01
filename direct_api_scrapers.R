@@ -51,7 +51,9 @@ fetch_uw_postings <- function(
     api_base = "https://eeik.fa.us2.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
     ui_base = "https://eeik.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1",
     site_number = "CX_1",
-    page_size = 25) {
+    page_size = 25,
+    fetch_pay = TRUE,
+    detail_delay = 0.2) {
   all_pages <- list()
   offset <- 0
   total <- NA_integer_
@@ -109,7 +111,46 @@ fetch_uw_postings <- function(
                        stringsAsFactors = FALSE))
   }
 
-  parse_uw_requisitions(bind_rows(all_pages), ui_base)
+  reqs <- bind_rows(all_pages)
+  postings <- parse_uw_requisitions(reqs, ui_base)
+  if (!fetch_pay) return(ensure_posted_pay_columns(postings))
+
+  # The list carries no pay; each requisition's detail record (the call the
+  # posting page makes) has a "Posted Salary Range" field. One request per
+  # posting, spaced out; a failed call leaves only that posting's pay blank.
+  detail_base <- sub("recruitingCEJobRequisitions$", "recruitingCEJobRequisitionDetails", api_base)
+  pay <- dplyr::bind_rows(lapply(as.character(reqs$Id), function(id) {
+    Sys.sleep(detail_delay)
+    tryCatch({
+      resp <- request(detail_base) %>%
+        req_url_query(onlyData = "true", expand = "requisitionFlexFields",
+                      finder = paste0('ById;Id="', id, '",siteNumber=', site_number)) %>%
+        perform_with_retry()
+      parse_uw_posting_pay(resp_body_string(resp))
+    }, error = function(e) parse_uw_posting_pay(NA_character_))
+  }))
+  cbind(postings, pay)
+}
+
+# Pay from a UW requisition's detail record: the "Posted Salary Range" flex
+# field, kept verbatim as Pay_Text. UW types it by hand, so it can lack the
+# "$" ("42,504", "13.00", "10-15") or open with "Up to"; it is read as a
+# labeled salary figure either way. With no unit stated, $7-$100 is hourly
+# (the same rule as the PeopleAdmin pay fields) and $15,000+ is annual.
+parse_uw_posting_pay <- function(json_text) {
+  value <- NA_character_
+  if (!is.na(json_text)) {
+    flex <- jsonlite::fromJSON(json_text)$items$requisitionFlexFields[[1]]
+    if (is.data.frame(flex) && all(c("Prompt", "Value") %in% names(flex))) {
+      value <- trimws(flex$Value[match("Posted Salary Range", flex$Prompt)])
+    }
+  }
+  if (is.na(value) || !nzchar(value)) return(extract_posted_pay(NA_character_))
+  pay <- extract_posted_pay(paste("Salary:", sub("^(up to\\s*)?(\\d)", "\\1$\\2", value, ignore.case = TRUE)))
+  if (is.na(pay$Pay_Min)) return(pay)
+  if (is.na(pay$Pay_Unit) && pay$Pay_Max >= 7 && pay$Pay_Max <= 100) pay$Pay_Unit <- "hour"
+  pay$Pay_Text <- value
+  pay
 }
 
 parse_uw_requisitions <- function(reqs_df, ui_base) {
@@ -126,9 +167,67 @@ parse_uw_requisitions <- function(reqs_df, ui_base) {
 # PeopleAdmin (Eastern Wyoming, Sheridan, Northwest) -- published Atom feed
 # ---------------------------------------------------------------------------
 
-fetch_peopleadmin_atom <- function(feed_url, location_fallback) {
+# The feed carries no pay, so with fetch_pay each posting's own page is read
+# for it (parse_peopleadmin_posting_pay()): one request per posting, spaced
+# out. A failed page leaves only that posting's pay blank.
+fetch_peopleadmin_atom <- function(feed_url, location_fallback, fetch_pay = TRUE, detail_delay = 0.3) {
   resp <- request(feed_url) %>% perform_with_retry()
-  parse_peopleadmin_atom(resp_body_string(resp), location_fallback)
+  postings <- parse_peopleadmin_atom(resp_body_string(resp), location_fallback)
+  if (!fetch_pay || nrow(postings) == 0) return(ensure_posted_pay_columns(postings))
+  pay <- dplyr::bind_rows(lapply(postings$Link, function(link) {
+    Sys.sleep(detail_delay)
+    tryCatch(parse_peopleadmin_posting_pay(resp_body_string(request(link) %>% perform_with_retry())),
+             error = function(e) parse_peopleadmin_posting_pay(NA_character_))
+  }))
+  cbind(postings, pay)
+}
+
+# Pay from a PeopleAdmin posting page. Each college labels its pay field
+# differently (MSU campuses "Salary", Western "Estimated Salary", Sheridan
+# "Hiring Range"/"Hourly Rate (if applicable)"/"Full Salary Range", Northwest
+# "Starting Salary Range"); the first labeled field stating an amount wins,
+# and its text is kept as Pay_Text. When the figure has no unit next to it,
+# the unit comes from the posting's own "Compensation" field (MSU Billings,
+# Northern, Great Falls: Annual / Hourly / Monthly / By Credit) or from an
+# "Hourly Rate" label. Eastern has no pay field at all and puts pay in the job
+# description ("Salary Hire Range: $60,598 - 66,889 annually"), so a page
+# with no pay field is read from all its fields' text instead; a page that has
+# one but states no amount ("commensurate with experience") stays NA.
+PEOPLEADMIN_PAY_LABELS <- c("Salary", "Estimated Salary", "Hiring Range", "Starting Salary Range",
+                            "Hourly Rate (if applicable)", "Full Salary Range")
+
+parse_peopleadmin_posting_pay <- function(html_text) {
+  none <- extract_posted_pay(NA_character_)
+  if (is.na(html_text)) return(none)
+  rows <- rvest::html_elements(rvest::read_html(html_text), xpath = "//tr[th and td]")
+  labels <- trimws(rvest::html_text2(rvest::html_element(rows, "th")))
+  values <- trimws(gsub("\\s+", " ", rvest::html_text2(rvest::html_element(rows, "td"))))
+
+  pay_fields <- intersect(PEOPLEADMIN_PAY_LABELS, labels)
+  if (length(pay_fields) == 0) return(extract_posted_pay(paste(values, collapse = ". ")))
+  for (label in pay_fields) {
+    value <- values[match(label, labels)]
+    pay <- extract_posted_pay(value)
+    if (is.na(pay$Pay_Min)) next
+    if (is.na(pay$Pay_Unit)) {
+      basis <- tolower(values[match("Compensation", labels)])
+      pay$Pay_Unit <- dplyr::case_when(
+        grepl("^hourly", label, ignore.case = TRUE) ~ "hour",
+        basis %in% "annual" ~ "year",
+        basis %in% "hourly" ~ "hour",
+        basis %in% "monthly" ~ "month",
+        basis %in% "by credit" ~ "credit hour",
+        # A bare $7-$100 figure in a pay field ("Hiring Range: $18.44 -
+        # $23.06") can only be an hourly wage.
+        pay$Pay_Max >= 7 & pay$Pay_Max <= 100 ~ "hour",
+        TRUE ~ NA_character_
+      )
+    }
+    # A long salary paragraph keeps only the extractor's snippet around the amount.
+    if (nchar(value) <= 200) pay$Pay_Text <- value
+    return(pay)
+  }
+  none
 }
 
 parse_peopleadmin_atom <- function(xml_text, location_fallback) {
