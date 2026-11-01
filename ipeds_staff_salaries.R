@@ -80,17 +80,31 @@ is_salaried_staff_posting <- function(title) {
     !grepl(HOURLY_OR_STUDENT_TITLE, tolower(as.character(title)))
 }
 
+# IPEDS's management average is pooled over every manager at a college, so it
+# only fits senior titles. In UW's FY26 salary book the median VP/provost/dean/
+# chief earns $177K, AVP/associate dean $162K and executive director $148K
+# (UW's IPEDS management average: $159K), but a director $106K, an assistant
+# director $82K and a manager $66K.
+SENIOR_MANAGEMENT_TITLE <- "president|provost|chancellor|\\bdean\\b|\\bchief\\b|(executive|senior|sr\\.?) director|director, senior"
+NOT_SENIOR_TITLE <- "(assistant|associate|deputy) chief|assistant to\\b"
+
 # The IPEDS staff category for a higher-ed posting title. NA for faculty,
 # hourly and student postings (is_salaried_staff_posting()) and for titles
 # no category fits. Checked in order, so "Administrative Assistant to the
 # Director" is office support and "Athletic Trainer" is healthcare, not sports.
+# Only senior titles get the management average. Other directors get none
+# (no category tracks their pay); managers and supervisors get their
+# function's category ("IT Manager" -> computer) when one fits.
 ipeds_staff_category_for_title <- function(title) {
   t <- tolower(as.character(title))
+  senior <- grepl(SENIOR_MANAGEMENT_TITLE, t) & !grepl(NOT_SENIOR_TITLE, t)
+  t <- gsub("\\b(manager|supervisor|superintendent)s?\\b", " ", t)
   code <- dplyr::case_when(
     grepl("nurse|\\brn\\b|physician|clinic|pharmac|athletic trainer|therapist|medical|dental", t) ~ 9L,
     grepl("research (assistant|associate|scientist|technician|technologist|specialist|coordinator)|postdoc", t) ~ 2L,
     grepl("(administrative|executive) (assistant|associate|support|specialist)|secretar|receptionist|\\bclerk|office (assistant|associate|specialist)|program assistant|data entry", t) ~ 12L,
-    grepl("director|\\bdean\\b|vice president|provost|president|chancellor|\\bchief\\b|manager|superintendent", t) ~ 5L,
+    senior ~ 5L,
+    grepl("director", t) ~ NA_integer_,
     grepl("account|financ|budget|payroll|purchas|procure|auditor|bursar|human resources|\\bhr\\b|benefits", t) ~ 6L,
     grepl("\\bit\\b|information technology|developer|programmer|software|network|systems? admin|database|engineer|\\bweb|cyber|scientist|laboratory|lab tech", t) ~ 7L,
     grepl("librar|curator|archiv|advis|tutor|instructional design|learning specialist|success coach", t) ~ 4L,

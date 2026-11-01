@@ -36,7 +36,22 @@ test_that("ipeds_staff_category_for_title maps staff titles and leaves faculty o
               "Custodian", "HVAC Technician", "Extension Agent - Fergus County", "Assistant Professor of Biology",
               "Adjunct Instructor, English", "Program Coordinator II")
   expect_equal(ipeds_staff_category_for_title(titles),
-               c(12L, 5L, 6L, 7L, 4L, 9L, 8L, 10L, 13L, 3L, NA, NA, NA))
+               c(12L, NA, 6L, 7L, 4L, 9L, 8L, 10L, 13L, 3L, NA, NA, NA))
+})
+
+test_that("only senior titles get the management average; managers fall back to their function", {
+  # Real titles from the 2026-10 postings. IPEDS pools every manager, so a director or
+  # assistant director would get roughly VP pay (UW salary book: director median $106K,
+  # assistant director $82K, manager $66K vs. the $159K management average).
+  senior <- c("Executive Vice President for Academic Affairs and Provost", "Dean of Liberal Arts & Social Science",
+              "Chief Information Officer (CIO)", "Vice President of Academic Affairs", "Executive Director, QCORE",
+              "WPBS Foundation Executive Director", "Associate Dean of Students", "Senior Director, Research")
+  expect_equal(ipeds_staff_category_for_title(senior), rep(5L, length(senior)))
+  junior <- c("Director of Employee Experience", "Adult Education Director", "Facilities Director",
+              "Assistant Director of Admissions", "Assistant Chief of Police", "Project Manager I",
+              "IT Project Manager", "Payroll Manager", "Custodial Supervisor", "Clinic Director")
+  # Campus police are "service" in IPEDS.
+  expect_equal(ipeds_staff_category_for_title(junior), c(NA, NA, NA, NA, 10L, NA, 7L, 6L, 10L, 9L))
 })
 
 test_that("hourly, student and intern postings get no staff category; executive assistants are office support", {
@@ -54,7 +69,7 @@ test_that("attach_ipeds_staff_estimates fills Est_* from the institution's categ
   staff <- data.frame(IPEDS_UNITID = c(1L, 1L), Staff_Category = c(5L, 12L),
                       Category_Label = c("management", "office and administrative support"),
                       Staff_Count = c(10, 20), Avg_Salary = c(90000, 45000), Year = "2024")
-  postings <- data.frame(Title = c("Director of Housing", "Office Assistant", "Assistant Professor", "Custodian"),
+  postings <- data.frame(Title = c("Dean of Students", "Office Assistant", "Assistant Professor", "Custodian"),
                          Institution = "Test College")
   out <- attach_ipeds_staff_estimates(postings, staff, c(1L, 1L, 1L, 1L))
   # Faculty get none; the custodian's category (service) isn't in the table.
