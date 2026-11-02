@@ -15,7 +15,7 @@ install.packages(c(
   "stringr", "tidyverse", "writexl", "xml2", "jsonlite",
   "httr2", "lubridate", "chromote", "rsconnect", "testthat",
   "withr", "here", "pdftools",
-  "shiny", "shinydashboard", "shinyWidgets", "DT", "data.table",
+  "shiny", "bslib", "shinyWidgets", "DT", "data.table",
   "leaflet", "plotly", "scales", "shinycssloaders"
 ))
 ```

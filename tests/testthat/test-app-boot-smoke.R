@@ -37,7 +37,7 @@ LEAF_TABS <- c(
   "he_table", "he_summary", "he_trends", "he_spells"
 )
 
-# One AppDriver for the whole file (booting shinydashboard + leaflet +
+# One AppDriver for the whole file (booting bslib + leaflet +
 # plotly + DT takes ~15s; don't pay it per test).
 app <- NULL
 withr::defer(if (!is.null(app)) app$stop(), teardown_env())
