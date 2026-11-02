@@ -322,4 +322,16 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     and `combinedclean.csv` rewritten with the new IDs (no other column changed; weekly distinct-ID counts identical).
   * [x] Repeated rows in `k12jobanalysis.csv` (129) and `facultydata.csv` (170) documented in DATA_DICTIONARY.md and
     kept: older snapshots lost the field that told them apart, so they can be separate openings.
+  * [x] Classification audit (2026-11-01, both states; shared classifier). Every archived title since Oct 2025 checked
+    against its bucket. K-12: new "Activities/Extracurricular" bucket (FFA/FBLA/DECA/HOSA advisors, drama, the musical,
+    speech & debate, robotics, color guard, student council; cheer stays Athletics); every substitute posting is
+    Substitute (substitute paras were Paraprofessional); coach/kitchen/bus aides go to Athletics/Food Services/
+    Transportation instead of Support Services; "Teacher Aide" is Paraprofessional; bare "Aid" no longer matches inside
+    "Paid" and "Para" no longer matches "Paradise Valley"; janitors, LPNs, accountants, district IT staff and
+    grade-band-only titles ("Junior High 7-8") leave Other; "None at this time" is a placeholder. HE: faculty
+    applicant pools are Adjunct/Part-Time; postdocs and research scientists are Research & Science; custodians are
+    Maintenance & Service; UW "Hourly Pooled - <job>" is classified by the job (student/intern jobs are Student
+    Positions). Spells `is_support_staff` now includes Transportation and Food Services, as documented. Committed
+    combinedclean (position, and Est_* on changed rows) and the teacher/faculty histories, aggregates and spells
+    reclassified; raw archives unchanged. Tests: test-classification-misroutes.R (identical in both repos).
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.

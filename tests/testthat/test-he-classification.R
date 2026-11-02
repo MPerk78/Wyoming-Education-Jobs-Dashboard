@@ -14,7 +14,7 @@ test_that("a bare 'Part-Time' with no faculty-role word doesn't get counted as a
   # alone, so real non-faculty postings with that phrase in the title (a
   # part-time custodian, a part-time bookstore clerk) were miscounted into
   # the faculty pool.
-  expect_equal(classify_he_job_type("Custodian 1-Part-Time"), "Support Services")
+  expect_equal(classify_he_job_type("Custodian 1-Part-Time"), "Maintenance & Service")
   expect_equal(classify_he_job_type("Part-Time Bookstore Sales Clerk"), "Support Services")
   expect_equal(classify_he_job_type("Part Time Faculty"), "Adjunct/Part-Time Faculty")
 })
@@ -32,7 +32,7 @@ test_that("classify_he_job_type covers the remaining coarse buckets", {
   expect_equal(classify_he_job_type("Research Associate"), "Research & Science")
   expect_equal(classify_he_job_type("Network Specialist"), "Technical")
   expect_equal(classify_he_job_type("HVAC Technician"), "Maintenance & Service")
-  expect_equal(classify_he_job_type("Custodian"), "Support Services")
+  expect_equal(classify_he_job_type("Custodian"), "Maintenance & Service")
   expect_equal(classify_he_job_type("Executive Chef"), "Culinary")
   expect_equal(classify_he_job_type("Director of Marketing"), "Management")
   expect_equal(classify_he_job_type("Totally Unmatched Title Zyx"), "Other")
@@ -114,7 +114,7 @@ test_that("HE job type keeps staff and child-center aides out of faculty", {
   expect_equal(classify_he_job_type("Classroom Aide/Substitute Teacher (Part-Time)"), "Support Services")
   expect_equal(classify_he_job_type("Academic Instructional Technologist"), "Professional")
   expect_equal(classify_he_job_type("Instructional Professor, Assistant - Organizational Behavior"), "Instructor/Teacher/Faculty")
-  expect_equal(classify_he_job_type("Postdoctoral Researcher"), "Instructor/Teacher/Faculty")
+  expect_equal(classify_he_job_type("Postdoctoral Researcher"), "Research & Science")
   expect_equal(classify_he_job_type("Livestock Judging Coach/Recruiter"), "Coaching or Athletics")
   expect_equal(classify_he_job_type("Academic Support Center (ASC) Assistant Director"), "Management")
   expect_equal(classify_he_job_type("Student Assistant, Music"), "Student Positions")

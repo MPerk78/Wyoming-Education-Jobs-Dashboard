@@ -89,7 +89,7 @@ spells <- spells %>%
     is_secondary = ifelse(grepl("Secondary", Broad_Category) |
                             grepl("Secondary|High School|Middle School", Category, ignore.case = TRUE), 1L, 0L),
     is_admin = ifelse(grepl("Admin|Principal|Superintendent", Position, ignore.case = TRUE), 1L, 0L),
-    is_support_staff = ifelse(grepl("Support|Paraprofessional|Aide|Custodial", Position, ignore.case = TRUE), 1L, 0L)
+    is_support_staff = ifelse(grepl("Support|Paraprofessional|Aide|Custodial|Transportation|Food Services", Position, ignore.case = TRUE), 1L, 0L)
   )
 
 # Exact schema order
