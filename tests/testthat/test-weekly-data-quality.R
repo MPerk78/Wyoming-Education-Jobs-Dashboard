@@ -168,6 +168,15 @@ test_that("combinedclean.csv has no byte-identical duplicate rows and posting_id
     paste(utils::head(dup_ids, 5), collapse = " | ")))
 })
 
+test_that("posting_id holds no control characters", {
+  # A "\r" separator in fallback IDs (until 2026-11) put line breaks inside
+  # the posting_id field of the research downloads.
+  for (f in c("combinedclean.csv", "k12jobanalysis.csv")) {
+    ids <- read_wy(f)$posting_id
+    expect_equal(sum(grepl("[[:cntrl:]]", ids)), 0, info = f)
+  }
+})
+
 test_that("the newest week's k12jobanalysis.csv / facultydata.csv have no byte-identical duplicate rows", {
   # The historical accumulated files still carry a known residue of
   # duplicate rows from older snapshots where the SchoolSpring scraper

@@ -74,3 +74,28 @@ test_that("collapse_duplicate_posting_ids keeps the first row per posting_id", {
   # no-op (and silent) when every posting_id is already unique
   expect_identical(collapse_duplicate_posting_ids(res), res)
 })
+
+test_that("build_k12_posting_id gives printable fallback IDs that a rebuild reproduces", {
+  # Until 2026-11 the fallback parts were joined with "\r", which landed in
+  # the CSVs as a line break inside the field; and a rebuild from the raw
+  # archive (which stores each week's built ID) passed that stored ID back
+  # as source_id, where normalizing turned the "\r" into a space -- so the
+  # weekly run and a rebuild gave the same posting different IDs.
+  # Real Big Horn SD1 posting from Archivek12_Data/combined_2026-10-30.csv.
+  args <- list(title = "Career and Technical Education Teacher (Grades 6-12)",
+               location = "Rocky Mountain Middle/High School", date_posted = "2026-10-14",
+               url = "https://www.applitrack.com/bighorn1/onlineapp/jobpostings/view.asp?all=1",
+               district = "Big Horn School District 1")
+  id <- do.call(build_k12_posting_id, c(list(source_id = NA), args))
+  expect_false(grepl("[[:cntrl:]]", id))
+  expect_match(id, "^fallback \\| big horn school district 1 \\| ")
+  # Rebuild path: the stored ID comes back as source_id, old or new form.
+  stored_old <- paste("fallback", "big horn school district 1", tolower(args$url),
+                      "career and technical education teacher (grades 6-12)",
+                      "rocky mountain middle/high school", "2026-10-14", sep = "\r")
+  expect_equal(do.call(build_k12_posting_id, c(list(source_id = stored_old), args)), id)
+  expect_equal(do.call(build_k12_posting_id, c(list(source_id = id), args)), id)
+  # A real source ID still passes through.
+  expect_equal(do.call(build_k12_posting_id, c(list(source_id = "schoolspring:laramie1.schoolspring.com:5857967"), args)),
+               "schoolspring:laramie1.schoolspring.com:5857967")
+})

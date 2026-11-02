@@ -69,10 +69,14 @@ To support seamless merges with federal, state, and academic datasets, the follo
 | `position` | Categorical | Classification Model | Broad staff position group (Teacher, Administrator, Support Services, etc.). |
 | `location` | String | District Job Board | Specific school building, facility, or district administrative office location. |
 | `url` | URL | District Job Board | Direct URL link to the official job vacancy listing or district portal. |
-| `posting_id` | String | Project Pipeline | Durable unique posting identifier tracking vacancies across multi-year weekly snapshots. |
+| `posting_id` | String | Project Pipeline | Durable unique posting identifier tracking vacancies across multi-year weekly snapshots. The source's own posting ID where it has one (e.g. `schoolspring:laramie1.schoolspring.com:5857967`); otherwise a fallback fingerprint, `fallback \| <district> \| <url> \| <title> \| <location> \| <posted date>`, lower-cased. |
 | `District` | String | Canonical Registry | Canonical public school district or charter school Local Education Agency (LEA) name. |
 | `Category` | String | Classification Model | Fine-grained subject specialization or departmental role assignment. |
 | `Broad_Category` | Categorical | Classification Model | Clustered high-level category grouping (Elementary, STEM, Special Education, Humanities, etc.). |
+
+**Repeated rows.** 129 rows are exact repeats of another row in the same week (78 of them in the first week, 2024-08-09; the other 51 February-July 2026, all SchoolSpring postings in Albany, Campbell and Laramie County School Districts 1). Older snapshots dropped the building that told these postings apart (e.g. one coach per elementary school), so they can be separate openings and are kept. Counts use distinct `posting_id` within a week, so each set counts once; for those SchoolSpring sets that is an under-count. Weeks since August 2026 have none (`test-weekly-data-quality.R` checks the newest week).
+
+**ID format change.** Before November 2026 the fallback fingerprint's parts were joined with a carriage return, which showed up as line breaks inside the field, and weeks rebuilt from the raw archive used spaces instead. Every week was regenerated in the current form, so a posting's ID is consistent across the whole file.
 
 ---
 
@@ -169,6 +173,8 @@ To support seamless merges with federal, state, and academic datasets, the follo
 | `Archive_Date` | Date (YYYY-MM-DD) | Project Scraper | Weekly snapshot observation date on which the vacancy was captured as open. |
 | `Job_Type` | Categorical | Classification Model | Collegiate appointment category: Instructor/Teacher/Faculty, Adjunct/Part-Time Faculty, or Staff. |
 | `Category` | String | Classification Model | Academic discipline, instructional field, or administrative functional area. |
+
+**Repeated rows.** 170 rows are exact repeats of another row in the same week (August 2024 to January 2026, 1-5 per week, mostly Sheridan College's "Part-time Faculty Pool" listings and University of Wyoming faculty titles). Those snapshots link to the listing page rather than the posting, so two identical rows can be two real openings with the same title; they are kept, and counted as separate postings. Weeks since January 2026 have none.
 
 ---
 

@@ -293,6 +293,8 @@ canonicalize_k12_district <- function(district) {
 # durable source ID supply it directly; older sources fall back to a
 # normalized fingerprint of the information they do expose. Archive_Date is
 # deliberately excluded so one posting keeps the same identity across weeks.
+# Fallback parts are joined with " | ": the "\r" used until 2026-11 landed in
+# the CSVs as a line break inside the field.
 build_k12_posting_id <- function(source_id = NULL, title, location,
                                  date_posted, url, district) {
   values <- list(source_id, title, location, date_posted, url, district)
@@ -315,6 +317,10 @@ build_k12_posting_id <- function(source_id = NULL, title, location,
   }
 
   source_id <- normalize(source_id)
+  # A rebuild from the raw archive passes each week's stored ID back in as
+  # source_id. A stored fallback fingerprint is rebuilt from the fields, so
+  # a rebuild gives the same ID the weekly run did.
+  source_id[startsWith(source_id, "fallback")] <- "<missing>"
   fallback <- paste(
     "fallback",
     normalize(district),
@@ -322,7 +328,7 @@ build_k12_posting_id <- function(source_id = NULL, title, location,
     normalize(title),
     normalize(location),
     normalize(date_posted),
-    sep = "\r"
+    sep = " | "
   )
 
   ifelse(source_id == "<missing>", fallback, source_id)
