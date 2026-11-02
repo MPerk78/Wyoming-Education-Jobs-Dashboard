@@ -65,6 +65,34 @@ test_that("hourly, student and intern postings get no staff category; executive 
   expect_equal(is_salaried_staff_posting(titles), c(rep(FALSE, 6), TRUE, TRUE))
 })
 
+test_that("managers get their function's category where the title names one", {
+  # Real titles from the 2026-11-01 postings that had no estimate.
+  titles <- c("Business Manager - UW Extension", "Business Operations Manager", "Facilities Manager",
+              "Lab Manager", "Senior Technology Manager", "Timekeeping and Workforce Systems Manager",
+              "Assistant Fitness Center Manager")
+  expect_equal(ipeds_staff_category_for_title(titles), c(6L, 6L, 13L, 7L, 7L, 6L, 8L))
+  # The same words in other titles: instructional technology and writing labs are
+  # education services, a research "Facility" isn't facilities maintenance, and
+  # technology transfer or titles naming no function get none.
+  others <- c("Instructional Technology Specialist", "Instructional Specialist, Writing Lab",
+              "Technician, Master - Zoology & Physiology/Red Buttes Facility",
+              "Licensing Manager - Technology Transfer Office", "Senior Project Manager", "Floor Supervisor",
+              "Proto-Lab and Testbed Manager, Research Administration", "Sonography Lab Assistant")
+  expect_equal(ipeds_staff_category_for_title(others), c(4L, 4L, NA, NA, NA, NA, 7L, NA))
+})
+
+test_that("part-time, temporary, seasonal and student-position jobs get no annual staff figure", {
+  # Real titles that showed a full-time annual average (MSU, LCCC, Sheridan, SKC, FVCC, Western, Gillette).
+  titles <- c("Cook I - Part Time", "Grounds Worker (Part-time & Student)", "Tutor, Learning Commons (Part-Time + Student)",
+              "(Student Position) Peer Tutor", "Campus Activities Programmer (Student)", "Temp, Clinical Resource RN",
+              "Seasonal Grounds Maintenance Technician (Part-time)", "Bus Drivers - Part Time",
+              "Fitness Center Attendant")
+  expect_true(all(is.na(ipeds_staff_category_for_title(titles))))
+  expect_false(any(is_salaried_staff_posting(titles)))
+  # "Student" as the office served, not the worker, is still salaried staff.
+  expect_true(all(is_salaried_staff_posting(c("Student Activities Officer I - Wyoming Union", "Student Success Coordinator"))))
+})
+
 test_that("attach_ipeds_staff_estimates fills Est_* from the institution's category average", {
   staff <- data.frame(IPEDS_UNITID = c(1L, 1L), Staff_Category = c(5L, 12L),
                       Category_Label = c("management", "office and administrative support"),

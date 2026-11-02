@@ -72,7 +72,11 @@ fetch_ipeds_staff_salaries <- function(fips, unitids, start_year = as.integer(fo
 # Hourly-pool, work-study, student and intern postings. The figures here are
 # for full-time salaried staff, so these get none ("Hourly Pooled - Broadcast
 # Studio Manager, Student Media" is a student job, not management).
-HOURLY_OR_STUDENT_TITLE <- "pooled|work[- ]?study|\\bintern(ship)?s?\\b|student (employee|worker|technician|assistant|aide|staff)|\\bfws\\b"
+# Part-time, temporary and seasonal jobs and attendants too: a full-time
+# annual average overstates them ("Cook I - Part Time" showed MSU's $57K
+# service average, a $11/hr "Fitness Center Attendant" Gillette's $59K).
+HOURLY_OR_STUDENT_TITLE <- paste0("pooled|work[- ]?study|\\bintern(ship)?s?\\b|student (employee|worker|technician|assistant|aide|staff|position)|\\bfws\\b|",
+                                  "\\(student|(&|\\+|\\bor) student|part[- ]?time|\\btemp(orary)?\\b|seasonal|attendant")
 
 # A higher-ed posting for salaried staff: not faculty, not hourly or student.
 is_salaried_staff_posting <- function(title) {
@@ -94,9 +98,14 @@ NOT_SENIOR_TITLE <- "(assistant|associate|deputy) chief|assistant to\\b"
 # Director" is office support and "Athletic Trainer" is healthcare, not sports.
 # Only senior titles get the management average. Other directors get none
 # (no category tracks their pay); managers and supervisors get their
-# function's category ("IT Manager" -> computer) when one fits.
+# function's category ("IT Manager" -> computer, "Business Manager" ->
+# business, "Facilities Manager" -> maintenance) when one fits; "Project
+# Manager" and other titles naming no function get none.
 ipeds_staff_category_for_title <- function(title) {
   t <- tolower(as.character(title))
+  # A lab manager, coordinator or technician is lab staff; a lab assistant
+  # ("Sonography Lab Assistant", $23.76/hr) isn't paid like one.
+  lab_staff <- grepl("\\blab\\b.*(manager|coordinator|supervisor|tech)|(manager|coordinator|supervisor)\\b.*\\blab\\b", t)
   senior <- grepl(SENIOR_MANAGEMENT_TITLE, t) & !grepl(NOT_SENIOR_TITLE, t)
   t <- gsub("\\b(manager|supervisor|superintendent)s?\\b", " ", t)
   code <- dplyr::case_when(
@@ -105,13 +114,14 @@ ipeds_staff_category_for_title <- function(title) {
     grepl("(administrative|executive) (assistant|associate|support|specialist)|secretar|receptionist|\\bclerk|office (assistant|associate|specialist)|program assistant|data entry", t) ~ 12L,
     senior ~ 5L,
     grepl("director", t) ~ NA_integer_,
-    grepl("account|financ|budget|payroll|purchas|procure|auditor|bursar|human resources|\\bhr\\b|benefits", t) ~ 6L,
-    grepl("\\bit\\b|information technology|developer|programmer|software|network|systems? admin|database|engineer|\\bweb|cyber|scientist|laboratory|lab tech", t) ~ 7L,
-    grepl("librar|curator|archiv|advis|tutor|instructional design|learning specialist|success coach", t) ~ 4L,
-    grepl("counsel|social work|attorney|legal|paralegal|marketing|communications|graphic|designer|media|photograph|video|\\bcoach|athletic|sports|recreation|outreach", t) ~ 8L,
+    grepl("account|financ|budget|payroll|timekeep|purchas|procure|auditor|bursar|human resources|\\bhr\\b|benefits|\\bbusiness\\b", t) ~ 6L,
+    grepl("\\bit\\b|information technology|developer|programmer|software|network|systems? admin|database|engineer|\\bweb|cyber|scientist|laboratory", t) |
+      ((lab_staff | grepl("\\btechnology\\b", t)) & !grepl("technology transfer|instructional|writing", t)) ~ 7L,
+    grepl("librar|curator|archiv|advis|tutor|instructional (design|technolog|specialist)|writing (lab|center)|learning specialist|success coach", t) ~ 4L,
+    grepl("counsel|social work|attorney|legal|paralegal|marketing|communications|graphic|designer|media|photograph|video|\\bcoach|athletic|sports|recreation|fitness|outreach", t) ~ 8L,
     grepl("extension agent", t) ~ 3L,
     grepl("cashier", t) ~ 11L,
-    grepl("mainten|hvac|electric|plumb|carpent|grounds|mechanic|locksmith|painter|facilities tech|laborer|\\boperator", t) ~ 13L,
+    grepl("mainten|hvac|electric|plumb|carpent|grounds|mechanic|locksmith|painter|facilities|laborer|\\boperator", t) ~ 13L,
     grepl("custod|janitor|food|cook|dining|chef|barista|security|police|child ?care|housekeep", t) ~ 10L,
     grepl("driver|delivery|warehouse|shipping|\\bmail", t) ~ 14L,
     TRUE ~ NA_integer_
