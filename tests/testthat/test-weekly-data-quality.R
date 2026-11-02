@@ -303,3 +303,56 @@ test_that("the accumulated history only ever grows -- the newest week is not bel
   newest <- tail(wt$total, 1); prior <- tail(wt$total, 2)[1]
   expect_gt(newest, prior * 0.5)
 })
+
+
+# ---------------------------------------------------------------------------
+# 6. Posted pay and pay estimates. Posted pay is read out of free text, so a
+#    fee, a benefit's value or a units slip can look like a wage; the
+#    estimates come from re-downloaded reference tables (BLS, IPEDS, UW).
+# ---------------------------------------------------------------------------
+read_hedata_wy <- function() {
+  p <- here::here("Wy_Ed_Jobs", "hedata.xlsx")
+  skip_if_not(file.exists(p), "hedata.xlsx not found")
+  as.data.frame(readxl::read_xlsx(p))
+}
+
+test_that("no posted pay outside PAY_PLAUSIBLE_RANGE for its unit ships (drop_implausible_pay ran)", {
+  for (d in list(K12 = read_wy("combinedclean.csv"), HE = read_hedata_wy())) {
+    if (!"Pay_Min" %in% names(d)) next   # HE files before the first run with pay
+    bad <- is_implausible_pay(d$Pay_Min, d$Pay_Max, d$Pay_Unit)
+    expect_equal(sum(bad), 0, info = paste("implausible pay:", paste(head(d$Pay_Text[bad], 3), collapse = " | ")))
+  }
+})
+
+test_that("every posted amount keeps the snippet it came from, and a unit never stands alone", {
+  for (d in list(K12 = read_wy("combinedclean.csv"), HE = read_hedata_wy())) {
+    if (!"Pay_Min" %in% names(d)) next
+    has_pay <- !is.na(d$Pay_Min)
+    expect_true(all(!is.na(d$Pay_Text[has_pay]) & nzchar(d$Pay_Text[has_pay])))
+    expect_true(all(is.na(d$Pay_Unit[!has_pay])))
+    expect_true(all(is.na(d$Pay_Max) == is.na(d$Pay_Min)))
+  }
+})
+
+test_that("pay estimates are hourly or annual, in range, and say what they estimate", {
+  for (d in list(K12 = read_wy("combinedclean.csv"), HE = read_hedata_wy())) {
+    if (!"Est_Pay" %in% names(d)) next
+    has <- !is.na(d$Est_Pay)
+    expect_true(all(d$Est_Pay_Unit[has] %in% c("hour", "year")))
+    expect_true(all(!is.na(d$Est_Occupation[has])))
+    hourly <- has & d$Est_Pay_Unit %in% "hour"; annual <- has & d$Est_Pay_Unit %in% "year"
+    # An hourly median in the annual column (or the reverse) is the units
+    # slip these bounds catch; the top end allows UW's salary-book medians.
+    expect_true(all(d$Est_Pay[hourly] >= 7 & d$Est_Pay[hourly] <= 150))
+    expect_true(all(d$Est_Pay[annual] >= 15000 & d$Est_Pay[annual] <= 1500000))
+  }
+})
+
+test_that("every reference table the estimates come from passes its own rules", {
+  for (name in names(REFERENCE_TABLE_RULES)) {
+    p <- here::here("Wy_Ed_Jobs", paste0(name, ".csv"))
+    if (!file.exists(p)) next
+    expect_null(reference_table_problem(read.csv(p, stringsAsFactors = FALSE), REFERENCE_TABLE_RULES[[name]]),
+                info = name)
+  }
+})

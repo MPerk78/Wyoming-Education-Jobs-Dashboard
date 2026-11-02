@@ -80,7 +80,8 @@ test_that("attach_oews_estimates uses the local figure, the statewide one where 
 })
 
 test_that("refresh_oews_wages keeps the file when BLS has no newer year, and rewrites it when it does", {
-  path <- withr::local_tempfile(fileext = ".csv")
+  withr::local_dir(withr::local_tempdir())  # scrape_log.csv lands here, not in the repo
+  path <- file.path(getwd(), "oews_role_wages.csv")
   write.csv(data.frame(Area_Code = "3000000", Area_Name = "Montana", SOC = "252021",
                        Occupation = "Elementary school teachers", Annual_Median = 57530,
                        Hourly_Median = NA, Year = "2025"), path, row.names = FALSE)
@@ -89,7 +90,7 @@ test_that("refresh_oews_wages keeps the file when BLS has no newer year, and rew
   real_fetch <- get("fetch_oews_wages", envir = env)
   withr::defer({ assign("fetch_oews_latest_year", real_year, envir = env); assign("fetch_oews_wages", real_fetch, envir = env) })
   fetched <- FALSE
-  assign("fetch_oews_wages", function(...) { fetched <<- TRUE; data.frame(Area_Code = "3000000", Year = "2026") }, envir = env)
+  assign("fetch_oews_wages", function(...) { fetched <<- TRUE; data.frame(Area_Code = "3000000", Annual_Median = 58900, Year = "2026") }, envir = env)
 
   assign("fetch_oews_latest_year", function(...) "2025", envir = env)
   suppressMessages(refresh_oews_wages("MT", path, api_key = ""))
@@ -99,6 +100,25 @@ test_that("refresh_oews_wages keeps the file when BLS has no newer year, and rew
   suppressMessages(refresh_oews_wages("MT", path, api_key = ""))
   expect_true(fetched)
   expect_equal(as.character(read.csv(path)$Year), "2026")
+  expect_equal(read.csv("scrape_log.csv")$status, c("current", "ok"))
+})
+
+test_that("refresh_oews_wages keeps the file when the new year's table is implausible", {
+  withr::local_dir(withr::local_tempdir())
+  path <- file.path(getwd(), "oews_role_wages.csv")
+  write.csv(data.frame(Area_Code = "3000000", SOC = "252021", Annual_Median = 57530, Year = "2025"), path, row.names = FALSE)
+  env <- environment(refresh_oews_wages)
+  real_year <- get("fetch_oews_latest_year", envir = env)
+  real_fetch <- get("fetch_oews_wages", envir = env)
+  withr::defer({ assign("fetch_oews_latest_year", real_year, envir = env); assign("fetch_oews_wages", real_fetch, envir = env) })
+  assign("fetch_oews_latest_year", function(...) "2026", envir = env)
+  # A units slip: hourly medians in the annual column.
+  assign("fetch_oews_wages", function(...) data.frame(Area_Code = "3000000", Annual_Median = 28.32, Year = "2026"), envir = env)
+  suppressMessages(refresh_oews_wages("MT", path, api_key = ""))
+  expect_equal(read.csv(path)$Annual_Median, 57530)
+  log <- read.csv("scrape_log.csv")
+  expect_equal(log$status, "rejected")
+  expect_match(log$error_message, "Annual_Median value")
 })
 
 test_that("the committed OEWS file covers every area and occupation", {

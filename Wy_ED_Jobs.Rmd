@@ -282,14 +282,15 @@ write.csv(combined, file=file.path('Archivek12_Data',file_name), row.names = FAL
 source("bls_oews_scraper.R")
 oews_path <- file.path("Wy_Ed_Jobs", "oews_role_wages.csv")
 tryCatch(refresh_oews_wages("WY", oews_path),
-         error = function(e) message("OEWS refresh skipped: ", conditionMessage(e)))
+         error = function(e) log_reference_result(oews_path, "error", conditionMessage(e)))
 
 # BLS QCEW average pay of public school employees by county (all roles), the
 # map popup's county context (qcew_school_pay.R). A failed fetch keeps the
-# existing file.
+# existing file, and so does a partial or implausible one (write_reference_file()).
 source("qcew_school_pay.R")
-tryCatch(write.csv(fetch_qcew_school_pay("56"), file.path("Wy_Ed_Jobs", "qcew_county_school_pay.csv"), row.names = FALSE),
-         error = function(e) message("QCEW school pay skipped: ", conditionMessage(e)))
+qcew_path <- file.path("Wy_Ed_Jobs", "qcew_county_school_pay.csv")
+tryCatch(write_reference_file(fetch_qcew_school_pay("56"), qcew_path),
+         error = function(e) log_reference_result(qcew_path, "error", conditionMessage(e)))
 oews_wages <- read.csv(oews_path, stringsAsFactors = FALSE,
                        colClasses = c(Area_Code = "character", SOC = "character", Year = "character"))
 district_county <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), stringsAsFactors = FALSE)[, c("District", "County")]
@@ -324,8 +325,10 @@ combinedclean <- combined %>%
   mutate(position = classify_k12_position(title),
          District = canonicalize_k12_district(District)) %>%
   # Pay_* is the pay the posting itself states (extract_posted_pay()); NA
-  # where the source states none.
+  # where the source states none or the amount is implausible for its unit
+  # (drop_implausible_pay(); the raw archive above keeps it as scraped).
   ensure_posted_pay_columns() %>%
+  drop_implausible_pay() %>%
   # Est_* is the BLS regional median for the posting's role, matched to its
   # district's county (statewide where the county is unknown).
   attach_oews_estimates(oews_wages, district_county$County[match(.$District, district_county$District)], "WY") %>%
@@ -842,7 +845,8 @@ write_xlsx(hedata, path = file_name)
 write_xlsx(hedata, path = file.path("Archived_HE_Data", file_name))
 # Non-postings (a scraped "Job Title" header, "No Jobs" notices) stay in the
 # raw archive above but are dropped from everything shown or counted.
-hedata <- hedata %>% filter(!is_placeholder_posting(Title))
+# Implausible posted pay is blanked the same way (drop_implausible_pay()).
+hedata <- hedata %>% filter(!is_placeholder_posting(Title)) %>% drop_implausible_pay()
 # Est_* is the institution's IPEDS average for the posting's staff category
 # (ipeds_staff_salaries.csv from the previous run), the labeled fallback for
 # staff postings that state no pay. Added after the raw archive write, so
@@ -978,21 +982,18 @@ he_salary <- safe_scrape(
 source("ipeds_staff_salaries.R")
 local({
   unitids <- na.omit(read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"))$IPEDS_UNITID)
-  staff <- tryCatch(fetch_ipeds_staff_salaries(56, unitids), error = function(e) {
-    message("IPEDS staff salaries skipped: ", conditionMessage(e))
-    NULL
-  })
-  if (!is.null(staff) && nrow(staff) > 0) {
-    write.csv(staff, file.path("Wy_Ed_Jobs", "ipeds_staff_salaries.csv"), row.names = FALSE)
-  }
+  staff_path <- file.path("Wy_Ed_Jobs", "ipeds_staff_salaries.csv")
+  tryCatch(write_reference_file(fetch_ipeds_staff_salaries(56, unitids), staff_path),
+           error = function(e) log_reference_result(staff_path, "error", conditionMessage(e)))
 })
 
 # University of Wyoming salary book (uw_salary_book.R), read by the HE munge
 # step on the next run. Downloaded only when UW links a new book; a failed
 # check keeps the committed file.
 source("uw_salary_book.R")
-tryCatch(refresh_uw_salary_book(file.path("Wy_Ed_Jobs", "uw_salary_book.csv")),
-         error = function(e) message("UW salary book refresh skipped: ", conditionMessage(e)))
+uw_book_path <- file.path("Wy_Ed_Jobs", "uw_salary_book.csv")
+tryCatch(refresh_uw_salary_book(uw_book_path),
+         error = function(e) log_reference_result(uw_book_path, "error", conditionMessage(e)))
 
 # Static geo/link fields (Longitude, Latitude, Link, County) stay hand-
 # maintained -- only the salary figures get refreshed from IPEDS each run.

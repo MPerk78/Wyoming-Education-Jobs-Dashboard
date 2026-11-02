@@ -187,6 +187,32 @@ attach_scrape_log_errors <- function(flagged, scrape_log) {
   flagged
 }
 
+# Report section for this week's posted amounts that drop_implausible_pay()
+# blanked (rows of `bad`: source, title, Pay_Min, Pay_Max, Pay_Unit,
+# Pay_Text). A misread -- a fee, a benefit's value -- usually means the
+# extractor needs a new skip rule; a real but unusual figure means
+# PAY_PLAUSIBLE_RANGE needs widening.
+build_implausible_pay_report_markdown <- function(bad, date = Sys.Date(), max_rows = 25) {
+  if (nrow(bad) == 0) return(character(0))
+  shown <- utils::head(bad, max_rows)
+  amount <- ifelse(shown$Pay_Min == shown$Pay_Max | is.na(shown$Pay_Max),
+                   sprintf("$%s", format(shown$Pay_Min, big.mark = ",")),
+                   sprintf("$%s-$%s", format(shown$Pay_Min, big.mark = ","), format(shown$Pay_Max, big.mark = ",")))
+  c(
+    paste0("### Posted pay blanked as implausible (", date, ")"),
+    "",
+    paste("These amounts were read from the postings but fall outside PAY_PLAUSIBLE_RANGE",
+          "(k12_he_classification.R) for their unit, so the dashboard shows no posted pay for them.",
+          "The raw archive keeps them. A misread needs an extractor fix; a real figure needs the range widened."),
+    "",
+    sprintf("- **%s** (%s) \"%s\": %s per %s -- \"%s\"",
+            shown$source, shown$type, shown$title, amount, ifelse(is.na(shown$Pay_Unit), "unknown unit", shown$Pay_Unit),
+            substr(gsub("[\r\n]+", " ", shown$Pay_Text), 1, 120)),
+    if (nrow(bad) > max_rows) sprintf("- ...and %d more", nrow(bad) - max_rows),
+    ""
+  )
+}
+
 # --------------------------------------------------------------------------
 # Tier 0: salary-source structural/coverage checks
 # --------------------------------------------------------------------------

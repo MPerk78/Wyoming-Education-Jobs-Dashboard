@@ -147,12 +147,36 @@ split_lines <- if (is.null(split_result)) {
   character(0)
 }
 
-if (length(coverage_lines) == 0 && length(plausibility_lines) == 0 && length(split_lines) == 0) {
+# --------------------------------------------------------------------------
+# Reference tables (BLS OEWS/QCEW, IPEDS staff pay, the UW salary book):
+# the pipeline keeps last run's file when a refresh fails or is rejected
+# (write_reference_file()), so without this a broken download would only
+# show up as an ever-older file. See reference_table_status().
+# --------------------------------------------------------------------------
+source("scrape_helpers.R")
+scrape_log <- if (file.exists("scrape_log.csv")) read.csv("scrape_log.csv", stringsAsFactors = FALSE) else
+  data.frame(timestamp = character(0), source = character(0), status = character(0), error_message = character(0))
+reference_flags <- reference_table_status("Wy_Ed_Jobs", scrape_log)
+if (nrow(reference_flags) > 0) print(reference_flags)
+reference_lines <- if (nrow(reference_flags) == 0) {
+  character(0)
+} else {
+  c(
+    "Reference tables behind the pay estimates need a look.",
+    "",
+    "The dashboard keeps showing the previous file for each of these, so nothing is blank -- but its figures stop updating, and a rejected refresh means the source changed shape.",
+    "",
+    sprintf("- **%s** (`%s`): %s", reference_flags$name, reference_flags$file, reference_flags$problem),
+    ""
+  )
+}
+
+if (length(coverage_lines) == 0 && length(plausibility_lines) == 0 && length(reference_lines) == 0 && length(split_lines) == 0) {
   cat("Salary source coverage and value plausibility look healthy, and Sheridan/Gillette are still reported jointly as expected.\n")
   quit(status = 0, save = "no")
 }
 
-report_lines <- c(coverage_lines, plausibility_lines, split_lines)
+report_lines <- c(coverage_lines, plausibility_lines, reference_lines, split_lines)
 
 # Append to the same report the job-posting drift check may have already
 # started, so both land in one GitHub Issue/comment instead of two separate

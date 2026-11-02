@@ -305,3 +305,12 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     `is_salaried_staff_posting()`); e.g. UW Student Media hourly jobs had shown $68,490. "Executive Assistant" is office
     support, not management.
   * [ ] Declined: ACS county earnings (less specific than QCEW for the same question).
+  * [x] Pay data-quality safeguards (2026-11-01, both states). Posted amounts out of range for their unit
+    (`PAY_PLAUSIBLE_RANGE`) are blanked before they reach the dashboard (`drop_implausible_pay()`); the raw archives
+    keep them, and the weekly drift issue lists them. Extractor no longer reads application costs, money paid into a
+    benefits package, or loan-assistance lists as pay (real misreads from the 10-31 rehearsal). Reference tables behind
+    the estimates (OEWS, QCEW, IPEDS staff pay, the UW salary book) refresh through `write_reference_file()`, which keeps
+    the old file when a download is partial, mostly blank or out of range, and logs each refresh to `scrape_log.csv`;
+    `check_salary_drift.R` reports failed, rejected, missing or stale refreshes. Schema check and the blocking
+    data-quality sweep cover the new files and the Pay_*/Est_* columns.
+  * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.

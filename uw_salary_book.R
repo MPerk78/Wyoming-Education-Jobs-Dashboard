@@ -70,12 +70,14 @@ parse_uw_salary_book <- function(pages) {
 }
 
 # Keeps the committed file unless the page links a different book; a failed
-# check, download or parse leaves the existing file as it is.
+# check, download or parse, or a book write_reference_file() rejects, leaves
+# the existing file as it is.
 refresh_uw_salary_book <- function(path) {
   url <- uw_salary_book_url(httr2::resp_body_string(httr2::request(UW_OPERATING_BUDGET_URL) %>% perform_with_retry()))
   existing <- if (file.exists(path)) utils::read.csv(path, stringsAsFactors = FALSE) else NULL
   if (!is.null(existing) && nrow(existing) > 0 && identical(existing$Source_URL[1], url)) {
     message("UW salary book: ", existing$Fiscal_Year[1], " already on file")
+    log_reference_result(path, "current")
     return(invisible(existing))
   }
   pdf <- tempfile(fileext = ".pdf")
@@ -84,7 +86,7 @@ refresh_uw_salary_book <- function(path) {
   book <- parse_uw_salary_book(pdftools::pdf_text(pdf))
   if (nrow(book) < 1000) stop("UW salary book: only ", nrow(book), " rows parsed from ", url)
   book$Source_URL <- url
-  utils::write.csv(book, path, row.names = FALSE)
+  if (!write_reference_file(book, path)) return(invisible(existing))
   message("UW salary book: wrote ", book$Fiscal_Year[1], " (", nrow(book), " rows)")
   invisible(book)
 }

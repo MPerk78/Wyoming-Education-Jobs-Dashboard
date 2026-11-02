@@ -126,3 +126,33 @@ test_that("extract_posted_pay skips amounts that go toward something else, and b
   ))
   expect_equal(p$Pay_Min, c(NA, NA, NA, 60000, 52000))
 })
+
+test_that("extract_posted_pay skips application costs, money paid into benefits, and loan-assistance lists", {
+  # Real wording from the 2026-10-31 rehearsal (Billings, Rocky Boy, Billings).
+  p <- extract_posted_pay(c(
+    "or email lynchla@billingsschools.org. The cost is $60.00) Go to www.billingsschools.org and apply",
+    "Our district also pays $11,446 into a flex benefits package (district contribution)",
+    "Quality Educator Loan Assistance of up to $3,000, $4,000 & $5,000 over three years.",
+    "Loan assistance up to $3,000. Salary: $45,000 per year",
+    "Teaching Assistant: $15.50 per hour"
+  ))
+  expect_equal(p$Pay_Min, c(NA, NA, NA, 45000, 15.5))
+})
+
+test_that("is_implausible_pay flags amounts out of range for their unit", {
+  bad <- is_implausible_pay(
+    pay_min = c(15, 900, 55000, 145, 4771, 60, 50000, NA, 20, 15),
+    pay_max = c(25, 900, 55000, 145, 4771, 60, 40000, NA, 20, 15),
+    pay_unit = c("hour", "hour", "hour", "day", "stipend", NA, "year", NA, "fortnight", "hour")
+  )
+  expect_equal(bad, c(FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, TRUE, FALSE))
+})
+
+test_that("drop_implausible_pay blanks every Pay_* column of a bad row only", {
+  df <- data.frame(Pay_Min = c(18, 55000), Pay_Max = c(22, 55000), Pay_Unit = c("hour", "hour"),
+                   Pay_Text = c("$18-$22/hr", "$55,000 hourly"), stringsAsFactors = FALSE)
+  out <- suppressMessages(drop_implausible_pay(df))
+  expect_equal(out$Pay_Min, c(18, NA))
+  expect_true(all(is.na(unlist(out[2, POSTED_PAY_COLUMNS]))))
+  expect_equal(out[1, ], df[1, ])
+})

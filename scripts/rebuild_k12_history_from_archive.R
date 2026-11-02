@@ -76,6 +76,7 @@ rebuild_k12_history_from_archive <- function(archive_dir = "Archivek12_Data") {
           )
         ) %>%
         ensure_posted_pay_columns() %>%
+        drop_implausible_pay() %>%
         dplyr::select(title, Archive_Date, date_posted, position, location, url, posting_id, District,
                       dplyr::all_of(POSTED_PAY_COLUMNS))
       # Mirrors Wy_ED_Jobs.Rmd's collapse_duplicate_posting_ids() -- only for

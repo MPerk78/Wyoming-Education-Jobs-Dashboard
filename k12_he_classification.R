@@ -403,7 +403,7 @@ extract_posted_pay <- function(text) {
     if (m[1] == -1) next
     starts <- as.integer(m); lens <- attr(m, "match.length")
     cs <- attr(m, "capture.start"); cl <- attr(m, "capture.length")
-    best <- NULL; best_score <- -Inf
+    best <- NULL; best_score <- -Inf; skipped_end <- NA_integer_
     for (j in seq_along(starts)) {
       before <- tolower(substr(t, max(1, starts[j] - 60), starts[j] - 1))
       after <- tolower(substr(t, starts[j] + lens[j], starts[j] + lens[j] + 45))
@@ -411,20 +411,30 @@ extract_posted_pay <- function(text) {
       # Only the amount's own sentence decides whether it's a bonus/fee, so a
       # "signing bonus." just before "Starting salary: $X" doesn't veto $X.
       near_before <- sub("^.*[.;!]\\s", "", near_before)
-      if (grepl("bonus|fee|reimburs|insurance|retire|deductible|allowance|incentive|signing|relocation|tuition|premium|contribut|match|donat|scholarship|award|grant of|differential|repayment|forgiveness", paste(near_before, substr(after, 1, 25)))) next
-      # "up to $3,000 of loan repayment": a ceiling on a benefit, not pay --
-      # unless a pay word leads it ("Salary: up to $60,000").
-      if (grepl("up to\\s*$", near_before) && !grepl("salary|wage|pay|rate|compensation", near_before)) next
-      # An amount said to go toward something else ("$800/month toward
-      # health, dental and vision", "$200 monthly for housing").
-      if (grepl("^[^.;]{0,15}\\b(for|toward|towards)\\b[^.;]{0,12}(housing|rent|utilit|health|dental|vision|medical|insurance|benefit)", after)) next
-      # A benefits package's stated value ("Benefits at FVCC (Worth ~$25K)")
-      # isn't pay. Only value wording counts, so "benefits eligible, $45,000"
-      # and "$52,000 plus benefits" are still read as pay.
-      if (grepl("\\bworth\\b|valued at|benefits? (package )?value", near_before)) next
-      # District housing offered with the job ("3 houses and 7 apartments
-      # starting at $350 per month") is a cost, not pay.
-      if (grepl("apartment|housing|\\bhouses?\\b|\\brent\\b|\\brental|\\blease|teacherage|utilities", near_before)) next
+      not_pay <- grepl("bonus|fee|\\bcosts?\\b|reimburs|insurance|retire|deductible|allowance|incentive|signing|relocation|tuition|premium|contribut|match|donat|scholarship|award|grant of|differential|repayment|forgiveness|\\bloan|assistance", paste(near_before, substr(after, 1, 25))) ||
+        # "up to $3,000 of loan repayment": a ceiling on a benefit, not pay --
+        # unless a pay word leads it ("Salary: up to $60,000").
+        (grepl("up to\\s*$", near_before) && !grepl("salary|wage|pay|rate|compensation", near_before)) ||
+        # An amount said to go toward something else ("$800/month toward
+        # health, dental and vision", "$200 monthly for housing").
+        # Also money paid into a benefit ("$11,446 into a flex benefits package").
+        grepl("^[^.;]{0,15}\\b(for|toward|towards|into)\\b[^.;]{0,12}(housing|rent|utilit|health|dental|vision|medical|insurance|benefit)", after) ||
+        # A benefits package's stated value ("Benefits at FVCC (Worth ~$25K)")
+        # isn't pay. Only value wording counts, so "benefits eligible, $45,000"
+        # and "$52,000 plus benefits" are still read as pay.
+        grepl("\\bworth\\b|valued at|benefits? (package )?value", near_before) ||
+        # District housing offered with the job ("3 houses and 7 apartments
+        # starting at $350 per month") is a cost, not pay.
+        grepl("apartment|housing|\\bhouses?\\b|\\brent\\b|\\brental|\\blease|teacherage|utilities", near_before)
+      # An amount continuing a list that starts with a skipped one ("Loan
+      # Assistance of up to $3,000, $4,000 & $5,000") is skipped with it,
+      # unless it carries its own pay unit ("bonus $1,000, $42,000 annual salary").
+      chained <- !is.na(skipped_end) && grepl("^\\s*(,|&|and|or)?\\s*$", substr(t, skipped_end + 1, starts[j] - 1)) &&
+        !grepl("^[^a-z]{0,3}(/|per|an|a)?\\s*(hour|hr\\b|day\\b|daily|month|year|yr\\b|annual|salary|wage)", after)
+      if (not_pay || chained) {
+        skipped_end <- starts[j] + lens[j] - 1
+        next
+      }
       cap <- function(k) if (cl[j, k] > 0) substr(t, cs[j, k], cs[j, k] + cl[j, k] - 1) else NA_character_
       lo <- to_num(cap(1), cap(2)); hi <- if (!is.na(cap(3))) to_num(cap(3), cap(4)) else lo
       # "$0.00" is a board's blank pay field (NEOGOV prints "Adjunct - $0.00
@@ -478,6 +488,41 @@ POSTED_PAY_COLUMNS <- c("Pay_Min", "Pay_Max", "Pay_Unit", "Pay_Text")
 ensure_posted_pay_columns <- function(df) {
   for (col in POSTED_PAY_COLUMNS) {
     if (!col %in% names(df)) df[[col]] <- rep(if (col %in% c("Pay_Min", "Pay_Max")) NA_real_ else NA_character_, nrow(df))
+  }
+  df
+}
+
+# The range a posted amount can plausibly take in each unit. An amount
+# outside it is a misread (a fee, a benefit value, a phone number), not
+# pay. Generous on purpose: real postings seen so far run $11-$100 an hour,
+# $68-$350 a day, $35,780-$175,000 a year, $60-$5,670 a stipend and $775 a
+# credit hour. "unknown" covers amounts with no unit.
+PAY_PLAUSIBLE_RANGE <- list(
+  hour = c(7, 200), day = c(30, 1500), month = c(300, 30000),
+  year = c(10000, 500000), `credit hour` = c(50, 5000), stipend = c(10, 60000),
+  unknown = c(1, 500000)
+)
+
+# TRUE where a row's posted pay is out of range for its unit, has an
+# unknown unit name, or runs low > high. Rows without pay are FALSE.
+is_implausible_pay <- function(pay_min, pay_max, pay_unit) {
+  unit <- ifelse(is.na(pay_unit), "unknown", pay_unit)
+  lo <- vapply(unit, function(u) if (u %in% names(PAY_PLAUSIBLE_RANGE)) PAY_PLAUSIBLE_RANGE[[u]][1] else NA_real_, numeric(1), USE.NAMES = FALSE)
+  hi <- vapply(unit, function(u) if (u %in% names(PAY_PLAUSIBLE_RANGE)) PAY_PLAUSIBLE_RANGE[[u]][2] else NA_real_, numeric(1), USE.NAMES = FALSE)
+  has_pay <- !is.na(pay_min) | !is.na(pay_max)
+  pmin_ <- dplyr::coalesce(pay_min, pay_max); pmax_ <- dplyr::coalesce(pay_max, pay_min)
+  has_pay & (is.na(lo) | pmin_ < lo | pmax_ > hi | pmin_ > pmax_)
+}
+
+# Blanks the Pay_* columns of rows whose posted pay is implausible, so a
+# misread never reaches the dashboard. The raw archive keeps them as
+# scraped; check_pay_coverage.R lists them in the weekly drift report.
+drop_implausible_pay <- function(df) {
+  bad <- is_implausible_pay(df$Pay_Min, df$Pay_Max, df$Pay_Unit)
+  if (any(bad)) {
+    message("Posted pay: blanked ", sum(bad), " implausible amount(s)")
+    df$Pay_Min[bad] <- NA_real_; df$Pay_Max[bad] <- NA_real_
+    df$Pay_Unit[bad] <- NA_character_; df$Pay_Text[bad] <- NA_character_
   }
   df
 }

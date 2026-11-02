@@ -168,17 +168,19 @@ fetch_oews_wages <- function(state, api_key = Sys.getenv("BLS_API_KEY"), pause =
 }
 
 # Keeps the committed file unless BLS has published a newer year; a failed
-# check or fetch leaves the existing file as it is.
+# check or fetch, or a refreshed table write_reference_file() rejects,
+# leaves the existing file as it is.
 refresh_oews_wages <- function(state, path, api_key = Sys.getenv("BLS_API_KEY")) {
   existing <- if (file.exists(path)) utils::read.csv(path, stringsAsFactors = FALSE,
                                                      colClasses = c(SOC = "character", Area_Code = "character")) else NULL
   latest <- fetch_oews_latest_year(state, api_key)
   if (!is.null(existing) && nrow(existing) > 0 && as.character(existing$Year[1]) == latest) {
     message("OEWS ", state, ": May ", latest, " already on file")
+    log_reference_result(path, "current")
     return(invisible(existing))
   }
   wages <- fetch_oews_wages(state, api_key)
-  utils::write.csv(wages, path, row.names = FALSE)
+  if (!write_reference_file(wages, path)) return(invisible(existing))
   message("OEWS ", state, ": wrote May ", latest, " (", nrow(wages), " rows)")
   invisible(wages)
 }

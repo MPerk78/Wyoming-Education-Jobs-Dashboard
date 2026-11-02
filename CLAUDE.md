@@ -44,8 +44,9 @@ Rscript .github/scripts/verify_schema.R     # blocking: every column app.R expec
 Rscript .github/scripts/check_drift.R       # diagnostic only: per-source count vs. historical baseline
 Rscript .github/scripts/check_salary_drift.R   # diagnostic: WSBA/IPEDS coverage vs. known-fixed universe
 Rscript .github/scripts/check_census_drift.R   # diagnostic: ACS/SAIPE coverage + value plausibility
-Rscript .github/scripts/check_pay_coverage.R   # diagnostic: sources whose posted pay went missing vs. their own history
+Rscript .github/scripts/check_pay_coverage.R   # diagnostic: sources whose posted pay went missing vs. their own history, plus implausible amounts blanked this run
 ```
+`check_salary_drift.R` also flags the pay-estimate reference tables (OEWS, QCEW, IPEDS staff pay, UW salary book) whose refresh failed, was rejected by `write_reference_file()`, didn't run, or went stale -- see DATA_COOKBOOK.md, "Pay data-quality guards".
 
 Disaster-recovery / verification rebuilds (reprocess the full raw archive from scratch, bypassing the incremental accumulator):
 ```r
@@ -73,7 +74,7 @@ Rscript scripts/repair_uw_pagination_duplicates.R --apply
 
 **Tests are built on real captured fixtures** (real scraped HTML, downloaded PDFs, API responses) rather than synthetic data — `tests/testthat/helper-setup.R` sources every scraper/classifier/repair module before any test file runs. `test-data-integrity.R` reads the actual committed summary CSVs (not fixtures) as a live data-contract check.
 
-**CI (`.github/workflows/weekly-scrape.yml`)** runs the full test suite first (blocks on failure) → renders the pipeline → `sanity_check.R` and `verify_schema.R` (both blocking) → drift/salary-drift/census-drift checks (`continue-on-error: true`, diagnostic-only, results filed as a GitHub Issue) → a meta-check that a diagnostic step *crashing* (vs. cleanly finding nothing) is still surfaced despite `continue-on-error` → regenerates and validates the Connect Cloud manifest → commits and pushes changed data files, which triggers the Connect Cloud redeploy.
+**CI (`.github/workflows/weekly-scrape.yml`)** runs the full test suite first (blocks on failure) → renders the pipeline → `sanity_check.R` and `verify_schema.R` (both blocking) → drift/salary-drift/census-drift/pay-coverage checks (`continue-on-error: true`, diagnostic-only, results filed as a GitHub Issue) → a meta-check that a diagnostic step *crashing* (vs. cleanly finding nothing) is still surfaced despite `continue-on-error` → regenerates and validates the Connect Cloud manifest → commits and pushes changed data files, which triggers the Connect Cloud redeploy.
 
 ## Git conventions and gotchas
 
