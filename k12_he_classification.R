@@ -405,6 +405,9 @@ extract_posted_pay <- function(text) {
     t <- text[i]
     if (is.na(t) || !grepl("$", t, fixed = TRUE)) next
     t <- gsub("[[:space:] ]+", " ", t)
+    # Boards that drop the line break after a field run the unit into the
+    # next label ("PAY RATE: $145/dayBENEFITS: None", "$146.09 per dayIf you").
+    t <- gsub("\\b(hourly|hour|hr|daily|day|monthly|month|yearly|year|yr|annually|annual|annum)(?=[A-Z])", "\\1 ", t, perl = TRUE)
     m <- gregexpr(pattern, t, perl = TRUE)[[1]]
     if (m[1] == -1) next
     starts <- as.integer(m); lens <- attr(m, "match.length")
@@ -417,6 +420,9 @@ extract_posted_pay <- function(text) {
       # Only the amount's own sentence decides whether it's a bonus/fee, so a
       # "signing bonus." just before "Starting salary: $X" doesn't veto $X.
       near_before <- sub("^.*[.;!]\\s", "", near_before)
+      # Nor does an earlier amount's own wording: in "Signing bonus $1,000,
+      # $42,000 annual salary" the bonus word belongs to $1,000.
+      near_before <- sub("^.*\\$\\s?\\d[0-9,.]*[kK]?", "", near_before)
       not_pay <- grepl("bonus|fee|\\bcosts?\\b|reimburs|insurance|retire|deductible|allowance|incentive|signing|relocation|tuition|premium|contribut|match|donat|scholarship|award|grant of|differential|repayment|forgiveness|\\bloan|assistance", paste(near_before, substr(after, 1, 25))) ||
         # "up to $3,000 of loan repayment": a ceiling on a benefit, not pay --
         # unless a pay word leads it ("Salary: up to $60,000").

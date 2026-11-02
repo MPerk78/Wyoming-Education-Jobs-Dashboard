@@ -313,4 +313,13 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     the old file when a download is partial, mostly blank or out of range, and logs each refresh to `scrape_log.csv`;
     `check_salary_drift.R` reports failed, rejected, missing or stale refreshes. Schema check and the blocking
     data-quality sweep cover the new files and the Pay_*/Est_* columns.
+  * [x] Pay extractor fixes (2026-11-01, both states): a unit run into the next label ("$145/dayBENEFITS",
+    "$21.69/hrThe District") is read as day/hour, and an earlier amount's bonus wording no longer vetoes a salary
+    after it ("Signing bonus $1,000, $42,000 annual salary").
+  * [x] `posting_id` (2026-11-01): fallback IDs are joined with " | " instead of a carriage return, which put line
+    breaks inside the field; a stored fallback ID passed back in by the archive rebuild is re-derived from the fields,
+    so weekly runs and rebuilds give one posting the same ID (rebuilds had been writing spaces). `k12jobanalysis.csv`
+    and `combinedclean.csv` rewritten with the new IDs (no other column changed; weekly distinct-ID counts identical).
+  * [x] Repeated rows in `k12jobanalysis.csv` (129) and `facultydata.csv` (170) documented in DATA_DICTIONARY.md and
+    kept: older snapshots lost the field that told them apart, so they can be separate openings.
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.

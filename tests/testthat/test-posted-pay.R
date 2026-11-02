@@ -139,6 +139,21 @@ test_that("extract_posted_pay skips application costs, money paid into benefits,
   expect_equal(p$Pay_Min, c(NA, NA, NA, 45000, 15.5))
 })
 
+test_that("extract_posted_pay reads a unit run into the next label, and pay listed after a bonus", {
+  # Real posting text whose line breaks the board dropped (2026-11-01
+  # rehearsals: WY Converse #1 and Sweetwater #2 AppliTrack, MT Harlem).
+  p <- extract_posted_pay(c(
+    "LOCATION: Various locationsPAY RATE: $145/dayBENEFITS: None As a substitute,",
+    "requirements are listed on the certificate.Salary: $146.09 per dayIf you have any questions",
+    "Bus Driver/Custodian with CDL (Part-Time) $21.69/hrThe District is willing to help",
+    # The bonus word belongs to the earlier amount, not to the salary.
+    "Signing bonus $1,000, $42,000 annual salary",
+    "$500 signing bonus, $3,000 relocation"
+  ))
+  expect_equal(p$Pay_Min, c(145, 146.09, 21.69, 42000, NA))
+  expect_equal(p$Pay_Unit, c("day", "day", "hour", "year", NA))
+})
+
 test_that("is_implausible_pay flags amounts out of range for their unit", {
   bad <- is_implausible_pay(
     pay_min = c(15, 900, 55000, 145, 4771, 60, 50000, NA, 20, 15),
