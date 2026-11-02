@@ -136,9 +136,9 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
 * **100% Data Dictionary & Codebook Column Coverage:**
   * Expanded `Wy_Ed_Jobs/data_dictionary.csv` to 131 variables across all 10 public research download CSVs on the Data Sources tab.
   * Resolved documentation drift for `k12jobanalysis.csv` (76,000+ historical records), Census ACS variables (`Median_Household_Income`, `Median_Gross_Rent`, `Population`, `Mining_Employment_Share`), WDE staffing subgroups, and IPEDS historical faculty compensation.
-  * Synchronized [`DATA_DICTIONARY.md`](file:///Users/mikebostick/Jobs_Dash_repos/Wyoming-Education-Jobs-Dashboard/DATA_DICTIONARY.md) markdown codebook with complete markdown tables and universal identifier definitions (`NCES_LEAID`, `IPEDS_UNITID`).
+  * Synchronized [`DATA_DICTIONARY.md`](file:///Users/mikebostick/repos/Jobs_Dash_repos/Wyoming-Education-Jobs-Dashboard/DATA_DICTIONARY.md) markdown codebook with complete markdown tables and universal identifier definitions (`NCES_LEAID`, `IPEDS_UNITID`).
 * **Automated Codebook Invariant Test Harness:**
-  * Created [`tests/testthat/test-data-dictionary.R`](file:///Users/mikebostick/Jobs_Dash_repos/Wyoming-Education-Jobs-Dashboard/tests/testthat/test-data-dictionary.R) enforcing:
+  * Created [`tests/testthat/test-data-dictionary.R`](file:///Users/mikebostick/repos/Jobs_Dash_repos/Wyoming-Education-Jobs-Dashboard/tests/testthat/test-data-dictionary.R) enforcing:
     - 100% column documentation: every column in every public download CSV must exist in `data_dictionary.csv`.
     - Zero phantom columns: every documented column must exist in the target dataset.
     - Non-empty descriptions and valid data types.
