@@ -334,4 +334,13 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     Positions). Spells `is_support_staff` now includes Transportation and Food Services, as documented. Committed
     combinedclean (position, and Est_* on changed rows) and the teacher/faculty histories, aggregates and spells
     reclassified; raw archives unchanged. Tests: test-classification-misroutes.R (identical in both repos).
+  * [x] Real posting dates, step 1 (2026-11-03, both states; c75abaf): AppliTrack postings carry the board's own job
+    ID (`parse_applitrack_output()` `job_id`, identical to MT); `url` is the posting's own page
+    (`applitrack_posting_url()`) and `posting_id` is `applitrack:<tenant>:<job id>` instead of the title fingerprint.
+    Parser fix: fields are read per `<li>`; a one-value "Position Type" used to swallow the next field and shift every
+    later one (49 of 318 rows on 10-30 had no posted date, e.g. Teton #1, Carbon #1; earlier archives keep the shifted
+    values). New `Close_Date` (combinedclean + raw archive): AppliTrack "Closing Date" as written. The 10-30 week was
+    moved onto job IDs and corrected from the live boards (263/318; the rest had left the board). WSBA rows linking to
+    AppliTrack category pages keep the fingerprint. Fixture `applitrack_output_wy_teton_single_position_type.bin`.
+    Full weekly rehearsal passed. Next: WY's spells have the same trust problems as MT's (not audited).
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.
