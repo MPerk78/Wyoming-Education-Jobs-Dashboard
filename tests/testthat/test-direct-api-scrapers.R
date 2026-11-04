@@ -358,7 +358,7 @@ test_that("parse_applitrack_output un-escapes document.write literals and preser
 test_that("parse_applitrack_output returns zero rows (not an error) when there's no postingsList content", {
   result <- parse_applitrack_output("document.write('<div>No postings here</div>');")
   expect_equal(nrow(result), 0)
-  expect_equal(names(result), c("title", "position", "position2", "date_posted", "location", "closing_date",
+  expect_equal(names(result), c("title", "position", "position2", "date_posted", "location", "closing_date", "job_id",
                                 "Pay_Min", "Pay_Max", "Pay_Unit", "Pay_Text"))
 })
 
@@ -439,4 +439,44 @@ test_that("parse_tedk12_postings returns zero rows (not an error) when there's n
   result <- parse_tedk12_postings("<html><body><p>Not a TedK12 page</p></body></html>", "https://example.tedk12.com/hire/index.aspx")
   expect_equal(nrow(result), 0)
   expect_equal(names(result), c("title", "date_posted", "position", "location", "url"))
+})
+
+test_that("parse_applitrack_output reads each field from its own <li> (one-value Position Type)", {
+  # Real fixture captured 2026-11-03 from Teton County SD1 (WY)
+  # https://www.applitrack.com/tcsd/onlineapp/jobpostings/Output.asp?all=1 .
+  # JobID 836 has a one-value "Position Type:" followed by "Date Posted:
+  # 10/26/2026". The old running-index parser took the date as a second
+  # Position Type value, so the posting got date_posted "TCSD Schools" and
+  # location "10/26/2026".
+  path <- test_path("fixtures", "applitrack_output_wy_teton_single_position_type.bin")
+  js <- iconv(readChar(path, file.size(path), useBytes = TRUE), "WINDOWS-1252", "UTF-8")
+  out <- parse_applitrack_output(js)
+  expect_equal(nrow(out), 14)
+  expect_true(all(grepl("^\\d{1,2}/\\d{1,2}/\\d{4}$", out$date_posted)))
+  p <- out[out$job_id == "836", ]
+  expect_equal(p$title, "K-5 Special Education Teacher, Life Skills")
+  expect_equal(p$position, "Student Support Services")
+  expect_true(is.na(p$position2))
+  expect_equal(p$date_posted, "10/26/2026")
+  expect_equal(p$location, "TCSD Schools")
+})
+
+test_that("AppliTrack postings carry their job ID, per-posting link and closing date", {
+  # Same real Teton fixture: every block is "p<JobID>_".
+  path <- test_path("fixtures", "applitrack_output_wy_teton_single_position_type.bin")
+  js <- iconv(readChar(path, file.size(path), useBytes = TRUE), "WINDOWS-1252", "UTF-8")
+  out <- parse_applitrack_output(js)
+  expect_true(all(grepl("^[0-9]+$", out$job_id)))
+  expect_equal(anyDuplicated(out$job_id), 0)
+  expect_true("job_id" %in% names(parse_applitrack_output("")))
+  expect_equal(applitrack_posting_url("tcsd", "836"),
+               "https://www.applitrack.com/tcsd/onlineapp/default.aspx?AppliTrackLayoutMode=detail&AppliTrackJobId=836")
+  expect_true(is.na(applitrack_posting_url("tcsd", NA_character_)))
+  # The pipeline's source_id "applitrack:<tenant>:<job id>" is the posting_id
+  # as given, so two postings with the same title stay two postings.
+  ids <- build_k12_posting_id(source_id = c("applitrack:tcsd:1", "applitrack:tcsd:2"),
+                              title = "Paraprofessional", location = "District Wide",
+                              date_posted = "2026-10-01", url = "https://www.applitrack.com/tcsd/onlineapp/default.aspx?all=1",
+                              district = "Teton County School District 1")
+  expect_equal(ids, c("applitrack:tcsd:1", "applitrack:tcsd:2"))
 })

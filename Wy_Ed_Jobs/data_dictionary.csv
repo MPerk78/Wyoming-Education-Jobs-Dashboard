@@ -7,6 +7,7 @@
 "Active K-12 Jobs","combinedclean.csv","url","URL","District Job Board","Direct link to the job posting or district applicant tracking portal."
 "Active K-12 Jobs","combinedclean.csv","posting_id","String","Project Pipeline","Durable unique posting identifier used to track openings longitudinally across weekly snapshots."
 "Active K-12 Jobs","combinedclean.csv","District","String","Canonical Registry","Canonical public school district or charter school name."
+"Active K-12 Jobs","combinedclean.csv","Close_Date","String","District ATS","The posting's closing date as its board states it, unparsed (a date, or ""When Filled"", ""Open Until Filled"" and similar). AppliTrack rows only so far (from 2026-11-03); NA where the board gives none and for other sources."
 "Active K-12 Jobs","combinedclean.csv","Pay_Min","Numeric","Job posting","Lowest pay amount stated in the posting itself, in Pay_Unit (NA when the posting states no dollar figure). Never converted between units."
 "Active K-12 Jobs","combinedclean.csv","Pay_Max","Numeric","Job posting","Highest pay amount stated in the posting (equals Pay_Min for a single figure)."
 "Active K-12 Jobs","combinedclean.csv","Pay_Unit","String","Job posting","Unit of the stated pay: hour, day, month, year, credit hour, or stipend (a season/activity amount). NA when the posting gives an amount without a determinable unit."

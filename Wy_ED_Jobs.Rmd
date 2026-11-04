@@ -75,10 +75,19 @@ for (i in seq_len(nrow(registry))) {
       # scrape_log.csv/drift_check.R same as it does for every other
       # platform, so this placeholder was never actually needed to make an
       # empty week visible.
+      # Each posting's url is its own AppliTrack page and its posting_id
+      # AppliTrack's job ID (applitrack_posting_url()), so postings sharing a
+      # title stay apart; the board URL and fingerprint only without an ID.
+      # Close_Date is the board's "Closing Date" as written.
       if (nrow(df) > 0) {
         df <- ensure_posted_pay_columns(df)
+        job_id <- if ("job_id" %in% names(df)) df$job_id else rep(NA_character_, nrow(df))
         data.frame(title = df$title, date_posted = df$date_posted, position = df$position,
-                   location = df$location, url = row$Job_Link, District = row$District,
+                   location = df$location,
+                   url = dplyr::coalesce(applitrack_posting_url(tenant_path, job_id), row$Job_Link),
+                   posting_id = ifelse(is.na(job_id), NA_character_, paste0("applitrack:", tenant_path, ":", job_id)),
+                   District = row$District,
+                   Close_Date = if ("closing_date" %in% names(df)) df$closing_date else NA_character_,
                    Pay_Min = df$Pay_Min, Pay_Max = df$Pay_Max, Pay_Unit = df$Pay_Unit,
                    Pay_Text = df$Pay_Text, stringsAsFactors = FALSE)
       } else {
@@ -332,7 +341,8 @@ combinedclean <- combined %>%
   # Est_* is the BLS regional median for the posting's role, matched to its
   # district's county (statewide where the county is unknown).
   attach_oews_estimates(oews_wages, district_county$County[match(.$District, district_county$District)], "WY") %>%
-  dplyr::select(title, Archive_Date, date_posted, position, location, url, posting_id, District,
+  mutate(Close_Date = if ("Close_Date" %in% names(.)) as.character(Close_Date) else NA_character_) %>%
+  dplyr::select(title, Archive_Date, date_posted, position, location, url, posting_id, District, Close_Date,
                 dplyr::all_of(POSTED_PAY_COLUMNS), dplyr::all_of(OEWS_ESTIMATE_COLUMNS))
 
 write.csv(combinedclean, file=file.path('Wy_Ed_Jobs','combinedclean.csv'), row.names = FALSE)

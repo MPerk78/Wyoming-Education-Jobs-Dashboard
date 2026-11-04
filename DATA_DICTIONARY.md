@@ -48,6 +48,7 @@ To support seamless merges with federal, state, and academic datasets, the follo
 | `url` | URL | District Job Board | Direct link to the job posting or district applicant tracking portal. |
 | `posting_id` | String | Project Pipeline | Durable unique posting identifier used to track openings longitudinally across weekly snapshots. |
 | `District` | String | Canonical Registry | Canonical public school district or charter school name. |
+| `Close_Date` | String | District ATS | The posting's closing date as its board states it, unparsed (a date, or "When Filled", "Open Until Filled" and similar). AppliTrack rows only so far (from 2026-11-03); NA where the board gives none and for other sources. |
 | `Pay_Min` | Numeric | Job posting | Lowest pay amount stated in the posting itself, in `Pay_Unit` (NA when no dollar figure is stated). Never converted between units. |
 | `Pay_Max` | Numeric | Job posting | Highest stated amount (equals `Pay_Min` for a single figure). |
 | `Pay_Unit` | String | Job posting | `hour`, `day`, `month`, `year`, `credit hour`, or `stipend` (season/activity amount); NA when undeterminable. |
@@ -69,7 +70,7 @@ To support seamless merges with federal, state, and academic datasets, the follo
 | `position` | Categorical | Classification Model | Broad staff position group (Teacher, Administrator, Support Services, etc.). |
 | `location` | String | District Job Board | Specific school building, facility, or district administrative office location. |
 | `url` | URL | District Job Board | Direct URL link to the official job vacancy listing or district portal. |
-| `posting_id` | String | Project Pipeline | Durable unique posting identifier tracking vacancies across multi-year weekly snapshots. The source's own posting ID where it has one (e.g. `schoolspring:laramie1.schoolspring.com:5857967`); otherwise a fallback fingerprint, `fallback \| <district> \| <url> \| <title> \| <location> \| <posted date>`, lower-cased. |
+| `posting_id` | String | Project Pipeline | Durable unique posting identifier tracking vacancies across multi-year weekly snapshots. The source's own posting ID where it has one (e.g. `schoolspring:laramie1.schoolspring.com:5857967`, `applitrack:tcsd:836` from 2026-11-03); otherwise a fallback fingerprint, `fallback \| <district> \| <url> \| <title> \| <location> \| <posted date>`, lower-cased. |
 | `District` | String | Canonical Registry | Canonical public school district or charter school Local Education Agency (LEA) name. |
 | `Category` | String | Classification Model | Fine-grained subject specialization or departmental role assignment. |
 | `Broad_Category` | Categorical | Classification Model | Clustered high-level category grouping (Elementary, STEM, Special Education, Humanities, etc.). |

@@ -22,8 +22,9 @@ One row per open K-12 posting, all position types (not just teachers). Powers th
 | `position` | text | Coarse bucket from `classify_k12_position()` (Teacher, Support Services, Administration, etc. — see `k12_he_classification.R` for the full list). |
 | `location` | text | School/site name or district office, as scraped — format varies a lot by source platform. |
 | `url` | text | Direct posting URL where the source exposes one (including SchoolSpring and RedRover); otherwise the district job-board URL. |
-| `posting_id` | text | Durable source posting ID when available. Sources without one use a stable fallback fingerprint of their URL, district, title, location, and posted date; `Archive_Date` is intentionally excluded so the same posting retains its identity across weeks. |
+| `posting_id` | text | Durable source posting ID when available (SchoolSpring, RedRover; AppliTrack's job ID from 2026-11-03, `applitrack:<tenant>:<job id>`, with `url` the posting's own AppliTrack page; the 2026-10-30 week was moved onto these by matching the live boards). Sources without one use a stable fallback fingerprint of their URL, district, title, location, and posted date; `Archive_Date` is intentionally excluded so the same posting retains its identity across weeks. |
 | `District` | text | Canonical district name (`canonicalize_k12_district()` applied). |
+| `Close_Date` | text | The posting's closing date as its board states it, unparsed (a date, or "When Filled", "Open Until Filled" and similar). AppliTrack rows only so far (from 2026-11-03); NA where the board gives none and for other sources. |
 
 **Sources combined into this file**: AppliTrack, TedK12, SchoolSpring, RedRoverK12, direct district pages for the miscellaneous-district registry, and the complete WSBA statewide vacancies feed. WSBA rows are removed only when their normalized district, title, and posted date exactly match a direct-platform row; this preserves WSBA listings that direct boards do not expose.
 

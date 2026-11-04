@@ -588,6 +588,14 @@ normalize_id_backed_k12_postings <- function(postings) {
 # /onlineapp/ (shared with drift_check.R, like schoolspring_domain()).
 applitrack_tenant_path <- function(job_link) sub(".*applitrack\\.com/([^/]+)/onlineapp.*", "\\1", job_link, ignore.case = TRUE)
 
+# The posting's own page on the district's AppliTrack board (the link the
+# board's "Email To A Friend" button shares). NA without a job ID.
+applitrack_posting_url <- function(tenant_path, job_id) {
+  ifelse(is.na(job_id) | !nzchar(job_id), NA_character_,
+         paste0("https://www.applitrack.com/", tenant_path,
+                "/onlineapp/default.aspx?AppliTrackLayoutMode=detail&AppliTrackJobId=", job_id))
+}
+
 fetch_applitrack_postings <- function(tenant_path) {
   resp <- request(paste0("https://www.applitrack.com/", tenant_path, "/onlineapp/jobpostings/Output.asp")) %>%
     req_url_query(all = "1") %>%
@@ -618,6 +626,7 @@ parse_applitrack_output <- function(js_text) {
   if (!nzchar(html)) {
     return(data.frame(title = character(0), position = character(0), position2 = character(0),
                        date_posted = character(0), location = character(0), closing_date = character(0),
+                       job_id = character(0),
                        Pay_Min = numeric(0), Pay_Max = numeric(0), Pay_Unit = character(0),
                        Pay_Text = character(0), stringsAsFactors = FALSE))
   }
@@ -628,41 +637,37 @@ parse_applitrack_output <- function(js_text) {
   if (length(postings) == 0) {
     return(data.frame(title = character(0), position = character(0), position2 = character(0),
                        date_posted = character(0), location = character(0), closing_date = character(0),
+                       job_id = character(0),
                        Pay_Min = numeric(0), Pay_Max = numeric(0), Pay_Unit = character(0),
                        Pay_Text = character(0), stringsAsFactors = FALSE))
   }
 
   rows <- lapply(postings, function(p) {
     title <- rvest::html_text2(rvest::html_element(p, "table.title td#wrapword"))
-    labels <- rvest::html_text2(rvest::html_elements(p, "li span.label"))
-    values <- rvest::html_text2(rvest::html_elements(p, "li span.normal"))
-
-    # Mirrors the original Applitrack K-12 loop's label/value matching
-    # exactly (same markup, same labels): "Position Type:" can consume TWO
-    # consecutive values (category + subcategory, e.g. "Support Staff/" and
-    # "Para-Educator Special Services") when the next value isn't itself
-    # another label's value (heuristic: doesn't contain ":"). Getting this
-    # wrong shifts every subsequent field by one position, corrupting
-    # date_posted/location/closing_date even though position2 itself is
-    # discarded downstream (combinedclean only keeps title/date_posted/
-    # position/location/url/District).
+    # Each field is its own <li>: one span.label and its span.normal
+    # value(s). "Position Type:" has one value or two (category +
+    # subcategory, e.g. "Support Staff/" + "Para-Educator Special
+    # Services"). Values are read per <li>, never by a running position
+    # across the posting: guessing whether a second Position Type value
+    # existed (from whether the next value had a ":") swallowed the next
+    # field's value when it didn't, e.g. a "Date Posted" date, and shifted
+    # every later field by one (WY Teton #1 and Carbon #1, 2026-11-03).
+    # Description <li>s carry no span.label and are skipped.
     field <- setNames(as.list(rep(NA_character_, 5)), c("position", "position2", "date_posted", "location", "closing_date"))
-    j <- 1
-    for (label in labels) {
+    for (li in rvest::html_elements(p, xpath = ".//li[span[contains(concat(' ', normalize-space(@class), ' '), ' label ')]]")) {
+      label <- trimws(rvest::html_text2(rvest::html_element(li, "span.label")))
+      values <- rvest::html_text2(rvest::html_elements(li, "span.normal"))
+      if (length(values) == 0) next
       if (label == "Position Type:") {
-        field$position <- values[j]
-        if (j + 1 <= length(values) && !grepl(":", values[j + 1])) {
-          field$position2 <- values[j + 1]
-          j <- j + 1
-        }
+        field$position <- values[1]
+        if (length(values) >= 2) field$position2 <- values[2]
       } else if (label == "Date Posted:") {
-        field$date_posted <- values[j]
+        field$date_posted <- values[1]
       } else if (label == "Location:") {
-        field$location <- values[j]
+        field$location <- values[1]
       } else if (label == "Closing Date:") {
-        field$closing_date <- values[j]
+        field$closing_date <- values[1]
       }
-      j <- j + 1
     }
 
     # Most AppliTrack postings state their pay in the body ("SALARY:
@@ -670,9 +675,17 @@ parse_applitrack_output <- function(js_text) {
     # all=1 listing already includes -- no extra request needed.
     pay <- extract_posted_pay(rvest::html_text2(p))
 
+    # AppliTrack's own per-posting ID: the block's id ("p2138_") and the
+    # "JobID: 2138" beside its title. It makes a stable per-posting link
+    # (applitrack_posting_url()), so postings sharing a title stay apart.
+    job_id <- sub("^p(\\d+)_?$", "\\1", rvest::html_attr(p, "id"))
+    if (is.na(job_id) || !grepl("^\\d+$", job_id)) {
+      job_id <- stringr::str_match(rvest::html_text2(rvest::html_element(p, "table.title")), "JobID:\\s*(\\d+)")[, 2]
+    }
+
     data.frame(title = title, position = field$position, position2 = field$position2,
                date_posted = field$date_posted, location = field$location,
-               closing_date = field$closing_date, pay, stringsAsFactors = FALSE)
+               closing_date = field$closing_date, job_id = job_id, pay, stringsAsFactors = FALSE)
   })
 
   do.call(rbind, rows)
