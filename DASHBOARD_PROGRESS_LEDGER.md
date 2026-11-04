@@ -344,3 +344,17 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     AppliTrack category pages keep the fingerprint. Fixture `applitrack_output_wy_teton_single_position_type.bin`.
     Full weekly rehearsal passed. Next: WY's spells have the same trust problems as MT's (not audited).
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.
+
+**Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
+- [ ] Real posting dates (`claude-notes/2026-11-03_posting-dates-plan.md`, written for MT, same approach): SchoolSpring
+  detail `postDate`/`closeDate`/`jobStatusID`, PeopleAdmin open/close dates, coverage calendar, spells rebuild.
+- [ ] Spells trust audit: WY's spells have the problems found in MT's (`claude-notes/2026-11-02_spells-trust-audit.md`)
+  but were not audited, and WY's Time-to-Fill tabs are NOT paused.
+- [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`). Confirm
+  "Activities/Extracurricular" shows in the 2026-11-06 data.
+- [ ] Title-shape bug: Fremont #21 "... - Open Until Filled.". WSBA district typo "Cabon County School District 2"
+  not caught by `canonicalize_k12_district()`.
+- [ ] Rebuild scripts drift from the pipeline (proposal item 12; they reorder rows and drop Est_*/Close_Date).
+  Weekly-totals downloads: keep one snapshot per week (decided 2026-11-02; not built).
+- [ ] Manual (repo Settings -> Copilot -> Internet access): uwyo.edu.
+
