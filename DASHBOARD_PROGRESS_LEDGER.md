@@ -353,11 +353,21 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     `hedata.xlsx` and the raw archive, not `facultydata.csv`. Tests shared with MT (`test-peopleadmin-dates.R`,
     SchoolSpring block in `test-direct-api-scrapers.R`, fixtures `schoolspring_job_*.json`). Full weekly rehearsal
     passed.
+  * [x] Real posting dates, step 4 (2026-11-04, both states; 7d46347): `refresh_schoolspring_endings()`
+    (`direct_api_scrapers.R`) runs after the raw archive is written: every SchoolSpring job ID listed in the past
+    year but not today is looked up (`fetch_schoolspring_details()`), and `schoolspring_endings.csv` (repo root,
+    committed by the weekly workflow) keeps one row per ended posting: District, Title, board posted date,
+    First_Seen/Last_Seen, `Job_Status`, Status_Since, Last_Checked. Filled/canceled are final, review is rechecked
+    weekly, and a lookup still saying "posted" (our scrape missed a live posting) records nothing. First lookup:
+    WY 504 postings that left Aug-Oct (294 filled, 119 canceled, 91 review; Fremont 25 also mostly canceled), MT 99 (62 / 17 / 20). Districts use the statuses differently (MT Libby leaves all at review; WY Campbell County 1 closes 79 as
+    canceled vs 8 filled), so a pooled filled share is not a calibration constant
+    (`claude-notes/2026-11-03_posting-dates-plan.md`, "Step 4 findings"). District names go through `canonicalize_k12_district()` (August archives spell "Campbell County Scholl", "Albany Count"). Tests in
+    `test-schoolspring-scraper.R`. Full weekly rehearsal passed.
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
-- [ ] Real posting dates (`claude-notes/2026-11-03_posting-dates-plan.md`, written for MT, same approach): SchoolSpring
-  ending reasons for postings that left the board (step 4), coverage calendar, spells rebuild.
+- [ ] Real posting dates (`claude-notes/2026-11-03_posting-dates-plan.md`, written for MT, same approach): coverage
+  calendar, spells rebuild (use `schoolspring_endings.csv` for how SchoolSpring postings ended).
 - [ ] Spells trust audit: WY's spells have the problems found in MT's (`claude-notes/2026-11-02_spells-trust-audit.md`)
   but were not audited, and WY's Time-to-Fill tabs are NOT paused.
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`). Confirm
