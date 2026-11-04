@@ -169,17 +169,60 @@ parse_uw_requisitions <- function(reqs_df, ui_base) {
 
 # The feed carries no pay, so with fetch_pay each posting's own page is read
 # for it (parse_peopleadmin_posting_pay()): one request per posting, spaced
-# out. A failed page leaves only that posting's pay blank.
+# out. A failed page leaves only that posting's pay and dates blank.
+#
+# The same page gives the posting's dates (parse_peopleadmin_posting_dates()).
+# Its open date replaces the feed's <published>, which moves when a posting
+# is re-published: 39 of 95 Western/Eastern/Sheridan/Northwest postings with
+# an open date on 2026-11-04 differ from <published> (MT's MSU Billings and
+# Great Falls: one by two years). Sheridan leaves "Job Posting Date" blank on
+# 32 of 71 postings, which keep <published>.
 fetch_peopleadmin_atom <- function(feed_url, location_fallback, fetch_pay = TRUE, detail_delay = 0.3) {
   resp <- request(feed_url) %>% perform_with_retry()
   postings <- parse_peopleadmin_atom(resp_body_string(resp), location_fallback)
-  if (!fetch_pay || nrow(postings) == 0) return(ensure_posted_pay_columns(postings))
-  pay <- dplyr::bind_rows(lapply(postings$Link, function(link) {
+  if (!fetch_pay || nrow(postings) == 0) {
+    postings <- ensure_posted_pay_columns(postings)
+    postings$Close_Date <- rep(NA_character_, nrow(postings))
+    return(postings)
+  }
+  pages <- lapply(postings$Link, function(link) {
     Sys.sleep(detail_delay)
-    tryCatch(parse_peopleadmin_posting_pay(resp_body_string(request(link) %>% perform_with_retry())),
-             error = function(e) parse_peopleadmin_posting_pay(NA_character_))
-  }))
+    tryCatch(resp_body_string(request(link) %>% perform_with_retry()), error = function(e) NA_character_)
+  })
+  pay <- dplyr::bind_rows(lapply(pages, parse_peopleadmin_posting_pay))
+  dates <- dplyr::bind_rows(lapply(pages, parse_peopleadmin_posting_dates))
+  postings$Posted_Date <- dplyr::coalesce(dates$Open_Date, as.character(postings$Posted_Date))
+  postings$Close_Date <- dates$Close_Date
   cbind(postings, pay)
+}
+
+# A PeopleAdmin posting page's own open and close dates, as YYYY-MM-DD. Each
+# college labels them its own way: MSU campuses, Western and Eastern "Open
+# Date"/"Close Date", Northwest "Posting Date"/"Closing Date", Sheridan "Job
+# Posting Date" and "Initial Review Date". A close date is kept even when
+# "Open Until Filled" is also Yes (it is then the first-review deadline,
+# like AppliTrack's "Closing Date"); with no close date, "Open Until Filled:
+# Yes" gives Close_Date "Open Until Filled". Blank fields are NA.
+PEOPLEADMIN_OPEN_LABELS <- c("Open Date", "Posting Date", "Job Posting Date")
+PEOPLEADMIN_CLOSE_LABELS <- c("Close Date", "Closing Date", "Initial Review Date")
+
+parse_peopleadmin_posting_dates <- function(html_text) {
+  none <- data.frame(Open_Date = NA_character_, Close_Date = NA_character_, stringsAsFactors = FALSE)
+  if (is.na(html_text)) return(none)
+  rows <- rvest::html_elements(rvest::read_html(html_text), xpath = "//tr[th and td]")
+  labels <- tolower(trimws(rvest::html_text2(rvest::html_element(rows, "th"))))
+  values <- trimws(gsub("\\s+", " ", rvest::html_text2(rvest::html_element(rows, "td"))))
+  first_date <- function(wanted) {
+    v <- values[labels %in% tolower(wanted)]
+    d <- suppressWarnings(as.Date(v, format = "%m/%d/%Y"))
+    d <- d[!is.na(d) & grepl("^\\d{1,2}/\\d{1,2}/\\d{4}$", v)]
+    if (length(d) == 0) NA_character_ else format(d[1])
+  }
+  close <- first_date(PEOPLEADMIN_CLOSE_LABELS)
+  if (is.na(close) && any(labels == "open until filled" & grepl("^yes", values, ignore.case = TRUE))) {
+    close <- "Open Until Filled"
+  }
+  data.frame(Open_Date = first_date(PEOPLEADMIN_OPEN_LABELS), Close_Date = close, stringsAsFactors = FALSE)
 }
 
 # Pay from a PeopleAdmin posting page. Each college labels its pay field
@@ -447,6 +490,104 @@ parse_schoolspring_json <- function(json_text, domain_name) {
     stringsAsFactors = FALSE
   )
 }
+
+# One posting's own record (api.schoolspring.com/api/Jobs/<jobId>, the call
+# the posting page makes; no login). It carries what the listing doesn't:
+#
+# - Close_Date: the deadline applicants see (formattedExternalCloseDate,
+#   "Nov 13, 2026 11:59 PM (Mountain Standard Time)"). The raw closeDate is
+#   UTC (2026-11-14T06:59), and "Posted until filled" is stored as
+#   2050-01-01, so it is NA here.
+# - Job_Status: jobStatusID 30 posted, 40 review (closed to applicants),
+#   50 filled, 60 canceled. Live listings only show 30; the record keeps its
+#   status after the posting leaves the board, which is what tells "filled"
+#   from "canceled" (posting-dates plan, step 4).
+# - Posted pay from payMin/payMax/salaryCode when payDisplay is on (88 of
+#   107 MT postings, 2026-11-03; the listing has none). 0 means "not given".
+#   salaryCode is the district's own label, so units are read with the
+#   amount: "Per Year" under $10,000 is a coaching/extra-duty stipend
+#   (Ronan $1,919.10), "Hourly and Certified Pay" holds both teacher
+#   salaries ($45,450) and hourly rates ($24.38), and "Substitute" (WY: $150,
+#   $14.95, $1,132) doesn't say per hour, day or season, so it is left
+#   without pay, as is any other label ("Please see our Salary Schedule").
+#   WY 2026-11-04: 132 of 214 postings show pay; 19 have a dated close.
+#
+# displayDate (the listing's posted date, kept as Posted_Date) stays the
+# start date: postDate is when the record was created, often a few days
+# before it went public and sometimes re-saved years later.
+SCHOOLSPRING_STATUS <- c(`30` = "posted", `40` = "review", `50` = "filled", `60` = "canceled")
+
+parse_schoolspring_job_json <- function(json_text) {
+  v <- jsonlite::fromJSON(json_text, simplifyVector = TRUE)$value
+  ji <- v$jobInfo
+  num <- function(x) { x <- suppressWarnings(as.numeric(x)); if (length(x) == 0 || is.na(x) || x <= 0) NA_real_ else x }
+
+  closing <- v$formattedExternalCloseDate
+  close_date <- if (is.null(closing) || is.na(closing)) NA_character_ else {
+    d <- as.Date(sub("^([A-Za-z]{3} \\d{1,2}, \\d{4}).*$", "\\1", closing), format = "%b %d, %Y")
+    if (is.na(d)) NA_character_ else format(d)
+  }
+
+  status <- unname(SCHOOLSPRING_STATUS[as.character(ji$jobStatusID)])
+  if (length(status) == 0) status <- NA_character_
+  if (is.na(status) && !is.null(ji$jobStatusID)) status <- paste0("status ", ji$jobStatusID)
+
+  lo <- num(ji$payMin); hi <- num(ji$payMax)
+  lo <- dplyr::coalesce(lo, hi); hi <- dplyr::coalesce(hi, lo)
+  code <- if (is.null(ji$salaryCode)) "" else trimws(as.character(ji$salaryCode))
+  unit <- if (!isTRUE(as.integer(ji$payDisplay) == 1L) || is.na(hi)) NA_character_ else
+    switch(code,
+           "Per Hour" = "hour",
+           "Per Day" = "day",
+           "Stipend" = "stipend",
+           "Per Year" = if (hi >= 10000) "year" else "stipend",
+           "Hourly and Certified Pay" = if (hi >= 10000) "year" else if (hi <= 200) "hour" else NA_character_,
+           NA_character_)
+  pay_text <- if (is.na(unit)) NA_character_ else
+    paste0(if (lo == hi) format_pay_amount(lo) else paste0(format_pay_amount(lo), "-", format_pay_amount(hi)),
+           " ", code, " (SchoolSpring pay field)")
+
+  data.frame(job_id = as.character(ji$jobId), Close_Date = close_date, Job_Status = status,
+             Pay_Min = if (is.na(unit)) NA_real_ else lo, Pay_Max = if (is.na(unit)) NA_real_ else hi,
+             Pay_Unit = unit, Pay_Text = pay_text, stringsAsFactors = FALSE)
+}
+
+format_pay_amount <- function(x) paste0("$", formatC(x, format = "f", digits = if (x %% 1 == 0) 0 else 2, big.mark = ","))
+
+SCHOOLSPRING_DETAIL_EMPTY <- data.frame(job_id = character(0), Close_Date = character(0), Job_Status = character(0),
+                                         Pay_Min = numeric(0), Pay_Max = numeric(0), Pay_Unit = character(0),
+                                         Pay_Text = character(0), stringsAsFactors = FALSE)
+
+# Detail records for a set of job IDs, one request each. A failed request
+# leaves only that posting's fields NA (it is skipped here and NA after the
+# join), and fetching stops once budget_secs is spent, so a slow API can't
+# hold up the weekly run.
+fetch_schoolspring_details <- function(job_ids, delay = 0.2, budget_secs = 300) {
+  deadline <- Sys.time() + budget_secs
+  out <- lapply(unique(job_ids[!is.na(job_ids)]), function(id) {
+    if (Sys.time() > deadline) return(NULL)
+    Sys.sleep(delay)
+    tryCatch({
+      resp <- request(paste0("https://api.schoolspring.com/api/Jobs/", id)) %>%
+        req_timeout(30) %>%
+        perform_with_retry()
+      parse_schoolspring_job_json(resp_body_string(resp))
+    }, error = function(e) NULL)
+  })
+  dplyr::bind_rows(SCHOOLSPRING_DETAIL_EMPTY, dplyr::bind_rows(out))
+}
+
+# The listing plus each posting's detail fields (Close_Date, Job_Status,
+# Pay_*), joined on the job ID in Link. Run before
+# normalize_id_backed_k12_postings(), which passes Pay_* through.
+add_schoolspring_details <- function(postings, ...) {
+  if (nrow(postings) == 0) return(cbind(postings, SCHOOLSPRING_DETAIL_EMPTY[0, -1]))
+  ids <- sub("^.*/jobs/(\\d+)$", "\\1", postings$Link)
+  details <- fetch_schoolspring_details(ids, ...)
+  details[match(ids, details$job_id), -1, drop = FALSE] %>%
+    { rownames(.) <- NULL; cbind(postings, .) }
+}
+
 
 # ---------------------------------------------------------------------------
 # RedRoverK12 (Johnson County School District 1) -- unauthenticated GraphQL

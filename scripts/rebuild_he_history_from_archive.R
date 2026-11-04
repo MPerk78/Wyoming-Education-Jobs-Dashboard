@@ -22,7 +22,7 @@ rebuild_he_history_from_archive <- function(archive_dir = "Archived_HE_Data") {
   combined_HE_data <- xlsx_files %>%
     lapply(readxl::read_xlsx) %>%
     bind_rows() %>%
-    select(-any_of(POSTED_PAY_COLUMNS))
+    select(-any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
   combined_HE_data$Archive_Date <- as.Date(combined_HE_data$Archive_Date)
   combined_HE_data <- combined_HE_data %>%

@@ -48,7 +48,7 @@ To support seamless merges with federal, state, and academic datasets, the follo
 | `url` | URL | District Job Board | Direct link to the job posting or district applicant tracking portal. |
 | `posting_id` | String | Project Pipeline | Durable unique posting identifier used to track openings longitudinally across weekly snapshots. |
 | `District` | String | Canonical Registry | Canonical public school district or charter school name. |
-| `Close_Date` | String | District ATS | The posting's closing date as its board states it, unparsed (a date, or "When Filled", "Open Until Filled" and similar). AppliTrack rows only so far (from 2026-11-03); NA where the board gives none and for other sources. |
+| `Close_Date` | String | District ATS | The posting's closing date as its board states it, unparsed (a date, or "When Filled", "Open Until Filled" and similar). AppliTrack rows (from 2026-11-03) as written, and SchoolSpring (from 2026-11-04: the deadline applicants see, as YYYY-MM-DD; "Posted until filled" is NA); NA where the board gives none and for other sources. |
 | `Pay_Min` | Numeric | Job posting | Lowest pay amount stated in the posting itself, in `Pay_Unit` (NA when no dollar figure is stated). Never converted between units. |
 | `Pay_Max` | Numeric | Job posting | Highest stated amount (equals `Pay_Min` for a single figure). |
 | `Pay_Unit` | String | Job posting | `hour`, `day`, `month`, `year`, `credit hour`, or `stipend` (season/activity amount); NA when undeterminable. |

@@ -241,7 +241,7 @@ test_that("incrementally appending the latest week reproduces a full rebuild thr
   this_week_facultydata <- this_week_he_cat %>%
     filter(Job_Type %in% c("Instructor/Teacher/Faculty", "Adjunct/Part-Time Faculty")) %>%
     mutate(Category = classify_he_faculty_category(Title)) %>%
-    select(-any_of(POSTED_PAY_COLUMNS))
+    select(-any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
   this_week_weekly_totals <- raw_latest %>% count(Institution, Archive_Date, name = "n")
 

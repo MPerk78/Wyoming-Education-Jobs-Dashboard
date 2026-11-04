@@ -117,7 +117,15 @@ for (i in seq_len(nrow(registry))) {
       )
       if (nrow(df) > 0) {
         df$District <- row$District
-        normalize_id_backed_k12_postings(df)
+        # Each posting's own record adds Close_Date (the deadline applicants
+        # see; NA for "Posted until filled"), Job_Status (raw archive only)
+        # and posted pay (add_schoolspring_details()). A failed detail
+        # request leaves only that posting's fields NA.
+        if ("Link" %in% names(df)) df <- add_schoolspring_details(df)
+        out <- normalize_id_backed_k12_postings(df)
+        out$Close_Date <- if ("Close_Date" %in% names(df)) df$Close_Date else NA_character_
+        out$Job_Status <- if ("Job_Status" %in% names(df)) df$Job_Status else NA_character_
+        out
       } else {
         NULL
       }
@@ -677,7 +685,7 @@ western_raw <- safe_scrape(
 
 western <- western_raw %>%
   mutate(Institution = "Western Wyoming Community College") %>%
-  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(western)
 
@@ -721,7 +729,7 @@ eastern_raw <- safe_scrape(
 
 eastern <- eastern_raw %>%
   mutate(Institution = "Eastern Wyoming Community College") %>%
-  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(eastern)
 
@@ -764,7 +772,7 @@ sheridan_raw <- safe_scrape(
 
 sheridan <- sheridan_raw %>%
   mutate(Institution = "Sheridan College") %>%
-  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(sheridan)
 
@@ -788,7 +796,7 @@ northwest_raw <- safe_scrape(
 
 northwest <- northwest_raw %>%
   mutate(Institution = "Northwest College") %>%
-  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(northwest)
 
@@ -837,10 +845,13 @@ hedata <- list(lccc, casper, western, central, eastern, gillette, sheridan, nort
   lapply(function(df) {
     # bind_rows() won't mix a Date Posted_Date with a character one.
     df$Posted_Date <- as.character(df$Posted_Date)
+    # Close_Date: PeopleAdmin's own close date (or "Open Until Filled");
+    # NA for the other colleges.
+    df$Close_Date <- if ("Close_Date" %in% names(df)) as.character(df$Close_Date) else rep(NA_character_, nrow(df))
     ensure_posted_pay_columns(df)
   }) %>%
   bind_rows() %>%
-  select(Title, Location, Posted_Date, Institution, Link, all_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, Close_Date, all_of(POSTED_PAY_COLUMNS))
 
 hedata$Posted_Date<- as.character(hedata$Posted_Date)
 
@@ -895,12 +906,12 @@ hedata <- hedata %>%
 this_week_he_cat <- hedata %>%
   mutate(Job_Type = classify_he_job_type(Title))
 
-# Pay_* and Est_* are left out of facultydata.csv: its accumulated history predates
+# Pay_*, Est_* and Close_Date are left out of facultydata.csv: its accumulated history predates
 # pay capture, and append_weekly_rows() refuses a changed column set.
 this_week_facultydata <- this_week_he_cat %>%
   filter(Job_Type %in% c("Instructor/Teacher/Faculty", "Adjunct/Part-Time Faculty")) %>%
   mutate(Category = classify_he_faculty_category(Title)) %>%
-  select(-all_of(POSTED_PAY_COLUMNS), -any_of(c("Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year", "Est_Source")))
+  select(-all_of(POSTED_PAY_COLUMNS), -any_of(c("Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year", "Est_Source", "Close_Date")))
 
 #--------------------------------------------------------------------------
 # Append this week's newly classified rows onto the existing accumulated
