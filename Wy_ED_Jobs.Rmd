@@ -870,6 +870,20 @@ file_name <- paste0("hedata_", Sys.Date(), ".xlsx")
 write_xlsx(hedata, path = file_name)
 
 write_xlsx(hedata, path = file.path("Archived_HE_Data", file_name))
+
+# Coverage calendar (posting-dates plan step 2): every source's outcome this
+# run (ok / empty / error / not_logged), so a posting that stops appearing is
+# read as ended only when its source was healthy. Every source has been
+# scraped by now; a failure here never stops the run. Employers seen only on
+# WSBA's statewide page (BOCES, academies) take the WSBA feed's row.
+source("coverage_calendar.R")
+tryCatch(refresh_coverage_calendar(
+  "coverage_calendar.csv", "scrape_log.csv",
+  k12_entities = read.csv("k12_district_registry.csv", stringsAsFactors = FALSE)$District,
+  data_k12 = unique(combined$District), data_he = unique(hedata$Institution),
+  feeds = c("WSBA statewide feed" = "^WSBA statewide vacancies$",
+            "WSBA + own-page districts (group)" = "^Miscellaneous K-12 districts")),
+  error = function(e) message("Coverage calendar not updated: ", conditionMessage(e)))
 # Non-postings (a scraped "Job Title" header, "No Jobs" notices) stay in the
 # raw archive above but are dropped from everything shown or counted.
 # Implausible posted pay is blanked the same way (drop_implausible_pay()).

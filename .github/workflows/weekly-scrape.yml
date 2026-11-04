@@ -275,6 +275,7 @@ jobs:
             Archived_HE_Data/*.xlsx \
             Archivek12_Data/*.csv
           [ -f schoolspring_endings.csv ] && git add schoolspring_endings.csv || true
+          [ -f coverage_calendar.csv ] && git add coverage_calendar.csv || true
           if git diff --cached --quiet; then
             echo "No data changes this run -- nothing to commit."
           else

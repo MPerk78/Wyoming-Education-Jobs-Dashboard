@@ -114,7 +114,11 @@ log_scrape_result <- function(source_name, status, n_rows,
     sep = ",",
     row.names = FALSE,
     col.names = !file.exists(log_path),
-    append = file.exists(log_path)
+    append = file.exists(log_path),
+    # Quotes inside an error message are doubled (CSV standard). write.table's
+    # default backslash-escapes them, which read.csv can't parse: every row
+    # after such a message was lost (MT 2026-11-03: all HE sources).
+    qmethod = "double"
   )
   invisible(entry)
 }
