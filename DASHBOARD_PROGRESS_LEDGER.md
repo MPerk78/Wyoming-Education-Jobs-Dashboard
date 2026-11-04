@@ -343,11 +343,21 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     moved onto job IDs and corrected from the live boards (263/318; the rest had left the board). WSBA rows linking to
     AppliTrack category pages keep the fingerprint. Fixture `applitrack_output_wy_teton_single_position_type.bin`.
     Full weekly rehearsal passed. Next: WY's spells have the same trust problems as MT's (not audited).
+  * [x] Real posting dates, rest of step 1 (2026-11-04, ported from MT; 8815499): SchoolSpring reads each
+    posting's own record (`add_schoolspring_details()`, before `normalize_id_backed_k12_postings()`): `Close_Date`
+    (deadline applicants see; "Posted until filled" NA), `Job_Status` (raw archive only) and posted pay from the board's
+    pay fields (WY 11-04: 132 of 214 postings; "Substitute" $150/$14.95/$1,132 and "Please see our Salary Schedule"
+    left without pay). PeopleAdmin (Western, Eastern, Sheridan, Northwest): the page's open date replaces the feed's
+    `<published>` where filled in (39 of 95 differed on 11-04; Sheridan leaves it blank on 32 of 71), and new HE
+    `Close_Date` ("Close Date"/"Closing Date"/Sheridan "Initial Review Date", else "Open Until Filled") in
+    `hedata.xlsx` and the raw archive, not `facultydata.csv`. Tests shared with MT (`test-peopleadmin-dates.R`,
+    SchoolSpring block in `test-direct-api-scrapers.R`, fixtures `schoolspring_job_*.json`). Full weekly rehearsal
+    passed.
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates (`claude-notes/2026-11-03_posting-dates-plan.md`, written for MT, same approach): SchoolSpring
-  detail `postDate`/`closeDate`/`jobStatusID`, PeopleAdmin open/close dates, coverage calendar, spells rebuild.
+  ending reasons for postings that left the board (step 4), coverage calendar, spells rebuild.
 - [ ] Spells trust audit: WY's spells have the problems found in MT's (`claude-notes/2026-11-02_spells-trust-audit.md`)
   but were not audited, and WY's Time-to-Fill tabs are NOT paused.
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`). Confirm
