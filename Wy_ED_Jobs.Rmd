@@ -292,6 +292,12 @@ file_name <- paste0("combined_", Sys.Date(), ".csv")
 # Write the data to a CSV file with the new file name
 write.csv(combined, file=file.path('Archivek12_Data',file_name), row.names = FALSE)
 
+# How SchoolSpring postings that left the board ended (filled / canceled /
+# review), from each posting's own record; posting-dates plan step 4. Reads
+# the raw archives just written; a failure here never stops the run.
+tryCatch(refresh_schoolspring_endings("Archivek12_Data", "schoolspring_endings.csv"),
+         error = function(e) message("SchoolSpring endings not updated: ", conditionMessage(e)))
+
 # BLS OEWS regional pay by role, the labeled fallback for postings that state
 # no pay (bls_oews_scraper.R). Refreshed only when BLS publishes a new year;
 # a failed check keeps the committed file. Counties come from last run's

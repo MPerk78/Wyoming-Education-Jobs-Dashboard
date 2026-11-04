@@ -588,6 +588,111 @@ add_schoolspring_details <- function(postings, ...) {
     { rownames(.) <- NULL; cbind(postings, .) }
 }
 
+# ---------------------------------------------------------------------------
+# How SchoolSpring postings ended (posting-dates plan, step 4)
+# ---------------------------------------------------------------------------
+# A SchoolSpring posting's record keeps its status after it leaves the board,
+# so each week every posting that the raw archives listed before but not today
+# is looked up: filled, canceled, or review (closed to applicants, outcome not
+# yet entered). Filled and canceled are final; review is rechecked weekly, as
+# it can still turn into filled. How a district uses the statuses varies, so
+# "filled" is not comparable across districts: all 12 Libby postings that left
+# Aug-Oct 2026 were still "review", and Campbell County WY closed 79 as
+# "canceled" against 8 "filled" (first lookup, 2026-11-04).
+# A lookup that still says "posted" means our scrape missed a live posting
+# (a failed run, say), so nothing is recorded for it.
+#
+# schoolspring_endings.csv, one row per ended posting: job_id, District,
+# Title, Posted_Date (board's own), First_Seen/Last_Seen (archive dates it was
+# listed), Job_Status, Status_Since (first check that saw this status) and
+# Last_Checked. Last_Seen is the last weekly sighting, so the true end lies
+# between Last_Seen and the next run.
+SCHOOLSPRING_FINAL_STATUS <- c("filled", "canceled")
+
+schoolspring_job_id <- function(url) {
+  url <- as.character(url)
+  ifelse(!is.na(url) & grepl("schoolspring\\.com/jobs/\\d+$", url), sub("^.*/jobs/", "", url), NA_character_)
+}
+
+# One row per SchoolSpring job ID seen in the archives since `since`, with
+# the dates it was first and last listed. District names go through
+# canonicalize_k12_district() when it is loaded (old WY archives spell
+# "Campbell County Scholl District 1").
+schoolspring_sightings <- function(archive_dir = "Archivek12_Data", since = Sys.Date() - 365,
+                                   canonicalize = if (exists("canonicalize_k12_district")) canonicalize_k12_district else identity) {
+  files <- list.files(archive_dir, "^combined_\\d{4}-\\d{2}-\\d{2}\\.csv$", full.names = TRUE)
+  dates <- as.Date(sub("^combined_(.*)\\.csv$", "\\1", basename(files)))
+  rows <- lapply(which(dates >= since), function(i) {
+    d <- utils::read.csv(files[i], colClasses = "character", check.names = FALSE)
+    id <- schoolspring_job_id(d$url)
+    ok <- !is.na(id)
+    if (!any(ok)) return(NULL)
+    data.frame(job_id = id[ok], District = canonicalize(d$District[ok]), Title = d$title[ok],
+               Posted_Date = d$date_posted[ok], Seen = dates[i], stringsAsFactors = FALSE)
+  })
+  rows <- dplyr::bind_rows(rows)
+  if (nrow(rows) == 0) {
+    return(data.frame(job_id = character(0), District = character(0), Title = character(0),
+                      Posted_Date = character(0), First_Seen = as.Date(character(0)),
+                      Last_Seen = as.Date(character(0)), stringsAsFactors = FALSE))
+  }
+  rows %>%
+    dplyr::arrange(Seen) %>%
+    dplyr::group_by(job_id) %>%
+    dplyr::summarize(District = dplyr::last(District), Title = dplyr::last(Title),
+                     Posted_Date = dplyr::first(Posted_Date), First_Seen = min(Seen),
+                     Last_Seen = max(Seen), .groups = "drop") %>%
+    as.data.frame()
+}
+
+SCHOOLSPRING_ENDINGS_EMPTY <- data.frame(
+  job_id = character(0), District = character(0), Title = character(0), Posted_Date = character(0),
+  First_Seen = character(0), Last_Seen = character(0), Job_Status = character(0),
+  Status_Since = character(0), Last_Checked = character(0), stringsAsFactors = FALSE)
+
+# Looks up every posting listed before but not on `today` (unless it already
+# has a final status or was last listed more than recheck_days ago) and
+# returns the updated endings table. `fetch` is fetch_schoolspring_details()
+# in production.
+update_schoolspring_endings <- function(sightings, endings = SCHOOLSPRING_ENDINGS_EMPTY, today = Sys.Date(),
+                                        fetch = fetch_schoolspring_details, recheck_days = 365) {
+  endings <- dplyr::bind_rows(SCHOOLSPRING_ENDINGS_EMPTY, dplyr::mutate(endings, dplyr::across(dplyr::everything(), as.character)))
+  final_ids <- endings$job_id[endings$Job_Status %in% SCHOOLSPRING_FINAL_STATUS]
+  gone <- sightings[sightings$Last_Seen < today & sightings$Last_Seen >= today - recheck_days &
+                      !sightings$job_id %in% final_ids, , drop = FALSE]
+  if (nrow(gone) == 0) return(endings)
+
+  details <- fetch(gone$job_id)
+  details <- details[!is.na(details$Job_Status) & details$Job_Status != "posted", c("job_id", "Job_Status"), drop = FALSE]
+  if (nrow(details) == 0) return(endings)
+
+  today <- format(as.Date(today))
+  found <- merge(gone, details, by = "job_id")
+  prev <- endings[match(found$job_id, endings$job_id), , drop = FALSE]
+  same <- !is.na(prev$Job_Status) & prev$Job_Status == found$Job_Status
+  updated <- data.frame(job_id = found$job_id, District = found$District, Title = found$Title,
+                        Posted_Date = found$Posted_Date, First_Seen = format(found$First_Seen),
+                        Last_Seen = format(found$Last_Seen), Job_Status = found$Job_Status,
+                        Status_Since = ifelse(same, prev$Status_Since, today), Last_Checked = today,
+                        stringsAsFactors = FALSE)
+  dplyr::bind_rows(endings[!endings$job_id %in% updated$job_id, , drop = FALSE], updated) %>%
+    dplyr::arrange(Last_Seen, job_id)
+}
+
+# Weekly step: reads the archives and the endings file, looks up postings
+# that left the board, rewrites the file. Run after today's raw archive is
+# written. Returns the table (invisibly).
+refresh_schoolspring_endings <- function(archive_dir = "Archivek12_Data", path = "schoolspring_endings.csv",
+                                         today = Sys.Date(), ...) {
+  endings <- if (file.exists(path)) utils::read.csv(path, colClasses = "character") else SCHOOLSPRING_ENDINGS_EMPTY
+  sightings <- schoolspring_sightings(archive_dir, since = as.Date(today) - 365)
+  out <- update_schoolspring_endings(sightings, endings, today = as.Date(today), ...)
+  utils::write.csv(out, path, row.names = FALSE)
+  message("SchoolSpring endings: ", nrow(out), " postings (",
+          paste(names(table(out$Job_Status)), table(out$Job_Status), collapse = ", "), ")")
+  invisible(out)
+}
+
 
 # ---------------------------------------------------------------------------
 # RedRoverK12 (Johnson County School District 1) -- unauthenticated GraphQL
