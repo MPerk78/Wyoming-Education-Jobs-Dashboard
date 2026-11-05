@@ -744,3 +744,98 @@ test_that("build_pay_coverage_report_markdown names each flagged source and its 
   expect_true(any(grepl("Posted pay went missing (2026-11-07)", md, fixed = TRUE)))
   expect_true(any(grepl("**Paycom College** (Higher Ed): usually 51% of postings state pay, now 0 of 31", md, fixed = TRUE)))
 })
+
+# ---- Title quality (classification safeguards items 5 and 6) ----
+# Titles below are real, copied from the MT and WY raw archives.
+
+test_that("lint_title_shape flags the misread titles found in the archives", {
+  bad <- c(
+    "High School - Head" = "level and rank only, no role",                      # Plevna
+    "Jr. High - Asst." = "level and rank only, no role",                        # Plevna
+    "FULL TIME. MON - FRI." = "schedule or detail sentence",                    # Florence-Carlton
+    "YEAR-ROUND POSITION." = "schedule or detail sentence",                     # Florence-Carlton
+    "Bus Drivers- Must have a CDL with a school bus passenger endorsement." = "schedule or detail sentence",
+    "Food Service is hiring for a cook position." = "schedule or detail sentence",  # Uinta 6
+    "Special Education Teachers - Open Until Filled." = "schedule or detail sentence",  # Fremont 21
+    "Dish_Server_Cashiers 26" = "file name",                                    # Livingston
+    "Dish_Server_Cashier 26 - Copy" = "file name",
+    "Other" = "no job named"                                                    # OPI subject field
+  )
+  expect_equal(lint_title_shape(names(bad)), unname(bad))
+  ennis <- paste("Summary: Ennis Schools is seeking a Virtual Programs Paraprofessional to join our team for the",
+                 "remainder of the 2026-2027 school year. The ideal candidate will work closely with the building",
+                 "principal to ensure proper supervision of students, work with staff to help provide appropriate",
+                 "virtual classes, and help to develop virtual programs at the secondary level.")
+  expect_equal(lint_title_shape(ennis), "schedule or detail sentence; field label; too long")
+  expect_equal(lint_title_shape("CustodianEndFragment (NEW)$18.90–$20.00/hour"), "markup left in")  # Cheyenne Classical
+  expect_equal(lint_title_shape(c(NA_character_, "", "  ")), rep("blank title", 3))
+  expect_equal(lint_title_shape(character(0)), character(0))
+})
+
+test_that("lint_title_shape leaves real titles alone, abbreviations and start dates included", {
+  good <- c(
+    "Junior High 7-8", "Track Coach - Jr. High - Asst.", "COMMUNICATIONS COORD.",
+    "Instructional Asst./Technology Asst.", "Director of Budget and Finance.", "Seasonal Grounds Keeper.",
+    "Assistant High School Girls Basketball Coach.",
+    "Journey Administrative Specialist beginning for the 2026-2027 school year.",
+    "Project Coordinator, Senior - Fed. Relations/Employee Success Coord.", "Elementary",
+    "Substitute Certified Teachers $150/day",
+    "Special Education Maternity Leave (2) - PMS - (8/26/26-12/14/26)/TCH00532 - (11/2/26-3/15/27)/TCH00073",
+    paste("Monthly Pooled - WCC AmeriCorps Individual Placement - Habitat Biologist Technician with Wyoming",
+          "Game and Fish Department and Bighorn National Forest")
+  )
+  expect_equal(lint_title_shape(good), rep(NA_character_, length(good)))
+})
+
+test_that("title_pay_unrecorded flags pay stated in the title only when Posted Pay is blank", {
+  t <- c("Secretary – $14 per hour, up to 32 hours per week",                       # Turner
+         "Substitute Certified Teachers $150/day",                                      # Platte 2
+         "Science Teacher - Torrington Middle School - Eligible for $10,000 Hiring Incentive Based on Certification",
+         "Custodian", NA)
+  expect_equal(title_pay_unrecorded(t, c(NA, 150, NA, NA, NA)), c(TRUE, FALSE, FALSE, FALSE, FALSE))
+  expect_equal(title_pay_unrecorded(character(0), numeric(0)), logical(0))
+})
+
+test_that("build_title_lint_report_markdown counts postings and caps the titles shown per source", {
+  hits <- data.frame(source = c(rep("OPI", 7), "Turner"), type = "K-12",
+                     title = c("Other", "Other", paste("T", 1:5), "Secretary $14"),
+                     reason = "x", stringsAsFactors = FALSE)
+  md <- build_title_lint_report_markdown(hits, date = "2026-11-05", max_per_source = 3)
+  expect_true(any(grepl("**OPI** (K-12), 7 posting(s):", md, fixed = TRUE)))
+  expect_true(any(grepl("...and 3 more", md, fixed = TRUE)))    # 6 distinct titles, 3 shown
+  expect_equal(sum(grepl("\"Other\"", md, fixed = TRUE)), 1)
+  expect_length(build_title_lint_report_markdown(hits[0, ]), 0)
+})
+
+test_that("flag_other_share_jump flags a source whose Other share jumped against its recent weeks", {
+  # Florence-Carlton, MT 2026-09-08: 2 of 10 postings were schedule lines, none before.
+  history <- list(data.frame(name = c("Florence", "Steady"), n = c(8, 10), other = c(0, 1)),
+                  data.frame(name = c("Florence", "Steady"), n = c(9, 10), other = c(0, 1)))
+  current <- data.frame(name = c("Florence", "Steady"), n = c(10, 10), other = c(2, 2))
+  out <- flag_other_share_jump(current, history)
+  expect_equal(out$name, "Florence")
+  expect_equal(out$mean_share, 0)
+  expect_equal(out$other, 2)
+})
+
+test_that("flag_other_share_jump stays quiet without enough history, postings or Other rows", {
+  hist1 <- list(data.frame(name = "A", n = 10, other = 0))
+  expect_equal(nrow(flag_other_share_jump(data.frame(name = "A", n = 10, other = 5), hist1)), 0)
+  hist2 <- c(hist1, hist1)
+  expect_equal(nrow(flag_other_share_jump(data.frame(name = "A", n = 2, other = 2), hist2)), 0)
+  expect_equal(nrow(flag_other_share_jump(data.frame(name = "A", n = 10, other = 1), hist2)), 0)
+  # already mostly Other: a rise from 50% to 60% isn't a jump
+  hist3 <- list(data.frame(name = "A", n = 10, other = 5), data.frame(name = "A", n = 10, other = 5))
+  expect_equal(nrow(flag_other_share_jump(data.frame(name = "A", n = 10, other = 6), hist3)), 0)
+  expect_equal(nrow(flag_other_share_jump(data.frame(name = "A", n = 10, other = 5), list())), 0)
+})
+
+test_that("other_share_counts and build_other_share_report_markdown", {
+  counts <- other_share_counts(c("A", "A", "B"), c(TRUE, FALSE, FALSE))
+  expect_equal(counts$other, c(1L, 0L))
+  flagged <- data.frame(name = "Florence", mean_share = 0, n_weeks = 8L, n = 10L, other = 2L,
+                        type = "K-12", examples = "\"YEAR-ROUND POSITION.\"", stringsAsFactors = FALSE)
+  md <- build_other_share_report_markdown(flagged, date = "2026-11-05")
+  expect_true(any(grepl("**Florence** (K-12): usually 0% Other, now 2 of 10", md, fixed = TRUE)))
+  expect_length(build_other_share_report_markdown(flagged[0, ]), 0)
+})

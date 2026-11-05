@@ -1022,3 +1022,151 @@ summarize_live_check <- function(source_name, result, expected_titles = characte
   }
   list(pass = TRUE, markdown = out)
 }
+
+# --------------------------------------------------------------------------
+# Title quality (classification safeguards items 5 and 6; run weekly by
+# .github/scripts/check_title_quality.R, non-blocking)
+# --------------------------------------------------------------------------
+
+# A scraper that starts reading the wrong element still returns rows, and
+# the row count looks fine to flag_drift(): what changes is what the "title"
+# holds -- a schedule sentence, a summary paragraph, a level without its role.
+# lint_title_shape() names the problem per title (NA when the title looks
+# like a job title). Each rule was measured against every archived week in
+# both states (2026-11-05): it flags the misreads found by hand in the
+# 2026-11-01 classification audit and nothing that is merely an unusual but
+# real title. Long real titles run to ~190 characters (UW, Goshen), so
+# max_chars is 200. A start date a district writes into its own title
+# ("beginning the 2026-27 school year.") isn't flagged; "- Open Until
+# Filled." is (WY ledger: Fremont #21).
+
+# Abbreviations whose trailing period isn't the end of a sentence.
+TITLE_ABBREVIATION_PATTERN <- paste0(
+  "(?i)\\b(Jr|Sr|Asst|Assist|Assoc|Coord|Dept|Ed|Sp|St|Supt|Admin|Tech|Spec|Mgr|Dir|Fed|Govt|",
+  "Mr|Mrs|Ms|Dr|No|Vo|Ag|Phys|Res|Prof|Approx|Hrs|P\\.E|Ft)\\."
+)
+
+lint_title_shape <- function(title, max_chars = 200) {
+  t <- as.character(title)
+  t[is.na(t)] <- ""
+  t <- trimws(t)
+  no_abbrev <- gsub(TITLE_ABBREVIATION_PATTERN, "", t, perl = TRUE)
+  level_words <- "(?i)\\b(high school|middle school|junior high|jr\\.? high|elementary|hs|ms|head|assistant|asst\\.?|varsity|junior varsity|jv)\\b"
+  rules <- list(
+    "blank title" = !nzchar(t),
+    "no job named" = grepl("^(other|none|n/?a|tbd|tba|positions?|jobs?|vacanc(y|ies)|openings?|see (job )?description|untitled)$",
+                           t, ignore.case = TRUE),
+    "level and rank only, no role" = nzchar(t) &
+      grepl("(?i)\\b(head|assistant|asst)\\b", t, perl = TRUE) &
+      !grepl("[A-Za-z0-9]", gsub(level_words, "", t, perl = TRUE)),
+    "schedule or detail sentence" = grepl("\\.\\s*$", no_abbrev) &
+      (grepl("[A-Za-z]\\.\\s+[A-Za-z]", no_abbrev) |
+         grepl("\\b(must|required|requires|hiring|open until|hours?|hrs|per (day|hour|week)|full[- ]time|part[- ]time|year[- ]round|apply|mon|fri)\\b",
+               no_abbrev, ignore.case = TRUE)),
+    "field label" = grepl("^(summary|description|job description|job summary|position summary|position|job title|title|location|department|salary|pay|wage|posted|closing date|status|requirements|qualifications)\\s*:",
+                          t, ignore.case = TRUE),
+    "markup left in" = grepl("StartFragment|EndFragment|&[a-z]+;|&#[0-9]+;|<[a-z/][^>]*>|​", t, ignore.case = TRUE, perl = TRUE),
+    "file name" = grepl("[A-Za-z]{2,}_[A-Za-z]{2,}|\\s-\\sCopy$", t),
+    "too long" = nchar(t) > max_chars
+  )
+  reasons <- do.call(cbind, lapply(names(rules), function(r) ifelse(rules[[r]], r, NA_character_)))
+  if (length(t) == 0) return(character(0))
+  out <- apply(matrix(reasons, nrow = length(t)), 1, function(r) paste(r[!is.na(r)], collapse = "; "))
+  out[!nzchar(out)] <- NA_character_
+  out
+}
+
+# Titles that state pay ("Secretary - $14 per hour", "Substitute Teachers
+# $150/day") on postings whose Posted Pay is blank: no scraper reads pay from
+# the title, so the posting's own pay isn't shown. Uses extract_posted_pay()
+# (k12_he_classification.R), which ignores amounts that aren't pay ("$10,000
+# Hiring Incentive").
+title_pay_unrecorded <- function(title, pay_min) {
+  t <- as.character(title)
+  has_dollar <- !is.na(t) & grepl("\\$\\s*[0-9]", t)
+  out <- rep(FALSE, length(t))
+  if (!any(has_dollar & is.na(pay_min))) return(out)
+  idx <- which(has_dollar & is.na(pay_min))
+  out[idx] <- !is.na(extract_posted_pay(t[idx])$Pay_Min)
+  out
+}
+
+# hits: data.frame(source, type, title, reason). At most max_per_source
+# titles are listed per source.
+build_title_lint_report_markdown <- function(hits, date = Sys.Date(), max_per_source = 5) {
+  if (nrow(hits) == 0) return(character(0))
+  key <- paste(hits$type, hits$source, sep = "\r")
+  lines <- unlist(lapply(unique(key), function(k) {
+    h <- hits[key == k, , drop = FALSE]
+    n_postings <- nrow(h)
+    h <- h[!duplicated(h$title), , drop = FALSE]
+    shown <- utils::head(h, max_per_source)
+    c(sprintf("- **%s** (%s), %d posting(s):", h$source[1], h$type[1], n_postings),
+      sprintf("  - \"%s\" -- %s", substr(gsub("[\r\n]+", " ", shown$title), 1, 120), shown$reason),
+      if (nrow(h) > max_per_source) sprintf("  - ...and %d more", nrow(h) - max_per_source))
+  }))
+  c(
+    paste0("### Titles that don't look like job titles (", date, ")"),
+    "",
+    paste("This week's postings whose title looks like something other than a job title: page text, a",
+          "summary, a heading, or pay the Posted Pay column doesn't carry. Usually the scraper is reading",
+          "the wrong element. These titles are classified as they are, so they can land in the wrong bucket."),
+    "",
+    lines,
+    ""
+  )
+}
+
+# One row per source: postings (n) and how many the classifier puts in Other
+# (other).
+other_share_counts <- function(names, is_other) {
+  out <- pay_coverage_counts(names, is_other)
+  names(out)[names(out) == "with_pay"] <- "other"
+  out
+}
+
+# current: other_share_counts() for this run. history: a list of the same,
+# one per recent archived week (the caller picks the window). A source is
+# flagged when it has at least min_weeks weeks with min_postings or more
+# postings, and this run has min_postings or more postings, at least
+# min_other of them in Other, and an Other share at least `jump` above its
+# average and at least `ratio` times it. Replayed over every archived week
+# (8-week window, 2026-11-05) these defaults flag 2 MT and 2 WY source-weeks,
+# all real scraper problems (Florence-Carlton schedule lines, Albany section
+# headings); stricter settings flag none of them.
+flag_other_share_jump <- function(current, history, min_weeks = 2, min_postings = 3, min_other = 2,
+                                  jump = 0.15, ratio = 1.5) {
+  empty <- data.frame(name = character(0), mean_share = numeric(0), n_weeks = integer(0),
+                      n = integer(0), other = integer(0), stringsAsFactors = FALSE)
+  weeks <- do.call(rbind, history)
+  if (is.null(weeks) || nrow(weeks) == 0 || nrow(current) == 0) return(empty)
+  weeks <- weeks[weeks$n >= min_postings, , drop = FALSE]
+  if (nrow(weeks) == 0) return(empty)
+  weeks$share <- weeks$other / weeks$n
+  baseline <- data.frame(name = sort(unique(weeks$name)), stringsAsFactors = FALSE)
+  baseline$n_weeks <- as.integer(table(weeks$name)[baseline$name])
+  baseline$mean_share <- as.numeric(tapply(weeks$share, weeks$name, mean)[baseline$name])
+  merged <- merge(baseline, current, by = "name")
+  share <- merged$other / merged$n
+  flagged <- merged[merged$n_weeks >= min_weeks & merged$n >= min_postings & merged$other >= min_other &
+                      share >= merged$mean_share + jump & share >= ratio * merged$mean_share, , drop = FALSE]
+  if (nrow(flagged) == 0) return(empty)
+  flagged[order(-(flagged$other / flagged$n)), c("name", "mean_share", "n_weeks", "n", "other")]
+}
+
+# flagged: flag_other_share_jump() rows plus type and examples (a few of the
+# source's Other titles this run).
+build_other_share_report_markdown <- function(flagged, date = Sys.Date()) {
+  if (nrow(flagged) == 0) return(character(0))
+  c(
+    paste0("### More postings than usual land in Other (", date, ")"),
+    "",
+    paste("These sources' share of postings the classifier can't place jumped against their own recent",
+          "weeks. Usually the scraper started picking up page text instead of titles; otherwise the",
+          "classifier needs a rule for a new kind of title."),
+    "",
+    sprintf("- **%s** (%s): usually %.0f%% Other, now %d of %d -- e.g. %s",
+            flagged$name, flagged$type, 100 * flagged$mean_share, flagged$other, flagged$n, flagged$examples),
+    ""
+  )
+}

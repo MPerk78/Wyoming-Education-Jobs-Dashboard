@@ -160,6 +160,16 @@ jobs:
         continue-on-error: true
         run: Rscript .github/scripts/check_pay_coverage.R
 
+      # Titles that aren't job titles (page text, summaries, a level with no
+      # role, pay Posted Pay doesn't carry) and sources whose share of Other
+      # jumped against their recent weeks -- a scraper reading the wrong
+      # element keeps its row count, so check_drift.R can't see it
+      # (classification safeguards items 5 and 6). Same non-blocking shape.
+      - name: Check title shape and each source's share of Other
+        id: check_title_quality
+        continue-on-error: true
+        run: Rscript .github/scripts/check_title_quality.R
+
       # The from-archive rebuild must reproduce the committed data (rebuild
       # parity, classification safeguards item 12), or neither disaster
       # recovery nor scripts/reclassify_committed_data.R can be trusted.
@@ -185,6 +195,7 @@ jobs:
           [ "${{ steps.check_salary_drift.outcome }}" = "failure" ] && FAILED="$FAILED check_salary_drift.R"
           [ "${{ steps.check_census_drift.outcome }}" = "failure" ] && FAILED="$FAILED check_census_drift.R"
           [ "${{ steps.check_pay_coverage.outcome }}" = "failure" ] && FAILED="$FAILED check_pay_coverage.R"
+          [ "${{ steps.check_title_quality.outcome }}" = "failure" ] && FAILED="$FAILED check_title_quality.R"
           [ "${{ steps.check_rebuild_parity.outcome }}" = "failure" ] && FAILED="$FAILED check_rebuild_parity.R"
 
           if [ -z "$FAILED" ]; then
