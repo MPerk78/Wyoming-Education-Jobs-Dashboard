@@ -374,6 +374,12 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     parse, so rows after such a message were lost (MT 11-03: all 23 HE sources), including in the drift checks; it
     now doubles quotes and `read_scrape_log()` repairs older logs. Tests `test-coverage-calendar.R`. Full weekly
     rehearsal passed (`claude-notes/2026-11-03_posting-dates-plan.md`, "Step 2 findings").
+  * [x] Classification safeguards, items 7, 8, 10 (2026-11-04, both states; WY 91ca1ad): blocking checks in
+    `test-weekly-data-quality.R`: every committed position / Category / Broad_Category (combinedclean,
+    k12jobanalysis) and Job_Type / Category (facultydata) equals what today's classifier gives its title (so a
+    classifier change must ship with reclassified data; 0 differences in WY or MT today); k12jobanalysis holds only
+    Teacher rows; no placeholder title in combinedclean, k12jobanalysis, facultydata or hedata.xlsx; spell dummies
+    (`is_support_staff`, `is_admin`, `is_faculty`, `is_adjunct`) agree with the position they encode.
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
@@ -382,8 +388,9 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   `coverage_calendar.csv` for source health).
 - [ ] Spells trust audit: WY's spells have the problems found in MT's (`claude-notes/2026-11-02_spells-trust-audit.md`)
   but were not audited, and WY's Time-to-Fill tabs are NOT paused.
-- [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`). Confirm
-  "Activities/Extracurricular" shows in the 2026-11-06 data.
+- [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 7, 8, 10 done;
+  next 13 (reclassify script, now needed: item 8 fails the suite on any classifier change until the committed data
+  is reclassified), then 5, 6, then 3. Confirm "Activities/Extracurricular" shows in the 2026-11-06 data.
 - [ ] Title-shape bug: Fremont #21 "... - Open Until Filled.". WSBA district typo "Cabon County School District 2"
   not caught by `canonicalize_k12_district()`.
 - [ ] Rebuild scripts drift from the pipeline (proposal item 12; they reorder rows and drop Est_*/Close_Date).
