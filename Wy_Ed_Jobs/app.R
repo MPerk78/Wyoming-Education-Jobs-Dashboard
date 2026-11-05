@@ -333,14 +333,38 @@ data_dictionary <- if (file.exists("data_dictionary.csv")) {
              Data_Type = character(0), Primary_Authority = character(0), Definition = character(0))
 }
 
+# Listing-duration ("spells") tabs: the duration KPIs and charts are paused
+# (MT 2026-11-02 audit, claude-notes/2026-11-02_spells-trust-audit.md;
+# paused in WY 2026-11-05 pending its own audit). A spell
+# is a District + title's first-to-last week on our weekly scrapes, and most
+# spell endings and starts come from our own coverage (scrapers added, broken
+# or switched) rather than from hiring, so they can't be read as
+# time-to-fill. The table stays, labeled for what it is.
+spells_paused_note <- function(what) {
+  div(class = "alert alert-warning mb-3", role = "note",
+      tags$strong("Time-to-fill estimates are paused while we rebuild them. "),
+      paste0("This table shows how long each ", what, " stayed listed on the boards we track, from the first to the last ",
+             "week we saw it. That is not the same as time-to-fill: a posting can drop off because it was filled, ",
+             "cancelled, moved to another board, or because our collection missed that week, and many were already ",
+             "listed before we started tracking their board. \u201cNo longer listed\u201d means only that it no longer appears."))
+}
+SPELL_STATUS_LABELS <- c("Closed / Filled" = "No longer listed")
+relabel_spell_status <- function(df) {
+  if (nrow(df) > 0 && "Status" %in% names(df)) {
+    hit <- df$Status %in% names(SPELL_STATUS_LABELS)
+    df$Status[hit] <- SPELL_STATUS_LABELS[df$Status[hit]]
+  }
+  df
+}
+
 job_duration_spells <- if (file.exists("job_duration_spells.csv")) {
-  read.csv("job_duration_spells.csv", fileEncoding = "UTF-8", stringsAsFactors = FALSE)
+  relabel_spell_status(read.csv("job_duration_spells.csv", fileEncoding = "UTF-8", stringsAsFactors = FALSE))
 } else {
   data.frame()
 }
 
 he_job_duration_spells <- if (file.exists("he_job_duration_spells.csv")) {
-  read.csv("he_job_duration_spells.csv", fileEncoding = "UTF-8", stringsAsFactors = FALSE)
+  relabel_spell_status(read.csv("he_job_duration_spells.csv", fileEncoding = "UTF-8", stringsAsFactors = FALSE))
 } else {
   data.frame()
 }
@@ -1557,20 +1581,21 @@ ui <- page_navbar(
       )
     ),
     nav_panel(
-      "Time-to-Fill", value = "k12_spells", icon = icon("stopwatch"),
-      h3(class = "page-title", tagList(icon("stopwatch"), " K-12 Job Duration & Time-to-Fill")),
+      "Listing Duration", value = "k12_spells", icon = icon("stopwatch"),
+      h3(class = "page-title", tagList(icon("stopwatch"), " K-12 Listing Duration")),
       p(class = "text-muted small",
-        "Weekly tracking of posting duration and hiring speed. Measures time-to-fill and persistent vacancies across Wyoming school districts."),
+        "How long each K-12 posting stayed listed on the job boards this dashboard tracks."),
+      spells_paused_note("posting"),
       layout_sidebar(
         fillable = FALSE,
         class = "page-sidebar",
         sidebar = sidebar(
           title = "Filters",
           width = 260,
-          selectInput("k12_spell_status", "Vacancy status:",
+          selectInput("k12_spell_status", "Listing status:",
                       choices = c("All Postings" = "all",
                                   "Still Active (Open)" = "Still Active",
-                                  "Filled / Closed" = "Closed / Filled"),
+                                  "No longer listed" = "No longer listed"),
                       selected = "all"),
           selectInput("k12_spell_position", "Position group:",
                       choices = c("All Roles" = "all",
@@ -1591,27 +1616,15 @@ ui <- page_navbar(
                       choices = c("All Districts" = "all"),
                       selected = "all")
         ),
-        layout_columns(
-          col_widths = breakpoints(sm = c(6, 6, 6, 6), xl = c(3, 3, 3, 3)),
-          uiOutput("k12_spell_median_box", fill = TRUE),
-          uiOutput("k12_spell_active_box", fill = TRUE),
-          uiOutput("k12_spell_persistent_box", fill = TRUE),
-          uiOutput("k12_spell_hardest_box", fill = TRUE)
-        ),
-        layout_columns(
-          col_widths = breakpoints(sm = 12, lg = c(7, 5)),
-          dash_card("Median Days Open by Subject Category",
-                    withSpinner(plotlyOutput("k12_spell_duration_plot", height = "360px"))),
-          dash_card("Vacancy Duration Distribution",
-                    withSpinner(plotlyOutput("k12_spell_distrib_plot", height = "360px")))
-        ),
+        # Duration KPI boxes and charts paused (spells_paused_note()); their
+        # server outputs are kept for when the rebuilt spells return.
         card(
           card_header(
             class = "d-flex justify-content-between align-items-center",
-            "Job Duration & Time-to-Fill Explorer",
+            "Postings and how long they stayed listed",
             info_popover(
-              "How days open is estimated",
-              p(class = "mb-0", "Estimated Days Open represents the calendar duration between when a posting was first captured and when it disappeared from weekly updates (or weeks observed × 7).")
+              "How days listed is counted",
+              p(class = "mb-0", "Days listed = the span from the first to the last weekly scrape that showed the posting, plus 7 days. It starts when we first saw the posting (often after it was posted) and ends when it stopped appearing, whatever the reason.")
             )
           ),
           card_body(
@@ -1794,20 +1807,21 @@ ui <- page_navbar(
       )
     ),
     nav_panel(
-      "Time-to-Fill", value = "he_spells", icon = icon("stopwatch"),
-      h3(class = "page-title", tagList(icon("stopwatch"), " Higher Ed Job Duration & Time-to-Fill")),
+      "Listing Duration", value = "he_spells", icon = icon("stopwatch"),
+      h3(class = "page-title", tagList(icon("stopwatch"), " Higher Ed Listing Duration")),
       p(class = "text-muted small",
-        "Weekly tracking of collegiate faculty vacancy duration across snapshots. Measures time-to-fill and search persistence across academic disciplines and institutions."),
+        "How long each higher ed posting stayed listed on the job boards this dashboard tracks."),
+      spells_paused_note("posting"),
       layout_sidebar(
         fillable = FALSE,
         class = "page-sidebar",
         sidebar = sidebar(
           title = "Filters",
           width = 260,
-          selectInput("he_spell_status", "Vacancy status:",
+          selectInput("he_spell_status", "Listing status:",
                       choices = c("All Postings" = "all",
                                   "Still Active (Open)" = "Still Active",
-                                  "Filled / Closed" = "Closed / Filled"),
+                                  "No longer listed" = "No longer listed"),
                       selected = "all"),
           selectInput("he_spell_job_type", "Appointment type:",
                       choices = c("All Appointments" = "all",
@@ -1824,27 +1838,14 @@ ui <- page_navbar(
                       choices = c("All Institutions" = "all"),
                       selected = "all")
         ),
-        layout_columns(
-          col_widths = breakpoints(sm = c(6, 6, 6, 6), xl = c(3, 3, 3, 3)),
-          uiOutput("he_spell_median_box", fill = TRUE),
-          uiOutput("he_spell_active_box", fill = TRUE),
-          uiOutput("he_spell_persistent_box", fill = TRUE),
-          uiOutput("he_spell_hardest_box", fill = TRUE)
-        ),
-        layout_columns(
-          col_widths = breakpoints(sm = 12, lg = c(7, 5)),
-          dash_card("Median Days Open by Academic Discipline",
-                    withSpinner(plotlyOutput("he_spell_duration_plot", height = "360px"))),
-          dash_card("Collegiate Vacancy Duration Distribution",
-                    withSpinner(plotlyOutput("he_spell_distrib_plot", height = "360px")))
-        ),
+        # Duration KPI boxes and charts paused (spells_paused_note()).
         card(
           card_header(
             class = "d-flex justify-content-between align-items-center",
-            "Collegiate Job Duration & Time-to-Fill Explorer",
+            "Postings and how long they stayed listed",
             info_popover(
-              "How days open is estimated",
-              p(class = "mb-0", "Estimated Days Open represents the calendar duration between when a posting was first captured and when it disappeared from weekly updates (or weeks observed × 7).")
+              "How days listed is counted",
+              p(class = "mb-0", "Days listed = the span from the first to the last weekly scrape that showed the posting, plus 7 days. It starts when we first saw the posting (often after it was posted) and ends when it stopped appearing, whatever the reason.")
             )
           ),
           card_body(
@@ -1874,9 +1875,9 @@ ui <- page_navbar(
         download_tile("clock-rotate-left", "K-12 History Archive",
                       "Multi-year historical record of weekly K-12 job postings across Wyoming (76,000+ records) for hiring seasonality and longitudinal demand studies.",
                       "download_history_k12", "Historical K-12 (CSV)"),
-        download_tile("stopwatch", "K-12 Time-to-Fill",
-                      "Unique job postings with NCES LEAID, estimated days open (time-to-fill), and high-need subject areas (STEM, SPED, etc.) across weekly snapshots.",
-                      "download_spells", "Job Duration Data (CSV)"),
+        download_tile("stopwatch", "K-12 Listing Duration",
+                      "Each posting's first and last week on the boards we track, with NCES LEAID, days listed, and subject flags (STEM, SPED, etc.). Not a time-to-fill measure: see the caveats on the Listing Duration tab.",
+                      "download_spells", "Listing Duration (CSV)"),
         download_tile("school", "District Benchmarks",
                       "District profiles: NCES LEAID, WSBA base salaries, WDE avg salaries, NCES teacher FTE & enrollment, student-to-teacher ratios, and Census poverty/rent.",
                       "download_district_benchmarks", "District Profiles (CSV)"),
@@ -1886,9 +1887,9 @@ ui <- page_navbar(
         download_tile("building-columns", "Higher Ed Archive",
                       "Longitudinal postings for instructional faculty, adjuncts, and staff across Wyoming's 9 public community colleges and UW (29,000+ records).",
                       "download_history_he", "Higher Ed Archive (CSV)"),
-        download_tile("stopwatch", "Higher Ed Time-to-Fill",
-                      "Posting duration dataset tracking time-to-fill, active/closed search status, and discipline indicators for collegiate faculty.",
-                      "download_he_spells", "Higher Ed Time-to-Fill (CSV)"),
+        download_tile("stopwatch", "Higher Ed Listing Duration",
+                      "Each faculty/staff posting's first and last week on the boards we track, days listed, and discipline flags. Not a time-to-fill measure: see the caveats on the Listing Duration tab.",
+                      "download_he_spells", "Higher Ed Listing Duration (CSV)"),
         download_tile("graduation-cap", "Higher Ed Profiles",
                       "Institution-level profiles: IPEDS UNITID, instructional faculty salaries (all ranks and professor), enrollment, and federal Pell shares.",
                       "download_he_benchmarks", "Higher Ed Profiles (CSV)"),
@@ -3763,7 +3764,9 @@ server <- function(input, output, session) {
     }
 
     datatable(
-      df_display,
+      df_display %>% rename(any_of(c(`Days listed` = "Estimated_Days_Open", `First seen` = "First_Seen_Date",
+                                     `Last seen` = "Last_Seen_Date", Listing = "Status",
+                                     Category = "Broad_Category"))),
       options = list(
         pageLength = 15,
         lengthMenu = c(10, 15, 25, 50, 100),
@@ -3961,7 +3964,9 @@ server <- function(input, output, session) {
     }
 
     datatable(
-      df_display,
+      df_display %>% rename(any_of(c(`Days listed` = "Estimated_Days_Open", `First seen` = "First_Seen_Date",
+                                     `Last seen` = "Last_Seen_Date", Listing = "Status",
+                                     Category = "Broad_Category"))),
       options = list(
         pageLength = 15,
         lengthMenu = c(10, 15, 25, 50, 100),
