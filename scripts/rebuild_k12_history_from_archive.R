@@ -20,7 +20,13 @@
 
 suppressMessages(library(dplyr))
 
-rebuild_k12_history_from_archive <- function(archive_dir = "Archivek12_Data") {
+rebuild_k12_history_from_archive <- function(archive_dir = "Archivek12_Data",
+                                             reference_dir = here::here("Wy_Ed_Jobs")) {
+  # The pay-estimate inputs the pipeline uses (Wy_ED_Jobs.Rmd): OEWS wages and
+  # each district's county from salarymap2.csv.
+  oews_wages <- read.csv(file.path(reference_dir, "oews_role_wages.csv"), stringsAsFactors = FALSE,
+                         colClasses = c(Area_Code = "character", SOC = "character", Year = "character"))
+  district_county <- read.csv(file.path(reference_dir, "salarymap2.csv"), stringsAsFactors = FALSE)[, c("District", "County")]
   csv_files <- list.files(archive_dir, pattern = "\\.csv$", full.names = TRUE)
   if (length(csv_files) == 0) {
     stop("rebuild_k12_history_from_archive(): no archive files found in ", archive_dir)
@@ -65,7 +71,6 @@ rebuild_k12_history_from_archive <- function(archive_dir = "Archivek12_Data") {
             TRUE ~ as.Date(NA)
           ),
           District = canonicalize_k12_district(District),
-          position = classify_k12_position(title),
           posting_id = build_k12_posting_id(
             source_id = posting_id,
             title = title,
@@ -74,28 +79,23 @@ rebuild_k12_history_from_archive <- function(archive_dir = "Archivek12_Data") {
             url = url,
             district = District
           )
-        ) %>%
-        ensure_posted_pay_columns() %>%
-        drop_implausible_pay() %>%
-        dplyr::select(title, Archive_Date, date_posted, position, location, url, posting_id, District,
-                      dplyr::all_of(POSTED_PAY_COLUMNS))
+        )
       # Mirrors Wy_ED_Jobs.Rmd's collapse_duplicate_posting_ids() -- only for
       # snapshots the modern pipeline wrote (they carry posting_id), since
       # that step never ran on the older ones, whose building-in-`position`
-      # rows would otherwise collapse wrongly (see above).
+      # rows would otherwise collapse wrongly (see above). Then the same
+      # builder the pipeline uses (history_accumulator.R).
       if (has_source_ids) {
         df <- collapse_duplicate_posting_ids(df, basename(file))
       }
-      df
+      for (col in intersect(c("Pay_Min", "Pay_Max"), names(df))) df[[col]] <- suppressWarnings(as.numeric(df[[col]]))
+      for (col in intersect(c("Pay_Unit", "Pay_Text", "Close_Date"), names(df))) df[[col]] <- as.character(df[[col]])
+      build_k12_combinedclean(df, oews_wages, district_county, "WY")
     }) %>%
     bind_rows() %>%
     filter(!is_placeholder_posting(title))
 
-  k12jobs <- combinedclean %>%
-    filter(position == "Teacher") %>%
-    mutate(Category = classify_k12_subject(title),
-           Broad_Category = classify_k12_broad_category(Category)) %>%
-    select(title, Archive_Date, position, location, url, posting_id, District, Category, Broad_Category)
+  k12jobs <- build_k12_teacher_rows(combinedclean)
 
   k12_district_weekly_totals <- combinedclean %>%
     count(District, Archive_Date, name = "n")
@@ -137,6 +137,8 @@ rebuild_k12_history_from_archive <- function(archive_dir = "Archivek12_Data") {
 # top-level statements run at sys.nframe() == 0.
 if (sys.nframe() == 0) {
   source("k12_he_classification.R")
+  source("bls_oews_scraper.R")
+  source("history_accumulator.R")
   result <- rebuild_k12_history_from_archive()
 
   write.csv(result$combinedclean, file.path("Wy_Ed_Jobs", "combinedclean.csv"), row.names = FALSE)

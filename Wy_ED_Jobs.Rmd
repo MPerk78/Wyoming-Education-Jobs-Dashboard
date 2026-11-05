@@ -339,25 +339,19 @@ district_county <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), stringsAs
 # may be a real re-posting, which the WSBA dedup step deliberately keeps too.
 # rebuild_k12_history_from_archive() dedupes at the identical point so the
 # from-archive rebuild stays equivalent (test-history-accumulator.R).
+# Then (build_k12_combinedclean(), history_accumulator.R, shared with the
+# from-archive rebuild): placeholder board entries ("Sample Certified
+# Position", account-creation templates) are kept in the raw archive above but
+# never counted as jobs; Pay_* is the pay the posting itself states
+# (extract_posted_pay()), NA where the source states none or the amount is
+# implausible for its unit (drop_implausible_pay(); the raw archive keeps it
+# as scraped); Est_* is the BLS regional median for the posting's role,
+# matched to its district's county (statewide where the county is unknown).
+source("history_accumulator.R")
 combinedclean <- combined %>%
   dplyr::distinct() %>%
   collapse_duplicate_posting_ids("combinedclean") %>%
-  # Placeholder board entries ("Sample Certified Position", account-creation
-  # templates) are kept in the raw archive above but never counted as jobs.
-  filter(!is_placeholder_posting(title)) %>%
-  mutate(position = classify_k12_position(title),
-         District = canonicalize_k12_district(District)) %>%
-  # Pay_* is the pay the posting itself states (extract_posted_pay()); NA
-  # where the source states none or the amount is implausible for its unit
-  # (drop_implausible_pay(); the raw archive above keeps it as scraped).
-  ensure_posted_pay_columns() %>%
-  drop_implausible_pay() %>%
-  # Est_* is the BLS regional median for the posting's role, matched to its
-  # district's county (statewide where the county is unknown).
-  attach_oews_estimates(oews_wages, district_county$County[match(.$District, district_county$District)], "WY") %>%
-  mutate(Close_Date = if ("Close_Date" %in% names(.)) as.character(Close_Date) else NA_character_) %>%
-  dplyr::select(title, Archive_Date, date_posted, position, location, url, posting_id, District, Close_Date,
-                dplyr::all_of(POSTED_PAY_COLUMNS), dplyr::all_of(OEWS_ESTIMATE_COLUMNS))
+  build_k12_combinedclean(oews_wages, district_county, "WY")
 
 write.csv(combinedclean, file=file.path('Wy_Ed_Jobs','combinedclean.csv'), row.names = FALSE)
 
@@ -378,11 +372,7 @@ write.csv(combinedclean, file=file.path('Wy_Ed_Jobs','combinedclean.csv'), row.n
 #--------------------------------------------------------------------------
 source("history_accumulator.R")
 
-this_week_k12jobs <- combinedclean %>%
-  filter(position == "Teacher") %>%
-  mutate(Category = classify_k12_subject(title),
-         Broad_Category = classify_k12_broad_category(Category)) %>%
-  dplyr::select(title, Archive_Date, position, location, url, posting_id, District, Category, Broad_Category)
+this_week_k12jobs <- build_k12_teacher_rows(combinedclean)
 
 k12jobs <- append_weekly_rows(file.path("Wy_Ed_Jobs", "k12jobanalysis.csv"), this_week_k12jobs)
 write.csv(k12jobs, file=file.path('Wy_Ed_Jobs','k12jobanalysis.csv'), row.names = FALSE)

@@ -138,13 +138,15 @@ test_that("incrementally appending the latest week reproduces a full rebuild thr
   # raw `position` column) so a job listed once per building counts once
   raw_latest <- distinct(raw_latest)
   raw_latest$Archive_Date <- as.character(as.Date(raw_latest$Archive_Date))
-  if (!"posting_id" %in% names(raw_latest)) raw_latest$posting_id <- NA_character_
+  has_source_ids <- "posting_id" %in% names(raw_latest)
+  if (!has_source_ids) raw_latest$posting_id <- NA_character_
 
-  this_week_combinedclean <- raw_latest %>%
+  # Then the pipeline's own steps: posting_id, collapse_duplicate_posting_ids()
+  # (snapshots that carry posting_id), and the shared builders.
+  this_week_raw <- raw_latest %>%
     mutate(
       District = canonicalize_k12_district(District),
       title = fix_title_encoding(title),
-      position = classify_k12_position(title),
       posting_id = build_k12_posting_id(
         source_id = posting_id,
         title = title,
@@ -153,15 +155,13 @@ test_that("incrementally appending the latest week reproduces a full rebuild thr
         url = url,
         district = District
       )
-    ) %>%
-    select(title, Archive_Date, position, location, url, posting_id, District) %>%
-    filter(!is_placeholder_posting(title))
-
-  this_week_k12jobs <- this_week_combinedclean %>%
-    filter(position == "Teacher") %>%
-    mutate(Category = classify_k12_subject(title),
-           Broad_Category = classify_k12_broad_category(Category)) %>%
-    select(title, Archive_Date, position, location, url, posting_id, District, Category, Broad_Category)
+    )
+  if (has_source_ids) this_week_raw <- collapse_duplicate_posting_ids(this_week_raw, "latest")
+  oews <- read.csv(here::here("Wy_Ed_Jobs", "oews_role_wages.csv"), stringsAsFactors = FALSE,
+                   colClasses = c(Area_Code = "character", SOC = "character", Year = "character"))
+  district_county <- read.csv(here::here("Wy_Ed_Jobs", "salarymap2.csv"), stringsAsFactors = FALSE)[, c("District", "County")]
+  this_week_combinedclean <- build_k12_combinedclean(this_week_raw, oews, district_county, "WY")
+  this_week_k12jobs <- build_k12_teacher_rows(this_week_combinedclean)
 
   this_week_weekly_totals <- this_week_combinedclean %>%
     count(District, Archive_Date, name = "n")
@@ -276,4 +276,19 @@ test_that("incrementally appending the latest week reproduces a full rebuild thr
   expect_equal(norm(incremental_facultydata), norm(as.data.frame(full_state$facultydata)), ignore_attr = TRUE)
   expect_equal(norm(incremental_allsum_he), norm(as.data.frame(full_state$allsum_he)), ignore_attr = TRUE)
   expect_equal(norm(incremental_weekly_totals), norm(as.data.frame(full_state$he_institution_weekly_totals)), ignore_attr = TRUE)
+})
+
+test_that("rebuild_parity_row ignores row order, NA vs blank and \\r\\n, and counts real differences", {
+  committed <- data.frame(a = c("x", "y", "y"), b = c("1", "", "2\n3"), c = "k", stringsAsFactors = FALSE)
+  same <- committed[c(3, 1, 2), c("a", "b", "c")]
+  same$b[same$b == ""] <- NA
+  same$b <- sub("\n", "\r\n", same$b, fixed = TRUE)
+  r <- rebuild_parity_row("f.csv", committed, same)
+  expect_equal(c(r$Only_Committed, r$Only_Rebuilt), c(0, 0))
+  expect_equal(r$Missing_Cols, "")
+  # A dropped column and a duplicated / missing row both show.
+  r2 <- rebuild_parity_row("f.csv", committed, rbind(committed[c(1, 1, 3), c("a", "b")]))
+  expect_equal(r2$Missing_Cols, "c")
+  expect_equal(c(r2$Only_Committed, r2$Only_Rebuilt), c(1, 1))
+  expect_match(r2$Example, "committed: y \\| <NA>")
 })

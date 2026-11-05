@@ -160,6 +160,15 @@ jobs:
         continue-on-error: true
         run: Rscript .github/scripts/check_pay_coverage.R
 
+      # The from-archive rebuild must reproduce the committed data (rebuild
+      # parity, classification safeguards item 12), or neither disaster
+      # recovery nor scripts/reclassify_committed_data.R can be trusted.
+      # Same non-blocking shape.
+      - name: Check a rebuild from the archives reproduces the committed data
+        id: check_rebuild_parity
+        continue-on-error: true
+        run: Rscript .github/scripts/check_rebuild_parity.R
+
       # Closes the one real gap continue-on-error opens up: a bug that
       # CRASHES one of the three monitoring steps above is indistinguishable
       # from "ran fine, found nothing to report" unless something checks for
@@ -176,6 +185,7 @@ jobs:
           [ "${{ steps.check_salary_drift.outcome }}" = "failure" ] && FAILED="$FAILED check_salary_drift.R"
           [ "${{ steps.check_census_drift.outcome }}" = "failure" ] && FAILED="$FAILED check_census_drift.R"
           [ "${{ steps.check_pay_coverage.outcome }}" = "failure" ] && FAILED="$FAILED check_pay_coverage.R"
+          [ "${{ steps.check_rebuild_parity.outcome }}" = "failure" ] && FAILED="$FAILED check_rebuild_parity.R"
 
           if [ -z "$FAILED" ]; then
             echo "All monitoring steps ran without crashing."

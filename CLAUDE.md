@@ -53,6 +53,7 @@ Disaster-recovery / verification rebuilds (reprocess the full raw archive from s
 source("scripts/rebuild_k12_history_from_archive.R"); rebuild_k12_history_from_archive()
 source("scripts/rebuild_he_history_from_archive.R"); rebuild_he_history_from_archive()
 ```
+The rebuild reproduces the committed files exactly (`Rscript .github/scripts/check_rebuild_parity.R`, also a non-blocking weekly step), because `build_k12_combinedclean()` / `build_k12_teacher_rows()` (`history_accumulator.R`) are shared with the pipeline. After changing `k12_he_classification.R`, reclassify the committed data with `Rscript scripts/reclassify_committed_data.R` (dry run; `--apply` writes): `test-weekly-data-quality.R` fails until every committed bucket equals what the classifier gives its title.
 
 One-off repair scripts follow a `--dry-run` then `--apply` pattern, e.g.:
 ```
