@@ -380,6 +380,14 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     classifier change must ship with reclassified data; 0 differences in WY or MT today); k12jobanalysis holds only
     Teacher rows; no placeholder title in combinedclean, k12jobanalysis, facultydata or hedata.xlsx; spell dummies
     (`is_support_staff`, `is_admin`, `is_faculty`, `is_adjunct`) agree with the position they encode.
+  * [x] Classification safeguards, items 12 and 13 (2026-11-04, both states; f78d75c): rebuild parity and a
+    reclassify script. `build_k12_combinedclean()` / `build_k12_teacher_rows()` (`history_accumulator.R`) are shared
+    by `Wy_ED_Jobs.Rmd` and the rebuild, which therefore carries Close_Date and Est_*; the rebuild reproduces all
+    nine committed K-12/HE files exactly (row order aside; facultydata's 850 apparent differences were `\r\n` in
+    titles, which `read.csv()` reads as `\n`). `.github/scripts/check_rebuild_parity.R` checks it weekly
+    (non-blocking). `scripts/reclassify_committed_data.R` (dry run; `--apply`): guard that the HEAD classifier
+    reproduces the committed data, report of every move, files written in committed order and formats, spells
+    refreshed. Scratch test with a planted rule change: 148 history rows left, diff only those rows and counts.
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
@@ -388,12 +396,10 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   `coverage_calendar.csv` for source health).
 - [ ] Spells trust audit: WY's spells have the problems found in MT's (`claude-notes/2026-11-02_spells-trust-audit.md`)
   but were not audited, and WY's Time-to-Fill tabs are NOT paused.
-- [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 7, 8, 10 done;
-  next 13 (reclassify script, now needed: item 8 fails the suite on any classifier change until the committed data
-  is reclassified), then 5, 6, then 3. Confirm "Activities/Extracurricular" shows in the 2026-11-06 data.
+- [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 7, 8, 10, 12, 13
+  done; next 5, 6 (title-shape lint, per-source Other share), then 3 (golden labeled set). Confirm "Activities/Extracurricular" shows in the 2026-11-06 data.
 - [ ] Title-shape bug: Fremont #21 "... - Open Until Filled.". WSBA district typo "Cabon County School District 2"
   not caught by `canonicalize_k12_district()`.
-- [ ] Rebuild scripts drift from the pipeline (proposal item 12; they reorder rows and drop Est_*/Close_Date).
-  Weekly-totals downloads: keep one snapshot per week (decided 2026-11-02; not built).
+- [ ] Weekly-totals downloads: keep one snapshot per week (decided 2026-11-02; not built).
 - [ ] Manual (repo Settings -> Copilot -> Internet access): uwyo.edu.
 
