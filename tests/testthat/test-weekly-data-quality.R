@@ -260,6 +260,70 @@ test_that("facultydata.csv / allsum_he.csv / allnow_he.csv are scoped to the two
   }
 })
 
+test_that("k12jobanalysis.csv holds only Teacher rows", {
+  pos <- unique(read_wy("k12jobanalysis.csv")$position)
+  expect_identical(pos, "Teacher", info = paste("unexpected position:", paste(pos, collapse = ", ")))
+})
+
+# Classification safeguards (claude-notes 2026-11-01 proposal), items 7 and 8:
+# every committed bucket equals what today's classifier gives its title. A
+# classifier change must ship with its reclassified data; otherwise history
+# silently mixes old and new buckets (the 2026-11-01 audit found ~400 misrouted
+# titles that no check caught). Also catches a K-12 position value the
+# classifier can't produce (item 7). Fix by reclassifying the committed files.
+classification_mismatches <- function(got, want, title) {
+  same <- (is.na(got) & is.na(want)) | (!is.na(got) & !is.na(want) & got == want)
+  bad <- !same
+  if (!any(bad)) return("")
+  x <- unique(data.frame(title = title[bad], committed = got[bad], classifier = want[bad]))
+  paste(sum(bad), "rows differ, e.g.:", paste(utils::head(sprintf("'%s': %s -> %s", x$title, x$committed, x$classifier), 8),
+                                         collapse = " | "))
+}
+
+test_that("committed K-12 position / Category / Broad_Category equal the current classifier", {
+  cc <- read_wy("combinedclean.csv")
+  k <- read_wy("k12jobanalysis.csv")
+  expect_identical(classification_mismatches(cc$position, classify_k12_position(cc$title), cc$title), "",
+                   label = "combinedclean.csv position")
+  expect_identical(classification_mismatches(k$position, classify_k12_position(k$title), k$title), "",
+                   label = "k12jobanalysis.csv position")
+  expect_identical(classification_mismatches(k$Category, classify_k12_subject(k$title), k$title), "",
+                   label = "k12jobanalysis.csv Category")
+  expect_identical(classification_mismatches(k$Broad_Category, classify_k12_broad_category(k$Category), k$title), "",
+                   label = "k12jobanalysis.csv Broad_Category")
+})
+
+test_that("committed HE Job_Type / Category equal the current classifier", {
+  fd <- read_wy("facultydata.csv")
+  expect_identical(classification_mismatches(fd$Job_Type, classify_he_job_type(fd$Title), fd$Title), "",
+                   label = "facultydata.csv Job_Type")
+  expect_identical(classification_mismatches(fd$Category, classify_he_faculty_category(fd$Title), fd$Title), "",
+                   label = "facultydata.csv Category")
+})
+
+test_that("no placeholder board entry ships in any posting-level output (item 10)", {
+  titles <- list(combinedclean = read_wy("combinedclean.csv")$title,
+                 k12jobanalysis = read_wy("k12jobanalysis.csv")$title,
+                 facultydata = read_wy("facultydata.csv")$Title)
+  if (file.exists(WY("hedata.xlsx"))) titles$hedata <- readxl::read_excel(WY("hedata.xlsx"))$Title
+  for (n in names(titles)) {
+    hit <- unique(titles[[n]][is_placeholder_posting(titles[[n]])])
+    expect(length(hit) == 0, paste(n, "ships placeholder titles:", paste(head(hit, 5), collapse = " | ")))
+  }
+})
+
+test_that("duration-spell dummies agree with the position / job type they encode (item 10)", {
+  # The 2026-11-01 audit found is_support_staff never set for Transportation
+  # and Food Services.
+  s <- read_wy("job_duration_spells.csv")
+  support <- c("Support Services", "Paraprofessional", "Custodial/Maintenance", "Transportation", "Food Services")
+  expect_equal(s$is_support_staff, as.integer(s$Position %in% support))
+  expect_equal(s$is_admin, as.integer(s$Position == "Administration"))
+  h <- read_wy("he_job_duration_spells.csv")
+  expect_equal(h$is_faculty, as.integer(h$Job_Type == "Instructor/Teacher/Faculty"))
+  expect_equal(h$is_adjunct, as.integer(h$Job_Type == "Adjunct/Part-Time Faculty"))
+})
+
 test_that("every Broad_Category / Category in the summary data has a colour AND collapse-map entry in app.R", {
   skip_if_not_installed("shiny")
   app_dir <- here::here("Wy_Ed_Jobs")
