@@ -403,14 +403,25 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     27 `known_miss` rows the classifier still gets wrong (e.g. Administrative Assistant -> Administration, GEAR UP
     success coaches -> Coaching or Athletics, Laborer -> Support Services). `test-classification-golden-set.R`
     fails on any other disagreement and when a known miss starts agreeing (clear its flag).
+  * [x] Time-to-Fill tabs paused and spells trust audit (2026-11-05; 63e7f52): the tabs are now "Listing
+    Duration" with MT's paused note, "No longer listed" instead of "Closed / Filled", duration KPIs and charts
+    removed (server outputs kept). Audit (`claude-notes/2026-11-05_wy-spells-trust-audit.md`): WY's spells are
+    much sounder than MT's -- 3% of closed spells end in a known artifact (MT 68%), 6% left-censored (MT 61%),
+    posted dates on 70% of rows, first seen a median 3 days after posting; the K-12 median stays 28 days under every
+    cleaning filter, and closed teacher postings ran a median 32 days from posted date to last sighting. Still not
+    time-to-fill. Open problems: title identity (133 spells merge same-title postings), frozen boards (17 runs at
+    12 districts; Fremont #38 the same postings for 57 weeks, also inflating weekly counts), coverage gaps only
+    visible as whole-district absences, HE pools (237 of 719 spells, median 196 days).
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates (`claude-notes/2026-11-03_posting-dates-plan.md`, written for MT, same approach): daily
   presence check, spells rebuild (use `schoolspring_endings.csv` for how SchoolSpring postings ended and
   `coverage_calendar.csv` for source health).
-- [ ] Spells trust audit: WY's spells have the problems found in MT's (`claude-notes/2026-11-02_spells-trust-audit.md`)
-  but were not audited, and WY's Time-to-Fill tabs are NOT paused.
+- [ ] Spells rebuild (audit 2026-11-05, `claude-notes/2026-11-05_wy-spells-trust-audit.md`): MT's posting-level
+  design (identity Posting_ID or District + title + posted date, start = posted date, endings censored when the
+  source had no rows, Kaplan-Meier medians), plus frozen-board and pool flags; a frozen-board check in the weekly
+  drift report. Then decide what the paused Listing Duration tabs show.
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 3, 5, 6, 7, 8,
   10, 12, 13 done; next 1, 2 (source category, title normalization), then the 27 golden-set known misses, 4. Confirm "Activities/Extracurricular" shows in the 2026-11-06 data.
 - [ ] Title-shape bug: Fremont #21 "... - Open Until Filled.". WSBA district typo "Cabon County School District 2"
