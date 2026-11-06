@@ -39,7 +39,7 @@
         "Maintainer": "Kirill Müller <kirill@cynkra.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-02-25 06:31:27 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:30 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "DT": {
@@ -66,7 +66,7 @@
         "Maintainer": "Garrick Aden-Buie <garrick@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-09-02 22:00:06 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:25:47 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:30:29 UTC; unix"
       }
     },
     "KernSmooth": {
@@ -91,7 +91,7 @@
         "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
         "Repository": "CRAN",
         "Date/Publication": "2026-08-12 06:40:09 UTC",
-        "Built": "R 4.6.2; x86_64-pc-linux-gnu; 2026-10-29 18:37:27 UTC; unix"
+        "Built": "R 4.6.2; x86_64-pc-linux-gnu; 2026-10-29 18:38:51 UTC; unix"
       }
     },
     "R6": {
@@ -118,7 +118,7 @@
         "Maintainer": "Winston Chang <winston@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-02-15 00:50:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:31 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:38 UTC; unix"
       }
     },
     "RColorBrewer": {
@@ -140,7 +140,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2022-04-03 19:20:13 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:34 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "Rcpp": {
@@ -168,7 +168,7 @@
         "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
         "Repository": "RSPM",
         "Date/Publication": "2026-07-05 08:30:08 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:31 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:40 UTC; unix"
       }
     },
     "S7": {
@@ -200,7 +200,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-22 11:00:10 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:35 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:39 UTC; unix"
       }
     },
     "askpass": {
@@ -227,7 +227,7 @@
         "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2024-10-04 07:20:03 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:43 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:07 UTC; unix"
       }
     },
     "backports": {
@@ -253,7 +253,7 @@
         "Author": "Michel Lang [cre, aut] (ORCID: <https://orcid.org/0000-0001-9754-0393>),\n  Duncan Murdoch [aut],\n  R Core Team [aut]",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-03 05:10:23 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:30 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "base64enc": {
@@ -277,7 +277,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-02-02 06:31:10 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:30 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "bit": {
@@ -305,7 +305,7 @@
         "Maintainer": "Michael Chirico <MichaelChirico4@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2025-03-06 10:50:01 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:34 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:38 UTC; unix"
       }
     },
     "bit64": {
@@ -335,7 +335,7 @@
         "Maintainer": "Michael Chirico <michaelchirico4@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-09-01 09:30:09 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-09-02 04:00:12 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-09-02 04:00:27 UTC; unix"
       }
     },
     "blob": {
@@ -364,7 +364,7 @@
         "Maintainer": "Kirill Müller <kirill@cynkra.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-01-14 09:10:14 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:28 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:54 UTC; unix"
       }
     },
     "broom": {
@@ -397,7 +397,7 @@
         "Maintainer": "Emil Hvitfeldt <emil.hvitfeldt@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-05-14 05:10:21 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:23:52 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:28:45 UTC; unix"
       }
     },
     "bslib": {
@@ -430,7 +430,7 @@
         "Maintainer": "Carson Sievert <carson@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-08-04 00:40:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:23:52 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:27:26 UTC; unix"
       }
     },
     "cachem": {
@@ -457,7 +457,7 @@
         "Maintainer": "Winston Chang <winston@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2024-05-16 09:50:11 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:49 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:08 UTC; unix"
       }
     },
     "callr": {
@@ -487,7 +487,7 @@
         "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-06-05 11:40:13 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:01 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:19 UTC; unix"
       }
     },
     "cellranger": {
@@ -515,7 +515,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2016-07-27 03:17:48",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; ; 2026-09-26 06:35:53 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:26:50 UTC; unix"
       }
     },
     "class": {
@@ -540,7 +540,7 @@
         "Maintainer": "Brian Ripley <Brian.Ripley@R-project.org>",
         "Repository": "CRAN",
         "Date/Publication": "2026-08-03 09:45:09 UTC",
-        "Built": "R 4.6.2; x86_64-pc-linux-gnu; 2026-10-29 18:37:33 UTC; unix"
+        "Built": "R 4.6.2; x86_64-pc-linux-gnu; 2026-10-29 18:38:58 UTC; unix"
       }
     },
     "classInt": {
@@ -568,7 +568,7 @@
         "Maintainer": "Roger Bivand <Roger.Bivand@nhh.no>",
         "Repository": "RSPM",
         "Date/Publication": "2025-01-08 13:40:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:03 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:29 UTC; unix"
       }
     },
     "cli": {
@@ -597,7 +597,7 @@
         "Maintainer": "Gábor Csárdi <gabor@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-09 09:50:18 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:30 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:40 UTC; unix"
       }
     },
     "clipr": {
@@ -626,7 +626,7 @@
         "Maintainer": "Matthew Lincoln <matthew.d.lincoln@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-05-25 05:50:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:36 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:44 UTC; unix"
       }
     },
     "commonmark": {
@@ -652,7 +652,7 @@
         "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2025-07-07 13:40:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:31 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:39 UTC; unix"
       }
     },
     "conflicted": {
@@ -680,7 +680,7 @@
         "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
         "Repository": "RSPM",
         "Date/Publication": "2023-02-01 08:20:06 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:07 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:39 UTC; unix"
       }
     },
     "cpp11": {
@@ -709,7 +709,7 @@
         "Maintainer": "Davis Vaughan <davis@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-05-06 14:40:12 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:34 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:38 UTC; unix"
       }
     },
     "crayon": {
@@ -736,7 +736,7 @@
         "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2024-06-20 13:00:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:29 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "crosstalk": {
@@ -763,7 +763,7 @@
         "Maintainer": "Carson Sievert <carson@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-08-26 23:50:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:17 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:32 UTC; unix"
       }
     },
     "curl": {
@@ -792,7 +792,7 @@
         "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-10-14 12:12:13 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-15 04:19:08 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-15 04:19:50 UTC; unix"
       }
     },
     "data.table": {
@@ -819,7 +819,7 @@
         "Maintainer": "Tyson Barrett <t.barrett88@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-08-24 08:40:13 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-25 04:30:51 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-25 04:32:28 UTC; unix"
       }
     },
     "dbplyr": {
@@ -852,7 +852,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-06-17 21:50:07 UTC",
-        "Built": "R 4.6.0; ; 2026-10-18 19:49:53 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:28:52 UTC; unix"
       }
     },
     "digest": {
@@ -879,7 +879,7 @@
         "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
         "Repository": "RSPM",
         "Date/Publication": "2025-11-19 13:20:08 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:50 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "dplyr": {
@@ -911,7 +911,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-03 07:30:08 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:54 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:27:01 UTC; unix"
       }
     },
     "dtplyr": {
@@ -940,7 +940,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-02-11 06:10:52 UTC",
-        "Built": "R 4.6.0; ; 2026-10-02 08:11:50 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-10-29 06:40:00 UTC; unix"
       }
     },
     "e1071": {
@@ -963,7 +963,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-12-18 13:06:03 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:50 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:11 UTC; unix"
       }
     },
     "evaluate": {
@@ -991,7 +991,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-08-27 16:40:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:35 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:40 UTC; unix"
       }
     },
     "farver": {
@@ -1017,7 +1017,7 @@
         "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2024-05-13 09:33:09 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:31 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:43 UTC; unix"
       }
     },
     "fastmap": {
@@ -1041,7 +1041,7 @@
         "Maintainer": "Winston Chang <winston@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2024-05-15 09:00:07 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:29 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:40 UTC; unix"
       }
     },
     "fontawesome": {
@@ -1070,7 +1070,7 @@
         "Maintainer": "Richard Iannone <rich@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2024-11-16 17:30:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:14 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:29 UTC; unix"
       }
     },
     "forcats": {
@@ -1100,7 +1100,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-09-25 05:10:20 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:52 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:26:56 UTC; unix"
       }
     },
     "fs": {
@@ -1133,7 +1133,7 @@
         "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-18 15:10:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:37 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:47 UTC; unix"
       }
     },
     "gargle": {
@@ -1164,7 +1164,7 @@
         "Maintainer": "Jennifer Bryan <jenny@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-10-28 19:50:02 UTC",
-        "Built": "R 4.6.0; ; 2026-10-29 04:00:26 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-10-29 06:40:16 UTC; unix"
       }
     },
     "generics": {
@@ -1192,7 +1192,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-05-09 23:50:06 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:31 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "ggplot2": {
@@ -1225,7 +1225,7 @@
         "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-22 09:10:03 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:35 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:26:08 UTC; unix"
       }
     },
     "glue": {
@@ -1256,7 +1256,7 @@
         "Maintainer": "Jennifer Bryan <jenny@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-17 05:11:01 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:35 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:39 UTC; unix"
       }
     },
     "googledrive": {
@@ -1285,7 +1285,7 @@
         "Maintainer": "Jennifer Bryan <jenny@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-10-29 07:40:08 UTC",
-        "Built": "R 4.6.0; ; 2026-10-30 04:10:22 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-10-30 04:11:27 UTC; unix"
       }
     },
     "googlesheets4": {
@@ -1315,7 +1315,7 @@
         "Maintainer": "Jennifer Bryan <jenny@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-10-29 06:40:02 UTC",
-        "Built": "R 4.6.0; ; 2026-10-30 04:11:22 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-10-30 04:12:31 UTC; unix"
       }
     },
     "gtable": {
@@ -1345,7 +1345,7 @@
         "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2024-10-25 13:20:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:02 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:20 UTC; unix"
       }
     },
     "haven": {
@@ -1376,7 +1376,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-05-30 14:10:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:24 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:30:08 UTC; unix"
       }
     },
     "highr": {
@@ -1404,7 +1404,7 @@
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-06 06:30:47 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:52 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:05 UTC; unix"
       }
     },
     "hms": {
@@ -1432,7 +1432,7 @@
         "Maintainer": "Kirill Müller <kirill@cynkra.com>",
         "Repository": "RSPM",
         "Date/Publication": "2025-10-17 05:10:11 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:26 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:58 UTC; unix"
       }
     },
     "htmltools": {
@@ -1463,7 +1463,7 @@
         "Maintainer": "Carson Sievert <carson@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-12-04 11:50:09 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:04 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:12 UTC; unix"
       }
     },
     "htmlwidgets": {
@@ -1491,7 +1491,7 @@
         "Maintainer": "Carson Sievert <carson@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2023-12-06 06:00:06 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:25:06 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:29:22 UTC; unix"
       }
     },
     "httpuv": {
@@ -1524,7 +1524,7 @@
         "Maintainer": "Winston Chang <winston@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-18 06:12:59 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:38 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:26:13 UTC; unix"
       }
     },
     "httr": {
@@ -1552,7 +1552,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-09-01 13:20:02 UTC",
-        "Built": "R 4.6.0; ; 2026-09-02 03:59:46 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-09-02 04:00:13 UTC; unix"
       }
     },
     "ids": {
@@ -1578,7 +1578,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2017-05-31 08:49:59 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:12 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:44 UTC; unix"
       }
     },
     "isoband": {
@@ -1609,7 +1609,7 @@
         "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-12-07 06:10:07 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:53 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:11 UTC; unix"
       }
     },
     "jquerylib": {
@@ -1633,7 +1633,7 @@
         "Maintainer": "Carson Sievert <carson@rstudio.com>",
         "Repository": "RSPM",
         "Date/Publication": "2021-04-26 17:10:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:16 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:28 UTC; unix"
       }
     },
     "jsonlite": {
@@ -1659,7 +1659,7 @@
         "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>),\n  Duncan Temple Lang [ctb],\n  Lloyd Hilaiel [cph] (author of bundled libyajl)",
         "Repository": "RSPM",
         "Date/Publication": "2025-03-27 06:40:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:31 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "knitr": {
@@ -1689,7 +1689,7 @@
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "RSPM",
         "Date/Publication": "2026-09-06 19:10:02 UTC",
-        "Built": "R 4.6.0; ; 2026-09-07 03:56:59 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-09-07 03:58:01 UTC; unix"
       }
     },
     "labeling": {
@@ -1712,7 +1712,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2023-08-29 22:20:02 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:30 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:39 UTC; unix"
       }
     },
     "later": {
@@ -1745,7 +1745,7 @@
         "Maintainer": "Charlie Gao <charlie.gao@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-05 07:50:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:57 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:13 UTC; unix"
       }
     },
     "lattice": {
@@ -1774,7 +1774,7 @@
         "Maintainer": "Deepayan Sarkar <deepayan.sarkar@r-project.org>",
         "Repository": "CRAN",
         "Date/Publication": "2026-08-12 14:43:29 UTC",
-        "Built": "R 4.6.2; x86_64-pc-linux-gnu; 2026-10-29 18:34:12 UTC; unix"
+        "Built": "R 4.6.2; x86_64-pc-linux-gnu; 2026-10-29 18:35:12 UTC; unix"
       }
     },
     "lazyeval": {
@@ -1800,7 +1800,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-04-04 05:10:53 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:48 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:09 UTC; unix"
       }
     },
     "leaflet": {
@@ -1830,7 +1830,7 @@
         "Maintainer": "Garrick Aden-Buie <garrick@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-09-04 07:40:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:30:34 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:34:52 UTC; unix"
       }
     },
     "leaflet.providers": {
@@ -1861,7 +1861,7 @@
         "Maintainer": "Barret Schloerke <barret@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-18 21:50:08 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:15 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:30 UTC; unix"
       }
     },
     "lifecycle": {
@@ -1890,7 +1890,7 @@
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-01-08 08:00:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:53 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:06 UTC; unix"
       }
     },
     "lubridate": {
@@ -1924,7 +1924,7 @@
         "Author": "Vitalie Spinu [aut, cre],\n  Garrett Grolemund [aut],\n  Hadley Wickham [aut],\n  Davis Vaughan [ctb],\n  Ian Lyttle [ctb],\n  Imanuel Costigan [ctb],\n  Jason Law [ctb],\n  Doug Mitarotonda [ctb],\n  Joseph Larmarange [ctb],\n  Jonathan Boiser [ctb],\n  Chel Hee Lee [ctb]",
         "Repository": "RSPM",
         "Date/Publication": "2026-02-04 09:00:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:14 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:21 UTC; unix"
       }
     },
     "magrittr": {
@@ -1953,7 +1953,7 @@
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-04 08:00:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:29 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:40 UTC; unix"
       }
     },
     "memoise": {
@@ -1978,7 +1978,7 @@
         "Maintainer": "Winston Chang <winston@rstudio.com>",
         "Repository": "RSPM",
         "Date/Publication": "2021-11-26 16:11:10 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:58 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:23 UTC; unix"
       }
     },
     "mime": {
@@ -2003,7 +2003,7 @@
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "RSPM",
         "Date/Publication": "2025-03-17 20:20:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:34 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:54 UTC; unix"
       }
     },
     "modelr": {
@@ -2032,7 +2032,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2023-03-22 13:00:07 UTC",
-        "Built": "R 4.6.0; ; 2026-10-02 08:07:59 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:29:32 UTC; unix"
       }
     },
     "openssl": {
@@ -2042,7 +2042,7 @@
         "Package": "openssl",
         "Type": "Package",
         "Title": "Toolkit for Encryption, Signatures and Certificates Based on\nOpenSSL",
-        "Version": "2.4.2",
+        "Version": "2.5.0",
         "Authors@R": "c(person(\"Jeroen\", \"Ooms\", role = c(\"aut\", \"cre\"), email = \"jeroenooms@gmail.com\",\n    comment = c(ORCID = \"0000-0002-4035-0289\")),\n    person(\"Oliver\", \"Keyes\", role = \"ctb\"))",
         "Description": "Bindings to OpenSSL libssl and libcrypto, plus custom SSH key parsers.\n    Supports RSA, DSA and EC curves P-256, P-384, P-521, and curve25519. Cryptographic\n    signatures can either be created and verified manually or via x509 certificates. \n    AES can be used in cbc, ctr or gcm mode for symmetric encryption; RSA for asymmetric\n    (public key) encryption or EC for Diffie Hellman. High-level envelope functions \n    combine RSA and AES for encrypting arbitrary sized data. Other utilities include key\n    generators, hash functions (md5, sha1, sha256, etc), base64 encoder, a secure random\n    number generator, and 'bignum' math methods for manually performing crypto \n    calculations on large multibyte integers.",
         "License": "MIT + file LICENSE",
@@ -2055,12 +2055,12 @@
         "Encoding": "UTF-8",
         "Config/roxygen2/version": "8.0.0",
         "NeedsCompilation": "yes",
-        "Packaged": "2026-06-09 10:51:42 UTC; jeroen",
+        "Packaged": "2026-11-01 10:34:10 UTC; jeroen",
         "Author": "Jeroen Ooms [aut, cre] (ORCID: <https://orcid.org/0000-0002-4035-0289>),\n  Oliver Keyes [ctb]",
         "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "RSPM",
-        "Date/Publication": "2026-06-09 13:30:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:57 UTC; unix"
+        "Date/Publication": "2026-11-02 17:20:02 UTC",
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-11-03 04:40:37 UTC; unix"
       }
     },
     "otel": {
@@ -2088,7 +2088,7 @@
         "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2025-08-29 13:30:07 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:45 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "pillar": {
@@ -2121,7 +2121,7 @@
         "Maintainer": "Kirill Müller <kirill@cynkra.com>",
         "Repository": "RSPM",
         "Date/Publication": "2025-09-17 11:20:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:26 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:56 UTC; unix"
       }
     },
     "pkgconfig": {
@@ -2145,7 +2145,7 @@
         "Packaged": "2019-09-22 08:42:40 UTC; gaborcsardi",
         "Repository": "RSPM",
         "Date/Publication": "2019-09-22 09:20:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:35 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:38 UTC; unix"
       }
     },
     "plotly": {
@@ -2173,7 +2173,7 @@
         "Maintainer": "Carson Sievert <cpsievert1@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-07-22 06:10:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:26:08 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:31:12 UTC; unix"
       }
     },
     "png": {
@@ -2197,7 +2197,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-03-15 16:50:02 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:34 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:43 UTC; unix"
       }
     },
     "prettyunits": {
@@ -2222,7 +2222,7 @@
         "Maintainer": "Gabor Csardi <csardi.gabor@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2023-09-24 21:10:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:29 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "processx": {
@@ -2251,7 +2251,7 @@
         "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-22 12:00:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:47 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:55 UTC; unix"
       }
     },
     "progress": {
@@ -2279,7 +2279,7 @@
         "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2023-12-06 10:30:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:39 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:26:27 UTC; unix"
       }
     },
     "promises": {
@@ -2311,7 +2311,7 @@
         "Maintainer": "Barret Schloerke <barret@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-11-01 06:30:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:20 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:46 UTC; unix"
       }
     },
     "proxy": {
@@ -2336,7 +2336,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-12-29 16:42:24 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:34 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:39 UTC; unix"
       }
     },
     "ps": {
@@ -2366,7 +2366,7 @@
         "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-20 13:40:03 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:31 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:39 UTC; unix"
       }
     },
     "purrr": {
@@ -2399,7 +2399,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-10 17:00:09 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:27 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:58 UTC; unix"
       }
     },
     "ragg": {
@@ -2431,7 +2431,7 @@
         "Author": "Thomas Lin Pedersen [cre, aut] (ORCID:\n    <https://orcid.org/0000-0002-5147-4711>),\n  Maxim Shemanarev [aut, cph] (Author of AGG),\n  Tony Juricic [ctb, cph] (Contributor to AGG),\n  Milan Marusinec [ctb, cph] (Contributor to AGG),\n  Spencer Garrett [ctb] (Contributor to AGG),\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-23 08:50:08 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:23:49 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:27:14 UTC; unix"
       }
     },
     "rappdirs": {
@@ -2461,7 +2461,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-01-17 08:40:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:35 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:37 UTC; unix"
       }
     },
     "raster": {
@@ -2489,7 +2489,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2025-03-28 08:10:02 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:26:44 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:30:58 UTC; unix"
       }
     },
     "readr": {
@@ -2522,7 +2522,7 @@
         "Maintainer": "Jennifer Bryan <jenny@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-02-19 18:10:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-02 08:08:54 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:28:52 UTC; unix"
       }
     },
     "readxl": {
@@ -2554,7 +2554,7 @@
         "Maintainer": "Jennifer Bryan <jenny@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-10-17 07:20:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-18 10:40:40 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-18 10:55:09 UTC; unix"
       }
     },
     "rematch": {
@@ -2577,7 +2577,7 @@
         "Packaged": "2023-08-30 12:10:51 UTC; gaborcsardi",
         "Repository": "RSPM",
         "Date/Publication": "2023-08-30 16:50:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:34 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:38 UTC; unix"
       }
     },
     "rematch2": {
@@ -2603,7 +2603,7 @@
         "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2020-05-01 06:50:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:52 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:26:52 UTC; unix"
       }
     },
     "reprex": {
@@ -2636,7 +2636,7 @@
         "Maintainer": "Jennifer Bryan <jenny@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2024-07-06 13:50:01 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:25:14 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:29:36 UTC; unix"
       }
     },
     "rlang": {
@@ -2669,7 +2669,7 @@
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-07-05 08:40:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:29 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:39 UTC; unix"
       }
     },
     "rmarkdown": {
@@ -2699,7 +2699,7 @@
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "RSPM",
         "Date/Publication": "2026-09-01 13:10:02 UTC",
-        "Built": "R 4.6.0; ; 2026-09-02 04:00:02 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-09-02 04:01:02 UTC; unix"
       }
     },
     "rstudioapi": {
@@ -2724,7 +2724,7 @@
         "Author": "Kevin Ushey [aut, cre],\n  JJ Allaire [aut],\n  Hadley Wickham [aut],\n  Gary Ritchie [aut],\n  RStudio [cph]",
         "Repository": "RSPM",
         "Date/Publication": "2026-06-11 23:10:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:35 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:39 UTC; unix"
       }
     },
     "rvest": {
@@ -2755,7 +2755,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-08-29 14:00:02 UTC",
-        "Built": "R 4.6.0; ; 2026-10-18 19:50:01 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:27:19 UTC; unix"
       }
     },
     "s2": {
@@ -2785,7 +2785,7 @@
         "Maintainer": "Edzer Pebesma <edzer.pebesma@uni-muenster.de>",
         "Repository": "RSPM",
         "Date/Publication": "2026-09-28 08:30:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-09-29 04:21:58 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-09-29 04:20:55 UTC; unix"
       }
     },
     "sass": {
@@ -2814,7 +2814,7 @@
         "Maintainer": "Carson Sievert <carson@rstudio.com>",
         "Repository": "RSPM",
         "Date/Publication": "2025-04-11 19:50:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:23 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:43 UTC; unix"
       }
     },
     "scales": {
@@ -2844,7 +2844,7 @@
         "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-04-24 11:00:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:07 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:26 UTC; unix"
       }
     },
     "selectr": {
@@ -2871,7 +2871,7 @@
         "Maintainer": "Simon Potter <simon@sjp.co.nz>",
         "Repository": "RSPM",
         "Date/Publication": "2026-09-27 06:50:02 UTC",
-        "Built": "R 4.6.0; ; 2026-09-28 04:40:54 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-09-28 04:40:24 UTC; unix"
       }
     },
     "sf": {
@@ -2904,7 +2904,7 @@
         "Maintainer": "Edzer Pebesma <edzer.pebesma@uni-muenster.de>",
         "Repository": "RSPM",
         "Date/Publication": "2026-09-11 06:40:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-09-12 04:21:49 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-09-12 04:22:41 UTC; unix"
       }
     },
     "shiny": {
@@ -2934,7 +2934,7 @@
         "Maintainer": "Carson Sievert <carson@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-06-21 14:10:08 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:24:30 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:28:26 UTC; unix"
       }
     },
     "shinyWidgets": {
@@ -2961,7 +2961,7 @@
         "Maintainer": "Victor Perrier <victor.perrier@dreamrs.fr>",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-09 08:30:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:25:33 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:29:55 UTC; unix"
       }
     },
     "shinycssloaders": {
@@ -2987,32 +2987,7 @@
         "Maintainer": "Dean Attali <daattali@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2024-07-30 22:30:02 UTC",
-        "Built": "R 4.6.0; ; 2026-04-24 23:10:56 UTC; unix"
-      }
-    },
-    "shinydashboard": {
-      "Source": "RSPM",
-      "Repository": "https://packagemanager.posit.co/cran/latest",
-      "description": {
-        "Package": "shinydashboard",
-        "Title": "Create Dashboards with 'Shiny'",
-        "Version": "0.7.3",
-        "Authors@R": "c(\n    person(\"Winston\", \"Chang\", , \"winston@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Barbara\", \"Borges Ribeiro\", role = \"aut\"),\n    person(, \"Posit Software, PBC\", role = \"cph\"),\n    person(, \"Almasaeed Studio\", role = c(\"ctb\", \"cph\"),\n           comment = \"AdminLTE theme for Bootstrap\"),\n    person(, \"Adobe Systems Incorporated\", role = c(\"ctb\", \"cph\"),\n           comment = \"Source Sans Pro font\")\n  )",
-        "Description": "Create dashboards with 'Shiny'. This package provides a theme\n    on top of 'Shiny', making it easy to create attractive dashboards.",
-        "License": "MIT + file LICENSE",
-        "URL": "https://rstudio.github.io/shinydashboard/,\nhttps://github.com/rstudio/shinydashboard",
-        "BugReports": "https://github.com/rstudio/shinydashboard/issues",
-        "Depends": "R (>= 3.0)",
-        "Imports": "htmltools (>= 0.2.6), promises, shiny (>= 1.0.0), utils",
-        "Encoding": "UTF-8",
-        "RoxygenNote": "7.3.2",
-        "NeedsCompilation": "no",
-        "Packaged": "2025-04-21 16:14:20 UTC; garrick",
-        "Author": "Winston Chang [aut, cre],\n  Barbara Borges Ribeiro [aut],\n  Posit Software, PBC [cph],\n  Almasaeed Studio [ctb, cph] (AdminLTE theme for Bootstrap),\n  Adobe Systems Incorporated [ctb, cph] (Source Sans Pro font)",
-        "Maintainer": "Winston Chang <winston@posit.co>",
-        "Repository": "RSPM",
-        "Date/Publication": "2025-04-21 21:30:02 UTC",
-        "Built": "R 4.6.0; ; 2026-04-24 23:01:42 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-04-24 04:22:51 UTC; unix"
       }
     },
     "sourcetools": {
@@ -3037,7 +3012,7 @@
         "Author": "Kevin Ushey [aut, cre]",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-28 06:10:35 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:35 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:43 UTC; unix"
       }
     },
     "sp": {
@@ -3064,7 +3039,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-10-11 22:30:09 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-12 04:29:29 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-12 04:30:33 UTC; unix"
       }
     },
     "stringi": {
@@ -3094,7 +3069,7 @@
         "License_is_FOSS": "yes",
         "Repository": "RSPM",
         "Date/Publication": "2026-08-04 16:30:03 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:43 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:48 UTC; unix"
       }
     },
     "stringr": {
@@ -3125,7 +3100,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-11-04 14:00:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:54 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:26:00 UTC; unix"
       }
     },
     "sys": {
@@ -3151,7 +3126,7 @@
         "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2024-10-04 09:40:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:30 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:43 UTC; unix"
       }
     },
     "systemfonts": {
@@ -3184,7 +3159,7 @@
         "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-05 13:10:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:13 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:32 UTC; unix"
       }
     },
     "terra": {
@@ -3215,7 +3190,7 @@
         "Author": "Robert J. Hijmans [cre, aut] (ORCID:\n    <https://orcid.org/0000-0001-5872-2872>),\n  Andrew Brown [aut] (ORCID: <https://orcid.org/0000-0002-4565-533X>),\n  A. Márcia Barbosa [aut] (ORCID:\n    <https://orcid.org/0000-0001-8972-7713>),\n  Emanuele Cordano [aut] (ORCID: <https://orcid.org/0000-0002-3508-5898>),\n  Krzysztof Dyba [aut] (ORCID: <https://orcid.org/0000-0002-8614-3816>),\n  Roger Bivand [ctb] (ORCID: <https://orcid.org/0000-0003-2392-6140>),\n  Michael Chirico [ctb] (ORCID: <https://orcid.org/0000-0003-0787-087X>),\n  Edzer Pebesma [ctb] (ORCID: <https://orcid.org/0000-0001-8049-7069>),\n  Barry Rowlingson [ctb] (ORCID: <https://orcid.org/0000-0002-8586-6625>),\n  Michael D. Sumner [ctb] (ORCID:\n    <https://orcid.org/0000-0002-2471-7511>)",
         "Repository": "RSPM",
         "Date/Publication": "2026-09-08 15:50:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-09-09 09:17:21 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-09-09 09:37:13 UTC; unix"
       }
     },
     "textshaping": {
@@ -3247,7 +3222,7 @@
         "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-06 10:40:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:23:09 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:26:25 UTC; unix"
       }
     },
     "tibble": {
@@ -3282,7 +3257,7 @@
         "Maintainer": "Kirill Müller <kirill@cynkra.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-01-11 10:10:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:38 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-23 06:07:13 UTC; unix"
       }
     },
     "tidyr": {
@@ -3314,7 +3289,7 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-12-19 09:20:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:23:24 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-29 06:40:06 UTC; unix"
       }
     },
     "tidyselect": {
@@ -3344,7 +3319,7 @@
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2024-03-11 14:10:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:22:29 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:25:58 UTC; unix"
       }
     },
     "tidyverse": {
@@ -3373,7 +3348,7 @@
         "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
         "Repository": "RSPM",
         "Date/Publication": "2023-02-22 09:20:06 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:27:55 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:33:11 UTC; unix"
       }
     },
     "timechange": {
@@ -3400,7 +3375,7 @@
         "Maintainer": "Vitalie Spinu <spinuvit@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-01-29 22:20:08 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:49 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:53 UTC; unix"
       }
     },
     "tinytex": {
@@ -3426,7 +3401,7 @@
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "RSPM",
         "Date/Publication": "2026-09-17 20:40:02 UTC",
-        "Built": "R 4.6.0; ; 2026-09-18 04:03:45 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-09-26 06:35:38 UTC; unix"
       }
     },
     "tzdb": {
@@ -3455,7 +3430,7 @@
         "Maintainer": "Davis Vaughan <davis@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-03-15 22:50:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:49 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:53 UTC; unix"
       }
     },
     "units": {
@@ -3485,7 +3460,7 @@
         "Maintainer": "Edzer Pebesma <edzer.pebesma@uni-muenster.de>",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-11 11:20:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:01 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:14 UTC; unix"
       }
     },
     "utf8": {
@@ -3512,7 +3487,7 @@
         "Maintainer": "Kirill Müller <kirill@cynkra.com>",
         "Repository": "RSPM",
         "Date/Publication": "2025-06-08 19:00:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:36 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:48 UTC; unix"
       }
     },
     "uuid": {
@@ -3535,7 +3510,7 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-01-23 06:40:09 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:38 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:49 UTC; unix"
       }
     },
     "vctrs": {
@@ -3568,7 +3543,7 @@
         "Maintainer": "Davis Vaughan <davis@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-04-11 06:20:03 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:22:02 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:22 UTC; unix"
       }
     },
     "viridisLite": {
@@ -3595,7 +3570,7 @@
         "Author": "Simon Garnier [aut, cre],\n  Noam Ross [ctb, cph],\n  Bob Rudis [ctb, cph],\n  Marco Sciaini [ctb, cph],\n  Antônio Pedro Camargo [ctb, cph],\n  Cédric Scherer [ctb, cph]",
         "Repository": "RSPM",
         "Date/Publication": "2026-02-04 06:40:10 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:36 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:48 UTC; unix"
       }
     },
     "vroom": {
@@ -3630,7 +3605,7 @@
         "Maintainer": "Jennifer Bryan <jenny@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-03-31 05:10:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-09-26 06:36:05 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:27:10 UTC; unix"
       }
     },
     "withr": {
@@ -3660,7 +3635,7 @@
         "Maintainer": "Lionel Henry <lionel@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2026-06-19 05:30:02 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:40 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:48 UTC; unix"
       }
     },
     "wk": {
@@ -3687,7 +3662,7 @@
         "Author": "Dewey Dunnington [aut, cre] (ORCID:\n    <https://orcid.org/0000-0002-9415-4582>),\n  Edzer Pebesma [aut] (ORCID: <https://orcid.org/0000-0001-8049-7069>),\n  Anthony North [ctb]",
         "Repository": "RSPM",
         "Date/Publication": "2025-12-18 06:10:16 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:40 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:49 UTC; unix"
       }
     },
     "xfun": {
@@ -3715,7 +3690,7 @@
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "RSPM",
         "Date/Publication": "2026-10-16 03:30:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-17 04:51:47 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-10-17 04:55:20 UTC; unix"
       }
     },
     "xml2": {
@@ -3746,7 +3721,7 @@
         "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "RSPM",
         "Date/Publication": "2026-06-22 15:40:02 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:55 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:25:11 UTC; unix"
       }
     },
     "xtable": {
@@ -3772,7 +3747,7 @@
         "Author": "David B. Dahl [aut],\n  David Scott [aut, cre],\n  Charles Roosen [aut],\n  Arni Magnusson [aut],\n  Jonathan Swinton [aut],\n  Ajay Shah [ctb],\n  Arne Henningsen [ctb],\n  Benno Puetz [ctb],\n  Bernhard Pfaff [ctb],\n  Claudio Agostinelli [ctb],\n  Claudius Loehnert [ctb],\n  David Mitchell [ctb],\n  David Whiting [ctb],\n  Fernando da Rosa [ctb],\n  Guido Gay [ctb],\n  Guido Schulz [ctb],\n  Ian Fellows [ctb],\n  Jeff Laake [ctb],\n  John Walker [ctb],\n  Jun Yan [ctb],\n  Liviu Andronic [ctb],\n  Markus Loecher [ctb],\n  Martin Gubri [ctb],\n  Matthieu Stigler [ctb],\n  Robert Castelo [ctb],\n  Seth Falcon [ctb],\n  Stefan Edwards [ctb],\n  Sven Garbade [ctb],\n  Uwe Ligges [ctb]",
         "Date/Publication": "2026-02-22 11:20:02 UTC",
         "Encoding": "UTF-8",
-        "Built": "R 4.6.0; ; 2026-08-12 20:21:42 UTC; unix"
+        "Built": "R 4.6.0; ; 2026-08-12 20:24:49 UTC; unix"
       }
     },
     "yaml": {
@@ -3800,61 +3775,73 @@
         "Maintainer": "Hadley Wickham <hadley@posit.co>",
         "Repository": "RSPM",
         "Date/Publication": "2025-12-10 07:00:01 UTC",
-        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:21:42 UTC; unix"
+        "Built": "R 4.6.0; x86_64-pc-linux-gnu; 2026-08-12 20:24:48 UTC; unix"
       }
     }
   },
   "files": {
     "allnow_he.csv": {
-      "checksum": "fce6fa18b92e8cae88432121581d5aae"
+      "checksum": "df601675d3b0adc88e82da1ee573401d"
     },
     "allnow.csv": {
-      "checksum": "894c47337bbec514baba598b1c687853"
+      "checksum": "51b73f47fad01928ba198e875becaddd"
     },
     "allsum_he.csv": {
-      "checksum": "f8bae697d3818110d2fc22208c0211b0"
+      "checksum": "ebe32f9db6a5ae49e08896ada68f4918"
     },
     "allsum.csv": {
-      "checksum": "20ad395414d50d7cdb8c825334f04331"
+      "checksum": "3677be6935dda8848d25a958416ac90a"
     },
     "app.R": {
-      "checksum": "884dd94aae476906a9b38c07fee29f7a"
+      "checksum": "443181a42e2ff6e62a6864cdfd23435d"
     },
     "combinedclean.csv": {
-      "checksum": "0b709156714f3e97da0554f972a78db2"
+      "checksum": "338f47a64b90855f1fa33d2e9c518c57"
     },
     "data_dictionary.csv": {
-      "checksum": "7bf7bc8ff9dc62defd5d68d094414544"
+      "checksum": "9a95ca128830afeab954c0966199a929"
     },
     "facultydata.csv": {
-      "checksum": "f04bd80ae5ef10fb52f5816558446079"
+      "checksum": "32823751250ce4b59bfefefd620f7209"
     },
     "he_institution_weekly_totals.csv": {
-      "checksum": "827bec8d32eb32c6041bb107c6fc4b19"
+      "checksum": "a889acc4fd66504c6a7864cc7ff024e5"
     },
     "he_job_duration_spells.csv": {
-      "checksum": "63e45cc8fb507788aa39fa479c532bee"
+      "checksum": "522a94c4437736f04f425590175d353f"
     },
     "hedata.xlsx": {
-      "checksum": "fcacb64ac06743c65c6e54ea79065572"
+      "checksum": "9c3cf56de77155cb182d5594cede6a4d"
+    },
+    "ipeds_staff_salaries.csv": {
+      "checksum": "b5a8e82b453c6862ca3cea904094a171"
     },
     "job_duration_spells.csv": {
-      "checksum": "232b47ccd4e9268475c1464ab633d387"
+      "checksum": "c3d8d1a87eae5575a7e091dad57052a2"
     },
     "k12_district_weekly_totals.csv": {
-      "checksum": "42e047a74819935ba14bf5abc877391a"
+      "checksum": "9feb573c7a6265b4189d4c16189bf898"
     },
     "k12_salary_history.csv": {
       "checksum": "9e49d9d39ad05d745044d4a2cbea6e9b"
     },
     "k12jobanalysis.csv": {
-      "checksum": "fea7192a7dd477aa4fcc3cc32ea6e674"
+      "checksum": "3babcc3ec73f08cdba217a67fc9372fc"
+    },
+    "oews_role_wages.csv": {
+      "checksum": "e76d522f393eef5f4b3d04f6b08c35da"
+    },
+    "qcew_county_school_pay.csv": {
+      "checksum": "878f496a43d7d58b3cad681aa38ea910"
     },
     "salarymap.csv": {
       "checksum": "f8dafcb3746df7346c4174d84ef76dc5"
     },
     "salarymap2.csv": {
       "checksum": "bc3aad1b2756d60569214bcca3232258"
+    },
+    "uw_salary_book.csv": {
+      "checksum": "56027ba3824b3367afc2b83495196c86"
     },
     "wde602_district_staff_salaries.csv": {
       "checksum": "d0a6b647739d6ba0dd872f7a24762195"
