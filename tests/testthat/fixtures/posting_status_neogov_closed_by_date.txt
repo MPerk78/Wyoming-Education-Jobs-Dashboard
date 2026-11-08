@@ -1,0 +1,120 @@
+# captured 2026-11-06 from https://www.governmentjobs.com/careers/lcccwy/jobs/5170095/adjunct-instructor-anthropology
+window.chatBaseUrl = "https://chat.governmentjobs.com/embed.min.js"; window.chatBaseDomain = "chat.governmentjobs.com"; window.chatbaseId="-Ygm0iLb6Weh8Vwaj5_0w";
+For full functionality of this page it is necessary to enable JavaScript. Here are the instructions how to enable JavaScript in your web browser
+Adjunct Instructor, Anthropology | LCCC Employment page has loaded.Adjunct Instructor, Anthropology | LCCC Employment page has loaded.
+ Click here or press any key to continue.
+Job Opportunities
+Menu
+Job Opportunities
+Sign In
+Don't have an account? Create one. Already have an account? Sign In.
+User profile dropdown menu forUsername
+Applications
+Inbox
+Profile
+Account
+Sign Out After clicking on this link you will be logged out and the page will be reloaded.
+Applications
+Inbox
+Profile
+Go to Background Investigation
+Account
+Sign Out After clicking on this link you will be logged out and the page will be reloaded.
+
+Welcome!
+
+Thanks for creating an account.
+
+LCCC Employment
+powered by NEOGOV ®
+Need this page in another language?
+You can translate this page using your browser's built-in translation feature.
+Tip: In Chrome or Edge, right-click anywhere on the page and select "Translate to [Language]."
+Adjunct Instructor, Anthropology
+Print
+/* hack for flyout opening */ try { rx._.currentPage = {}; for (var i = 0; i < rx._.pages.length; i++) { if (rx._.pages[i].check()) { rx._.currentPage = rx._.pages[i]; break; } } rx.trigger("jobdetails"); } catch (e) { console.log("Recruitics error", e); }
+Adjunct Instructor, Anthropology
+Salary
+
+$0.00 Hourly
+
+Location
+
+Cheyenne, WY
+
+Job Type
+
+Adjunct
+
+Job Number
+
+202500284
+
+Division
+
+Academic Affairs
+
+Department
+
+Arts & Sciences
+
+Opening Date
+
+12/12/2025
+
+Closing Date
+
+11/4/2026 12:00 AM Mountain
+
+FLSA
+
+Exempt
+
+Description
+Benefits
+Questions
+Job Summary
+
+Instructional faculty for the Human & Public Services program may be asked to teach courses required for general education human cultures such as Intro to Cultural Anthropology.
+
+Compensation: $900 per credit hour. 
+
+Priority Screening Date: Position is open until filled. 
+
+Tentative start date: January 20th, 2026. 
+
+Principal Responsibilities and Results, KSA's
+
+ESSENTIAL FUNCTIONS: – this position is exempt and is not eligible for compensatory or overtime pay provisions of the FLSA. This listing of essential duties is not all-inclusive, but representative, other duties may be assigned).
+The primary responsibility of all faculty is instruction. At LCCC we seek instructors who are committed to excellence in teaching as demonstrated in the competency domains outlined below. Faculty are expected to continually grow towards excellence in the following outcomes in the designated discipline of art.
+
+Teaching and Learning: Employs student-centered instruction coupled with the development and use of appropriate and current educational materials. Consistently and promptly responds to student inquiries and shares timely, appropriate, and instructive feedback and evaluation of student work. 
+
+Maximizes student engagement and success by employing methods that develop student understanding of the values, practice, and procedures within the designated discipline, and by engaging students in interdisciplinary practices to develop 21st century learners.
+Prepares and delivers assigned courses by employing high-impact teaching practices in a learning environment that promotes respect and rapport.
+Facilitates student achievement by maintaining clear expectations and defined learning outcomes.
+Promotes learning through the innovative implementation of effective classroom technologies.
+Competency-Based Design: Applies competency-based design to the development of curriculum, engaging with colleagues at the course, program, and institutional level with the aim of continuous improvement.
+Evaluates student engagement and success through formative and summative assessment.
+Develops curriculum by articulating measurable, student-centered learning outcomes, and using competency-based design strategy to maintain curriculum that is current, effective, and relevant to the designated discipline.
+Contributes to curricula by assisting in design, implementation, and review aligned with current or emerging community, state, or national needs.
+Participates in continuous improvement of student learning and success by gathering data, analyzing data, engaging with peers and internal and external stakeholders, and implementing change as a result.
+Professionalism: Collaborates and actively reflects on responsibilities to positively contributes to one’s discipline, Pathway, the College, and the greater community.
+
+Maintains professionalism by embodying the values, ethics, and behavior codes of LCCC and one’s discipline.
+Demonstrates social competence and effective communication in professional and academic venues.
+Actively contributes to the college and ones’ Pathway, department, or designated discipline by engaging in expanding institutional connections and professional development, and by displaying commitment to the profession.
+Other responsibilities may be assigned based on contemporary institutional needs.
+
+KNOWLEDGE, SKILLS, AND ABILITIES:
+Knowledge 
+
+Curriculum Development – Designing syllabi, lesson plans, and assessments that align with learning outcomes.
+Instructional Strategies – Effective teaching methods for diverse student populations, including in-person, online, and hybrid learning
+Classroom Management – Engaging students, handling conflicts, and fostering an inclusive learning environment
+Use of Technology – Utilizing presentation software, learning management systems (LMS), Office 365 Microsoft software and digital communication tools.
+Assessment & Evaluation – Creating rubrics, grading speeches, and assessing written/oral communication skills
+Professional knowledge – understanding of Anthropology, as a field of study
+Skills 
+
+Speaking - Talking to others to convey information effectively.

@@ -423,7 +423,10 @@ test_that("parse_tedk12_postings extracts real job rows from a real browser-rend
   result <- parse_tedk12_postings(html, "https://goshen.tedk12.com/hire/index.aspx")
 
   expect_equal(nrow(result), 12)
-  expect_true(all(result$url == "https://goshen.tedk12.com/hire/index.aspx"))
+  # Each row links its own posting page (2026-11-05; was the board URL).
+  expect_true(all(grepl("^https://goshen\\.tedk12\\.com/hire/ViewJob\\.aspx\\?JobID=\\d+$", result$url)))
+  expect_equal(result$url[result$title == "Office Clerk - Platte River High School"],
+               "https://goshen.tedk12.com/hire/ViewJob.aspx?JobID=941")
   # The sortable-column header row ("Job Title"/"Posting Date"/etc., not a
   # real posting) must not survive into the result.
   expect_false("Job Title" %in% result$title)

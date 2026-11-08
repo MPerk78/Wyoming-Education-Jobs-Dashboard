@@ -535,23 +535,25 @@ summarize_central_safety_net <- function(
 
   # 4. Generate Markdown
   md <- c(
-    "### Central Safety Net Status Summary",
+    sprintf("### %s postings at districts we scrape directly", feed_short_name),
     "",
-    "The Central Safety Net (statewide vacancy feed fallback) provides continuity when directly-scraped district job boards encounter outages, platform migrations, or parser drift.",
+    paste("Openings the statewide feed lists for a district we scrape directly, counted because the district's own",
+          "board doesn't list them: the district posts some jobs only on the feed, or our scrape misses them.",
+          "A district with many is worth a look."),
     "",
     sprintf("- **Statewide Feed (%s)**: %d active vacancies captured.", feed_short_name, feed_total)
   )
 
   if (length(fallback_districts) == 0) {
-    md <- c(md, "- **Active Fallback Districts**: 0 registered districts currently require Central Safety Net fallback (all direct-scraped districts reporting normally).")
+    md <- c(md, sprintf("- **Counted from %s at directly scraped districts**: none (every %s opening at those districts is also on the district's own board).", feed_short_name, feed_short_name))
   } else {
     md <- c(
       md,
-      sprintf("- **Active Fallback Districts**: %d registered district(s) currently protected by Central Safety Net fallback (%d total vacancies preserved):",
-              length(fallback_districts), total_fallback_vacancies)
+      sprintf("- **Counted from %s at directly scraped districts**: %d posting(s) at %d district(s), not on the district's own board:",
+              feed_short_name, total_fallback_vacancies, length(fallback_districts))
     )
     for (d_name in names(fallback_districts)) {
-      md <- c(md, sprintf("  - **%s**: %d vacancy/vacancies preserved via fallback", d_name, fallback_districts[[d_name]]))
+      md <- c(md, sprintf("  - **%s**: %d", d_name, fallback_districts[[d_name]]))
     }
   }
 
@@ -636,10 +638,10 @@ build_drift_report_markdown <- function(
         }
 
         if (sn_count > 0) {
-          lines <- c(lines, sprintf("  - **Central Safety Net**: Active (%d fallback %s preserved via %s)",
-                                    sn_count, if (sn_count == 1) "vacancy" else "vacancies", feed_short_name))
+          lines <- c(lines, sprintf("  - **On %s**: %d posting%s for this district that its own board doesn't list (counted from %s)",
+                                    feed_short_name, sn_count, if (sn_count == 1) "" else "s", feed_short_name))
         } else {
-          lines <- c(lines, sprintf("  - **Central Safety Net**: Inactive (0 fallback vacancies on %s)", feed_short_name))
+          lines <- c(lines, sprintf("  - **On %s**: nothing for this district beyond what its own board lists", feed_short_name))
         }
       }
     }
@@ -1167,6 +1169,33 @@ build_other_share_report_markdown <- function(flagged, date = Sys.Date()) {
     "",
     sprintf("- **%s** (%s): usually %.0f%% Other, now %d of %d -- e.g. %s",
             flagged$name, flagged$type, 100 * flagged$mean_share, flagged$other, flagged$n, flagged$examples),
+    ""
+  )
+}
+
+# --------------------------------------------------------------------------
+# Frozen boards (WY spells trust audit 2026-11-05, finding 2)
+# --------------------------------------------------------------------------
+# A board whose whole posting set has stayed identical for weeks is a stale
+# page or cache, not a district that stopped hiring: Fremont #38 returned the
+# same 14 postings every week from 2024-10 to 2025-11, all counted as live.
+# `frozen` is frozen_board_runs() (posting_spells.R) over recent archives;
+# only stretches still running this week are reported.
+build_frozen_board_report_markdown <- function(frozen, date = Sys.Date()) {
+  if (is.null(frozen) || nrow(frozen) == 0) return(character(0))
+  frozen <- frozen[frozen$Ongoing, , drop = FALSE]
+  if (nrow(frozen) == 0) return(character(0))
+  board <- ifelse(is.na(frozen$Posting_Source) | !nzchar(frozen$Posting_Source) | frozen$Posting_Source == frozen$District,
+                  "", paste0(" (", frozen$Posting_Source, ")"))
+  c(
+    paste0("### Boards that haven't changed in weeks (", date, ")"),
+    "",
+    paste("Each board below has listed exactly the same postings every week for the number of weeks shown.",
+          "Real boards change; this is usually a stale page, a cache, or a scraper reading an old copy, and",
+          "its postings keep counting as live in the weekly totals. Open the board and compare."),
+    "",
+    sprintf("- **%s**%s (%s): the same %d posting(s) for %d weeks, since %s",
+            frozen$District, board, frozen$Segment, frozen$Postings, frozen$Runs, frozen$From),
     ""
   )
 }

@@ -150,6 +150,26 @@ test_that("remove_wsba_direct_duplicates removes only exact district/title/date 
   expect_equal(as.character(result$date_posted), c("2026-05-23", "2026-05-22", NA))
 })
 
+test_that("a WSBA row linking a job ID the district board lists is a duplicate, whatever its wording or date", {
+  # Park #6, 2026-11-05: WSBA's title and date differ from the board's.
+  wsba <- data.frame(
+    title = c("Middle School ASD Special Education Teacher", "Elementary Rural Teacher", "Bus Driver"),
+    date_posted = c("2026-03-27", "2026-09-30", "2026-10-01"),
+    District = "Park County School District 6",
+    url = c("https://www.applitrack.com/park6/OnlineApp/JobPostings/View.asp?AppliTrackJobId=1026",
+            "https://www.applitrack.com/park6/OnlineApp/JobPostings/View.asp?AppliTrackJobId=1077",
+            "https://www.wsba-wy.org/vacancies"),
+    stringsAsFactors = FALSE
+  )
+  direct <- data.frame(
+    title = "ASD Special Education Teacher", date_posted = "2025-12-01", District = "Park County School District 6",
+    url = "https://www.applitrack.com/park6/onlineapp/default.aspx?AppliTrackLayoutMode=detail&AppliTrackJobId=1026",
+    posting_id = "applitrack:park6:1026", stringsAsFactors = FALSE
+  )
+  result <- remove_wsba_direct_duplicates(wsba, direct)
+  expect_equal(result$title, c("Elementary Rural Teacher", "Bus Driver"))
+})
+
 test_that("remove_wsba_direct_duplicates provides full central safety net fallback when direct scraper is empty", {
   wsba <- data.frame(
     title = c("Elementary Teacher", "Substitute Teacher"),

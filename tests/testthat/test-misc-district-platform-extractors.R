@@ -313,6 +313,15 @@ test_that("parse_apptegy_postings extracts the lead-in-plus-flat-list format (We
   ))
 })
 
+test_that("parse_apptegy_postings extracts bare titles after a block of form links (Sheridan 3's real rendered page)", {
+  # Regression, 2026-11-07: Sheridan 3's page lists its openings as bare lines
+  # right after its Application/Salary links, matching none of the four
+  # shapes above, so the scrape returned 0 while WSBA listed its postings.
+  text <- read_fixture("apptegy_sheridan3_rendered.txt")
+  result <- parse_apptegy_postings(text)
+  expect_setequal(result$Title, c("JH Assistant Basketball Coaches", "Substitute Custodial Positions"))
+})
+
 test_that("parse_apptegy_postings returns zero rows (not an error) for rendered text with no matching pattern", {
   result <- parse_apptegy_postings("Just some regular page text with no postings.")
   expect_equal(nrow(result), 0)

@@ -519,6 +519,16 @@ build_current_trends_table <- function(history, accent) {
 # and without this guard an extra same-week run would make "vs last week"
 # compare today against a snapshot from hours or a day earlier instead of a
 # real week ago, understating or fabricating the KPI tile's headline delta.
+# The weekly-totals downloads keep one snapshot per week (decided 2026-11-02):
+# a week with an extra run (the August catch-up runs) would otherwise list
+# every district twice. The latest snapshot in each ISO week wins.
+latest_snapshot_per_week <- function(weekly_totals) {
+  d <- as.Date(weekly_totals$Archive_Date)
+  wk <- format(d, "%G-W%V")
+  latest <- tapply(d, wk, max)
+  weekly_totals[!is.na(d) & d == as.Date(latest[wk], origin = "1970-01-01"), , drop = FALSE]
+}
+
 compute_wow_delta <- function(weekly_totals, min_days_back = 5) {
   totals <- weekly_totals %>% group_by(Archive_Date) %>% summarize(n = sum(n), .groups = "drop") %>% arrange(Archive_Date)
   if (nrow(totals) < 2) return(NA_integer_)
@@ -2265,14 +2275,14 @@ server <- function(input, output, session) {
   output$download_weekly_totals <- downloadHandler(
     filename = function() { paste0("wyoming_k12_weekly_vacancy_series_", Sys.Date(), ".csv") },
     content = function(file) {
-      file.copy("k12_district_weekly_totals.csv", file)
+      write.csv(latest_snapshot_per_week(read.csv("k12_district_weekly_totals.csv", fileEncoding = "UTF-8")), file, row.names = FALSE)
     }
   )
 
   output$download_he_weekly_totals <- downloadHandler(
     filename = function() { paste0("wyoming_he_weekly_vacancy_series_", Sys.Date(), ".csv") },
     content = function(file) {
-      file.copy("he_institution_weekly_totals.csv", file)
+      write.csv(latest_snapshot_per_week(read.csv("he_institution_weekly_totals.csv", fileEncoding = "UTF-8")), file, row.names = FALSE)
     }
   )
 

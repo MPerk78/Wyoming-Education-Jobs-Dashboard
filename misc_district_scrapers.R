@@ -73,9 +73,12 @@ fetch_wsba_vacancies <- function(url = "https://www.wsba-wy.org/vacancies") {
 # phantom duplicate combinedclean's own canonicalize_k12_district() never
 # catches (it only fixes misspellings, not this naming exception) -- and
 # that phantom row would carry no salary/vacancy-rate join at all.
+# Then canonicalize_k12_district() for WSBA's own misspellings ("Cabon County
+# School District 2", 2026-10-30), so its rows meet the direct rows they
+# duplicate in remove_wsba_direct_duplicates().
 canonicalize_wsba_district <- function(district) {
   district <- str_replace(district, " School District (?:No\\.|#) ?(\\d+)$", " School District \\1")
-  str_replace(district, "^(Big Horn|Natrona) County School District", "\\1 School District")
+  canonicalize_k12_district(str_replace(district, "^(Big Horn|Natrona) County School District", "\\1 School District"))
 }
 
 parse_wsba_vacancies <- function(html_text) {
@@ -715,7 +718,36 @@ parse_apptegy_postings <- function(rendered_text) {
     }
   }
 
-  titles <- unique(c(colon_titles, dash_titles, rate_titles, leadin_titles))
+  # 5. Bare title lines right after a block of form links ("Certified
+  #    Application", "Classified Application", "Coaching Application",
+  #    "Classified Salary", "Certified Salary"), up to the page's first prose
+  #    paragraph -- confirmed on Sheridan 3's real page (2026-11-07: "JH
+  #    Assistant Basketball Coaches", "Substitute Custodial Positions"), which
+  #    has no colon, dash, rate or lead-in sentence. Only after two or more
+  #    consecutive form-link lines, and only short lines without sentence
+  #    punctuation, so ordinary page text isn't picked up.
+  trimmed <- str_trim(lines)
+  trimmed <- trimmed[nzchar(trimmed)]
+  is_form <- grepl("^[A-Za-z /&-]{0,40}(Application|Salary|Salary Schedule)s?$", trimmed, ignore.case = TRUE)
+  form_block_titles <- character(0)
+  runs <- rle(is_form)
+  ends <- cumsum(runs$lengths)
+  for (r in which(runs$values & runs$lengths >= 2)) {
+    i <- ends[r] + 1
+    while (i <= length(trimmed)) {
+      line <- trimmed[i]
+      if (nchar(line) > 70 || grepl("[.:!?]$", line) || line %in% c("Find Us", "Stay Connected")) break
+      # More form links, section headings and the district's own name
+      # (Weston 7: "APPLICATION FOR EMPLOYMENT General Classified", "Job
+      # Openings", "WESTON COUNTY SCHOOL DISTRICT #7") aren't postings.
+      skip <- grepl("application|school district|^(job |current )?(openings?|vacancies|positions)$|^employment$|^human resources$",
+                    line, ignore.case = TRUE)
+      if (!skip) form_block_titles <- c(form_block_titles, line)
+      i <- i + 1
+    }
+  }
+
+  titles <- unique(c(colon_titles, dash_titles, rate_titles, leadin_titles, form_block_titles))
   titles <- titles[nzchar(titles)]
 
   if (length(titles) == 0) return(empty_misc_result())
@@ -1083,7 +1115,7 @@ generate_wsba_discrepancy_report <- function(wsba_postings, direct_postings) {
   direct_keys <- direct_keys[!is.na(direct_keys)]
 
   wsba_keys <- wsba_posting_key(wsba_postings)
-  is_dup <- !is.na(wsba_keys) & wsba_keys %in% direct_keys
+  is_dup <- wsba_duplicates_direct(wsba_postings, direct_postings, wsba_keys, direct_keys)
   survived_wsba <- wsba_postings[!is_dup, , drop = FALSE]
   if (nrow(survived_wsba) == 0) return(empty)
 
@@ -1153,5 +1185,24 @@ remove_wsba_direct_duplicates <- function(wsba_postings, direct_postings, report
   if (nrow(wsba_postings) == 0 || length(direct_keys) == 0) return(wsba_postings)
 
   wsba_keys <- wsba_posting_key(wsba_postings)
-  wsba_postings[is.na(wsba_keys) | !wsba_keys %in% direct_keys, , drop = FALSE]
+  wsba_postings[!wsba_duplicates_direct(wsba_postings, direct_postings, wsba_keys, direct_keys), , drop = FALSE]
+}
+
+# A WSBA row duplicates a direct posting when its district, title and posted
+# date match one (wsba_posting_key()), or when its link names a job ID the
+# district's own board lists this run, whatever the wording or date: WSBA
+# lists Park #6's AppliTrack job 1026 as "Middle School ASD Special Education
+# Teacher" (posted 2026-03-27) while the board calls it "ASD Special
+# Education Teacher"; 22 of the 63 WSBA rows kept on 2026-11-05 were such
+# duplicates, each counted twice.
+wsba_duplicates_direct <- function(wsba_postings, direct_postings,
+                                   wsba_keys = wsba_posting_key(wsba_postings),
+                                   direct_keys = stats::na.omit(wsba_posting_key(direct_postings))) {
+  by_key <- !is.na(wsba_keys) & wsba_keys %in% direct_keys
+  direct_ids <- stats::na.omit(unique(c(
+    k12_link_posting_id(direct_postings$url),
+    if ("posting_id" %in% names(direct_postings)) k12_source_posting_id(direct_postings$posting_id))))
+  wsba_ids <- if ("url" %in% names(wsba_postings)) k12_link_posting_id(wsba_postings$url) else rep(NA_character_, nrow(wsba_postings))
+  by_id <- !is.na(wsba_ids) & wsba_ids %in% direct_ids
+  by_key | by_id
 }

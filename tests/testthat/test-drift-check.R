@@ -517,11 +517,14 @@ test_that("source_fixtures picks this district's fixture, not another's on the s
   p1 <- source_fixtures(resolve_wy("Platte County School District 1"), "Platte County School District 1", files)
   expect_equal(p1$own, "misc_districts/smartsites_platte1.html")
 
-  # Sheridan 3 is on Apptegy but has no fixture of its own: no "own" match,
-  # so no diff against some other district's page.
+  # Sheridan 3 has its own fixture since 2026-11-07; without it, it would get
+  # no "own" match, so no diff against some other district's page.
   s3 <- source_fixtures(resolve_wy("Sheridan County School District 3"), "Sheridan County School District 3", files)
-  expect_equal(s3$own, character(0))
-  expect_true(length(s3$platform) >= 3)
+  expect_equal(s3$own, "misc_districts/apptegy_sheridan3_rendered.txt")
+  s3_none <- source_fixtures(resolve_wy("Sheridan County School District 3"), "Sheridan County School District 3",
+                             files[!grepl("sheridan3", files)])
+  expect_equal(s3_none$own, character(0))
+  expect_true(length(s3_none$platform) >= 3)
 
   expect_equal(source_fixtures(NULL, "x", files)$own, character(0))
 })
@@ -547,8 +550,20 @@ test_that("an innerText scraper's issue hands the agent the CI capture and a sam
 })
 
 test_that("a shared-parser district with no fixture of its own gets no diff", {
+  # A copy of the repo without Sheridan 3's own fixture (added 2026-11-07).
+  root <- withr::local_tempdir()
+  for (f in SCRAPER_FILES) file.copy(here::here(f), file.path(root, f))
+  dir.create(file.path(root, "tests", "testthat", "fixtures"), recursive = TRUE)
+  file.copy(list.files(here::here("tests", "testthat"), pattern = "^test-.*[.]R$", full.names = TRUE),
+            file.path(root, "tests", "testthat"))
+  fx <- list.files(here::here("tests", "testthat", "fixtures"), recursive = TRUE)
+  fx <- fx[!grepl("sheridan3", fx)]
+  for (f in fx) {
+    dir.create(dirname(file.path(root, "tests", "testthat", "fixtures", f)), recursive = TRUE, showWarnings = FALSE)
+    file.copy(here::here("tests", "testthat", "fixtures", f), file.path(root, "tests", "testthat", "fixtures", f))
+  }
   call <- resolve_wy("Sheridan County School District 3")
-  ev <- gather_autofix_evidence(call, "Sheridan County School District 3", niobrara_capture(), repo_root = here::here())
+  ev <- gather_autofix_evidence(call, "Sheridan County School District 3", niobrara_capture(), repo_root = root)
   expect_true(is.na(ev$diff_against))
   expect_equal(ev$diff, character(0))
 })
@@ -588,7 +603,7 @@ test_that("summarize_central_safety_net handles empty or NULL inputs gracefully"
   expect_equal(summary$total_fallback_vacancies, 0L)
   expect_equal(length(summary$fallback_districts), 0)
   expect_equal(nrow(summary$discrepancies), 0)
-  expect_true(any(grepl("0 registered districts currently require Central Safety Net fallback", summary$markdown, fixed = TRUE)))
+  expect_true(any(grepl("Counted from WSBA at directly scraped districts**: none", summary$markdown, fixed = TRUE)))
 })
 
 test_that("summarize_central_safety_net identifies active fallback districts and counts", {
@@ -623,9 +638,9 @@ test_that("summarize_central_safety_net identifies active fallback districts and
   expect_null(summary$fallback_districts[["Natrona School District 1"]])
 
   md <- paste(summary$markdown, collapse = "\n")
-  expect_match(md, "2 registered district(s) currently protected by Central Safety Net fallback", fixed = TRUE)
-  expect_match(md, "Fremont County School District 24**: 2 vacancy/vacancies preserved", fixed = TRUE)
-  expect_match(md, "Park County School District 1**: 1 vacancy/vacancies preserved", fixed = TRUE)
+  expect_match(md, "3 posting(s) at 2 district(s), not on the district's own board", fixed = TRUE)
+  expect_match(md, "Fremont County School District 24**: 2", fixed = TRUE)
+  expect_match(md, "Park County School District 1**: 1", fixed = TRUE)
 })
 
 test_that("summarize_central_safety_net reads discrepancy report for unmatched postings", {
@@ -669,11 +684,11 @@ test_that("build_drift_report_markdown includes Central Safety Net status annota
     fallback_districts = list("Fremont County School District 24" = 2L),
     total_fallback_vacancies = 2L,
     markdown = c(
-      "### Central Safety Net Status Summary",
+      "### WSBA postings at districts we scrape directly",
       "",
       "- **Statewide Feed (WSBA)**: 50 active vacancies captured.",
-      "- **Active Fallback Districts**: 1 registered district(s) currently protected by Central Safety Net fallback (2 total vacancies preserved):",
-      "  - **Fremont County School District 24**: 2 vacancy/vacancies preserved via fallback",
+      "- **Counted from WSBA at directly scraped districts**: 2 posting(s) at 1 district(s), not on the district's own board:",
+      "  - **Fremont County School District 24**: 2",
       "- **Central Feed Discrepancies**: 0 unmatched vacancies detected for active direct scrapers.",
       ""
     )
@@ -689,15 +704,15 @@ test_that("build_drift_report_markdown includes Central Safety Net status annota
   report <- paste(lines, collapse = "\n")
   # Fremont 24: active fallback
   expect_match(report, "Fremont County School District 24", fixed = TRUE)
-  expect_match(report, "Central Safety Net**: Active (2 fallback vacancies preserved via WSBA)", fixed = TRUE)
+  expect_match(report, "On WSBA**: 2 postings for this district that its own board doesn't list (counted from WSBA)", fixed = TRUE)
   # Park 1: inactive fallback
   expect_match(report, "Park County School District 1", fixed = TRUE)
-  expect_match(report, "Central Safety Net**: Inactive (0 fallback vacancies on WSBA)", fixed = TRUE)
+  expect_match(report, "On WSBA**: nothing for this district beyond what its own board lists", fixed = TRUE)
   # Higher Ed: no Central Safety Net bullet under its entry
   expect_match(report, "University of Wyoming", fixed = TRUE)
-  expect_false(grepl("University of Wyoming.*\\n\\s+- \\*\\*Central Safety Net", report))
+  expect_false(grepl("University of Wyoming.*\\n\\s+- \\*\\*On WSBA", report))
   # Bottom summary block included
-  expect_match(report, "### Central Safety Net Status Summary", fixed = TRUE)
+  expect_match(report, "### WSBA postings at districts we scrape directly", fixed = TRUE)
   expect_match(report, "Statewide Feed (WSBA)**: 50 active vacancies captured", fixed = TRUE)
 })
 

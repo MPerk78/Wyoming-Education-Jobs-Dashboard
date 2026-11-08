@@ -704,3 +704,13 @@ test_that("map popup 'View matching jobs' carries the map search to the Jobs tab
     expect_null(selected_k12_query())
   })
 })
+
+test_that("weekly-totals downloads keep only the latest snapshot in each week", {
+  env <- load_app()
+  weekly <- data.frame(District = c("A", "B", "A", "B", "A"),
+                       Archive_Date = c("2026-08-03", "2026-08-03", "2026-08-07", "2026-08-07", "2026-08-11"),
+                       n = c(5, 2, 6, 3, 7))
+  out <- env$latest_snapshot_per_week(weekly)
+  expect_equal(out$Archive_Date, c("2026-08-07", "2026-08-07", "2026-08-11"))
+  expect_equal(out$n, c(6, 3, 7))
+})

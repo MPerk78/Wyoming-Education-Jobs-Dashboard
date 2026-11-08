@@ -1052,12 +1052,19 @@ parse_tedk12_postings <- function(html_text, url) {
   # column" warnings on the filter below.
   result <- rows %>%
     purrr::map_df(~{
-      title <- .x %>% rvest::html_node("td:nth-child(1) a") %>% rvest::html_text(trim = TRUE)
+      title_link <- .x %>% rvest::html_node("td:nth-child(1) a")
+      title <- title_link %>% rvest::html_text(trim = TRUE)
       date_posted <- .x %>% rvest::html_node("td:nth-child(2)") %>% rvest::html_text(trim = TRUE)
       position <- .x %>% rvest::html_node("td:nth-child(3)") %>% rvest::html_text(trim = TRUE)
       location <- .x %>% rvest::html_node("td:nth-child(4)") %>% rvest::html_text(trim = TRUE)
+      # The posting's own page (ViewJob.aspx?JobID=<n>), as MT's parser keeps
+      # it: a stable per-posting ID, a page that says when the posting closed,
+      # and the posted pay the board's list doesn't show (2026-11-05). The
+      # board URL only where a row has no link.
+      href <- rvest::html_attr(title_link, "href")
+      detail_url <- if (is.na(href) || !grepl("JobID=\\d+", href, ignore.case = TRUE)) url else xml2::url_absolute(href, url)
       data.frame(title = title, date_posted = date_posted, position = position,
-                 location = location, url = url, stringsAsFactors = FALSE)
+                 location = location, url = detail_url, stringsAsFactors = FALSE)
     })
 
   result[!is.na(result$title) & nzchar(result$title) & result$title != "Job Title", , drop = FALSE]

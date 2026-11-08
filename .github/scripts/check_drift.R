@@ -113,7 +113,7 @@ cat(sprintf(
   nrow(k12_baseline), nrow(he_baseline), nrow(flagged), sum(!is.na(flagged$scrape_error))
 ))
 cat(sprintf(
-  "Central Safety Net: %d total statewide feed vacancies, %d district(s) protected by fallback (%d vacancies preserved).\n",
+  "Statewide feed: %d postings; %d district(s) we scrape directly have %d posting(s) counted from it that their own board doesn't list.\n",
   safety_net_summary$total_feed_vacancies, length(safety_net_summary$fallback_districts), safety_net_summary$total_fallback_vacancies
 ))
 if (nrow(flagged) > 0) print(flagged)

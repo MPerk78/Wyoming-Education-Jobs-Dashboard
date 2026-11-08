@@ -1,0 +1,120 @@
+# captured 2026-11-06 from https://www.schooljobs.com/careers/caspercollege/jobs/5516806/accountant-cc-foundation
+window.chatBaseUrl = "https://chat.schooljobs.com/embed.min.js"; window.chatBaseDomain = "chat.schooljobs.com"; window.chatbaseId="-Ygm0iLb6Weh8Vwaj5_0w";
+For full functionality of this page it is necessary to enable JavaScript. Here are the instructions how to enable JavaScript in your web browser
+Accountant, CC Foundation | Casper College Careers page has loaded.Accountant, CC Foundation | Casper College Careers page has loaded.
+ Click here or press any key to continue.
+Job Opportunities
+Menu
+Job Opportunities
+Sign In
+Don't have an account? Create one. Already have an account? Sign In.
+User profile dropdown menu forUsername
+Applications
+Inbox
+Profile
+Account
+Sign Out After clicking on this link you will be logged out and the page will be reloaded.
+Applications
+Inbox
+Profile
+Go to Background Investigation
+Account
+Sign Out After clicking on this link you will be logged out and the page will be reloaded.
+
+Welcome!
+
+Thanks for creating an account.
+
+Casper College Careers
+powered by NEOGOV ®
+Need this page in another language?
+You can translate this page using your browser's built-in translation feature.
+Tip: In Chrome or Edge, right-click anywhere on the page and select "Translate to [Language]."
+Accountant, CC Foundation
+Print
+Apply
+/* hack for flyout opening */ try { rx._.currentPage = {}; for (var i = 0; i < rx._.pages.length; i++) { if (rx._.pages[i].check()) { rx._.currentPage = rx._.pages[i]; break; } } rx.trigger("jobdetails"); } catch (e) { console.log("Recruitics error", e); }
+Accountant, CC Foundation
+Salary
+
+$59,400.00 - $71,280.00 Annually
+
+Location
+
+Casper, WY
+
+Job Type
+
+Full-Time
+
+Job Number
+
+202600241
+
+Department
+
+President's Office
+
+Divisions
+
+Foundation Office
+
+Opening Date
+
+10/14/2026
+
+Closing Date
+
+11/8/2026 11:59 PM Mountain
+
+Description
+Benefits
+Questions
+Description
+
+Summary:
+
+Responsibilities:
+
+This position reviews and posts revenue, codes expenses, and prepares journal entries. The Accountant reviews, analyzes, and reconciles various general ledger accounts monthly, including bank accounts and investment accounts, and prepares various annual reports as needed. This position reports to the Foundation Chief Financial Officer. 
+
+Essential Duties
+
+Process, record, and reconcile daily financial and accounting transactions for an established foundation following established GAAP procedures.
+
+Input data and run routine reports within financial systems, provide raw financial data to the CFO and other staff members.
+
+Assist in recording investment earnings, tracking allocations, and posting general ledger adjustments across 400+ distinct donor funds based on established criteria.
+
+Analyze and review incoming revenue in the general ledger, verifying that restrictions and funds are appropriate.
+
+Reconcile complex bank accounts with a high volume of transactions and varied revenue streams.
+
+Code and process accounts payable, accounts receivable, and assist in monitoring bank balances and alert leadership to any cash requirements.
+
+Work alongside the CFO in preparing the annual budgets. 
+
+Gather, organize, and pull transactional schedules, receipts, and source documents required for external audit.
+
+Maintain organized digital and physical filing systems for all accounting records.
+
+Code scholarship expenses and other expenses to the correct restrictions and funds.
+
+Carry out daily financial operations in strict compliance with internal financial policies, fiduciary controls, and regulatory requirements.
+
+Conduct routine data entry, creating various reports, 1099 filing, schedule preparation, and operational tasks as assigned.
+
+Participate in all foundation events such as T-bird Trek, Homecoming, Donor Luncheons, Receptions, and other special events. 
+
+Must be able to maintain a high degree of confidentiality, as this position works with sensitive financial, donor, and student information. 
+
+Complete special projects as needed.
+
+Qualifications
+
+Minimum Qualifications:
+
+Associate’s Degree from an accredited institution in accounting, finance or business administration
+
+Minimum of 3 years of professional accounting experience
+

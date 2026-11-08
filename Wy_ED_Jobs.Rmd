@@ -260,6 +260,25 @@ wsba_rows <- remove_wsba_direct_duplicates(
   direct,
   report_path = "wy_discrepancy_report.csv"
 )
+# WSBA keeps listing postings the district has closed (20 of 23 checked on
+# 2026-11-05). Each kept WSBA row that links a district posting is checked on
+# its platform, and the closed ones are dropped (posting_status.R). A failed
+# check keeps the row; a failure of the whole step keeps them all.
+source("posting_status.R")
+wsba_checks <- tryCatch(
+  check_posting_pages(wsba_rows$url, Sys.Date(), session_factory = function() chromote::ChromoteSession$new()),
+  error = function(e) { message("WSBA posting checks skipped: ", conditionMessage(e)); NULL })
+if (!is.null(wsba_checks) && nrow(wsba_checks) > 0) {
+  n_before <- nrow(wsba_rows)
+  wsba_rows <- drop_closed_wsba_rows(wsba_rows, wsba_checks)
+  message(sprintf("WSBA posting checks: %d page(s) checked, %d closed WSBA row(s) dropped.",
+                  nrow(wsba_checks), n_before - nrow(wsba_rows)))
+  k <- match(wsba_checks$Check_URL, posting_status_check_url(other$url))
+  wsba_checks$Segment <- "K-12"
+  wsba_checks$District <- other$District[k]
+  wsba_checks$Title <- other$title[k]
+  wsba_checks$Last_Listed <- format(Sys.Date())
+}
 other_rows <- other[!is_wsba, , drop = FALSE]
 
 combined <- dplyr::bind_rows(direct, other_rows, wsba_rows) %>%
@@ -273,10 +292,14 @@ combined <- dplyr::bind_rows(direct, other_rows, wsba_rows) %>%
 # any non-Applitrack source (TedK12/SchoolSpring/RedRover/misc-district) would
 # classify correctly but still archive and display with the mangled byte,
 # since the archived CSV below and combinedclean's `title` column both come
-# from this same `combined` object.
+# from this same `combined` object. move_title_detail() then cuts detail a
+# board put in the title (a requirement, the pay, "Open Until Filled", a
+# file name) and fills Posted Pay from it where the row has none; before the
+# posting_id, so the ID is built from the cleaned title.
 combined <- combined %>%
+  mutate(title = fix_title_encoding(title)) %>%
+  move_title_detail() %>%
   mutate(
-    title = fix_title_encoding(title),
     posting_id = build_k12_posting_id(
       source_id = posting_id,
       title = title,
@@ -860,6 +883,15 @@ file_name <- paste0("hedata_", Sys.Date(), ".xlsx")
 write_xlsx(hedata, path = file_name)
 
 write_xlsx(hedata, path = file.path("Archived_HE_Data", file_name))
+
+# Posting status (posting_status.R): every posting with a checkable page that
+# dropped off its board since the last run (K-12 and higher ed), plus this
+# run's WSBA checks, recorded in posting_status.csv: whether the platform says
+# it closed, and the closing date it states. A failure here never stops the run.
+tryCatch(refresh_posting_status("Archivek12_Data", "Archived_HE_Data", "posting_status.csv",
+                                extra_checks = wsba_checks,
+                                session_factory = function() chromote::ChromoteSession$new()),
+         error = function(e) message("Posting status not updated: ", conditionMessage(e)))
 
 # Coverage calendar (posting-dates plan step 2): every source's outcome this
 # run (ok / empty / error / not_logged), so a posting that stops appearing is

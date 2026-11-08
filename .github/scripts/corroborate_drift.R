@@ -118,7 +118,7 @@ for (i in seq_len(nrow(flagged))) {
   # is actively preserving postings for it on the statewide feed, the scraper is broken.
   if (verdict == "looks_genuinely_empty" && fb_count > 0) {
     verdict <- "likely_broken"
-    llm_note <- sprintf("Central Safety Net has %d active fallback vacancy/vacancies on statewide feed", fb_count)
+    llm_note <- sprintf("the statewide feed lists %d posting(s) for it that its own board doesn't", fb_count)
   }
 
   cat(sprintf("%-40s baseline=%.1f current=%d -> %s%s\n", row$name, row$mean_count,

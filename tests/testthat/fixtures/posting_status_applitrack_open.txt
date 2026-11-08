@@ -1,0 +1,52 @@
+# captured 2026-11-06 from https://www.applitrack.com/bighorn1/onlineapp/default.aspx?AppliTrackLayoutMode=detail&AppliTrackJobId=1534
+Frontline Applicant Tracking - Big Horn County School District #1
+Skip to main content
+Our Homepage
+
+Big Horn County School District #1
+
+Job Search: search
+Vacancies
+Categories
+Locations
+
+Athletics/ Activities (3)
+High School Teaching (1)
+Paraprofessional (1)
+Student Support Services (1)
+Substitute (1)
+Support Staff (4)
+Search by Zip Code:*Invalid zipcode
+Big Horn Co School District 1 (4)
+Burlington Schools (2)
+Rocky Mountain Elementary (1)
+Rocky Mountain Middle/High School (2)
+Transportation (2)
+All Jobs
+FMLA notice
+COPY FROM HERE var targetURL = "jobpostings/Output.asp" var Search = location.search if (Search == "") { Search = "?" } else { Search += "&" } //Search += "nocss=1" ScriptLoc = targetURL + Search document.write('<scr' + 'ipt type="text/javascript" src="' + ScriptLoc + '"></scr' + 'ipt>') Click here to view the Job Postings. TO HERE
+External Applicants
+Start an application for employment
+
+Use passcodes sent to me
+Log in
+Internal Applicants
+Internal applicants only.
+
+View internal positions
+
+Submit an internal application/transfer form
+Log in
+Need Help?
+
+We're here to help! For questions regarding position qualifications or application procedures, please contact Big Horn County School District #1 directly.
+
+For technical questions regarding the Applicant Tracking system, please contact the Applicant Tracking help desk using the Request Technical Help link below.
+Request Technical Help
+Powered by Frontline Recruiting and Hiring ©
+Big Horn County School District #1
+99 S Division St
+Cowley, WY 82420
+Admin Login
+Powered by Frontline Technologies - AppliTrack, Applicant Tracking for Educators. Online Job Employment Applications, Web Based Employment Applications for School Districts and Educational Institutions - www.aspexsolutions.com
+You can also view WY Teaching Jobs at www.k12jobspot.com. K12JobSpot is a site that has thousands of teaching jobs - all from AppliTrack school districts.

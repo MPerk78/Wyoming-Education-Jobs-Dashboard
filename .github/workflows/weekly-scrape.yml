@@ -94,6 +94,16 @@ jobs:
           Rscript scripts/generate_job_duration_spells.R
           Rscript scripts/generate_he_job_duration_spells.R
 
+      # Posting-level K-12 and HE spells, Kaplan-Meier durations, advertised
+      # windows and frozen boards (research tables at the repo root; the
+      # dashboard's duration tabs stay paused). Rebuilt from the archives each
+      # week, using coverage_calendar.csv and posting_status.csv; a failure here
+      # doesn't stop the run.
+      - name: Rebuild posting-level K-12 and HE spells
+        id: build_posting_spells
+        continue-on-error: true
+        run: Rscript scripts/build_posting_spells.R
+
       - name: Sanity-check the new data before committing anything
         run: Rscript .github/scripts/sanity_check.R
 
@@ -179,6 +189,15 @@ jobs:
         continue-on-error: true
         run: Rscript .github/scripts/check_rebuild_parity.R
 
+      # A board whose whole posting set has been identical for 12+ runs is a
+      # stale page or cache, and its postings keep counting as live (WY spells
+      # trust audit 2026-11-05). check_drift.R can't see it: the count is
+      # steady. Same non-blocking shape.
+      - name: Check for boards that haven't changed in weeks
+        id: check_frozen_boards
+        continue-on-error: true
+        run: Rscript .github/scripts/check_frozen_boards.R
+
       # Closes the one real gap continue-on-error opens up: a bug that
       # CRASHES one of the three monitoring steps above is indistinguishable
       # from "ran fine, found nothing to report" unless something checks for
@@ -197,6 +216,8 @@ jobs:
           [ "${{ steps.check_pay_coverage.outcome }}" = "failure" ] && FAILED="$FAILED check_pay_coverage.R"
           [ "${{ steps.check_title_quality.outcome }}" = "failure" ] && FAILED="$FAILED check_title_quality.R"
           [ "${{ steps.check_rebuild_parity.outcome }}" = "failure" ] && FAILED="$FAILED check_rebuild_parity.R"
+          [ "${{ steps.check_frozen_boards.outcome }}" = "failure" ] && FAILED="$FAILED check_frozen_boards.R"
+          [ "${{ steps.build_posting_spells.outcome }}" = "failure" ] && FAILED="$FAILED build_posting_spells.R"
 
           if [ -z "$FAILED" ]; then
             echo "All monitoring steps ran without crashing."
@@ -296,6 +317,9 @@ jobs:
             Archived_HE_Data/*.xlsx \
             Archivek12_Data/*.csv
           [ -f schoolspring_endings.csv ] && git add schoolspring_endings.csv || true
+          [ -f posting_status.csv ] && git add posting_status.csv || true
+          for f in posting_spells_k12.csv posting_durations_k12.csv posting_spells_he.csv posting_durations_he.csv \
+                   frozen_boards.csv advertised_windows.csv; do [ -f $f ] && git add $f || true; done
           [ -f coverage_calendar.csv ] && git add coverage_calendar.csv || true
           if git diff --cached --quiet; then
             echo "No data changes this run -- nothing to commit."
