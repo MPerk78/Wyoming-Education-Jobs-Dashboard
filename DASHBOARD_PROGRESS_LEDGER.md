@@ -414,18 +414,38 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     visible as whole-district absences, HE pools (237 of 719 spells, median 196 days).
   * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.
 
+  * [x] Posting-level spells (2026-11-05/06; f5956f0, data be25eab): MT's design (board-host source, per-posting IDs
+    keyed by platform and number, posted-date starts, healthy-source endings, Kaplan-Meier with delayed entry), plus
+    frozen-board, pool, moved-board and partial-run checks (UW's 208 -> 25 -> 200 rows in 2026-08 had read as 195
+    endings). Archives 2024-08 to 2026-10: K-12 median 25.5 days listed (24.5-26.5), teachers 23.5; HE 59.5, 47.5 without
+    UW. `scripts/build_posting_spells.R` runs weekly (non-blocking) and its tables are committed. Weekly frozen-board
+    check in the drift report (`check_frozen_boards.R`; none frozen now, 8 stretches in the history). Notes:
+    `claude-notes/2026-11-05_wy-posting-spells-rebuild.md`.
+  * [x] Confirmed closings from each posting's page (2026-11-06; f5956f0): `posting_status.R` (shared with MT) checks
+    the pages of postings that dropped off their board (AppliTrack, TalentEd, Red Rover, NEOGOV, Oracle) and records
+    `posting_status.csv`; spells use it. Rehearsal 11-06: 46 dropped postings, 42 confirmed closed, 1 still open (a
+    scraper miss), 3 unknown.
+  * [x] WSBA cleanup (2026-11-05/06; f5956f0): a WSBA row linking a job ID the district's board lists is a duplicate
+    (22 of 63 kept rows on 11-05); kept rows whose posting its platform says is closed are dropped (20 of 24 on 11-06,
+    15 of them teacher postings; Sweetwater's April postings among them). Notes:
+    `claude-notes/2026-11-05_wsba-duplicates-and-stale.md`.
+  * [x] Fremont #25 and Sheridan #3 (2026-11-07; f5956f0): Fremont #25 moved to Red Rover (org 4029; 32 postings with
+    posted pay instead of 4 via WSBA). Sheridan #3's page lists bare titles after its form links; the Apptegy parser
+    reads that shape (format 5, fixture added). Both had been "empty" in the first coverage calendar.
+  * [x] TalentEd per-posting links (2026-11-06; f5956f0): rows keep `ViewJob.aspx?JobID=<n>` (as MT's do).
+  * [x] Title-shape fixes and Cabon (2026-11-05; f5956f0, data be25eab): Fremont #21's "- Open Until Filled" cut at
+    ingestion (shared `split_title_detail()`); "Cabon County School District 2" -> Carbon #2, in the WSBA parser too, and
+    the committed rows corrected.
+  * [x] Drift-issue WSBA wording, weekly-totals downloads, golden-set fixes (2026-11-06/07; f5956f0, data be25eab):
+    as in MT; 2 combinedclean rows Administration -> Staff.
+
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
-- [ ] Real posting dates (`claude-notes/2026-11-03_posting-dates-plan.md`, written for MT, same approach): daily
-  presence check, spells rebuild (use `schoolspring_endings.csv` for how SchoolSpring postings ended and
-  `coverage_calendar.csv` for source health).
-- [ ] Spells rebuild (audit 2026-11-05, `claude-notes/2026-11-05_wy-spells-trust-audit.md`): MT's posting-level
-  design (identity Posting_ID or District + title + posted date, start = posted date, endings censored when the
-  source had no rows, Kaplan-Meier medians), plus frozen-board and pool flags; a frozen-board check in the weekly
-  drift report. Then decide what the paused Listing Duration tabs show.
+- [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
+  for day-precision ends (spells, coverage calendar and page-confirmed closings are done).
+- [ ] Decide what the paused Listing Duration tabs show (both states; spells and durations now rebuilt weekly).
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 3, 5, 6, 7, 8,
-  10, 12, 13 done; next 1, 2 (source category, title normalization), then the 27 golden-set known misses, 4. Confirm "Activities/Extracurricular" shows in the 2026-11-06 data.
-- [ ] Title-shape bug: Fremont #21 "... - Open Until Filled.". WSBA district typo "Cabon County School District 2"
-  not caught by `canonicalize_k12_district()`.
-- [ ] Weekly-totals downloads: keep one snapshot per week (decided 2026-11-02; not built).
+  10, 12, 13 done; next 1, 2 (source category, title normalization), then the 20 golden-set known misses left, 4. ("Activities/Extracurricular" confirmed in the 2026-11-06 data: 7.)
+- [ ] Sheridan #3's 3 WSBA copies still count next to its 2 direct postings (WSBA words the titles differently and
+  links only the district page).
 - [ ] Manual (repo Settings -> Copilot -> Internet access): uwyo.edu.
 
