@@ -74,6 +74,14 @@ if (!skip_guard) {
 }
 if (!classifier_changed) cat("Note: k12_he_classification.R has no uncommitted changes; reclassifying against HEAD.\n\n")
 
+# Every archived title whose bucket the change moves (not only the titles in
+# the committed history): read each line, every move should be intended.
+if (classifier_changed) {
+  cat("Titles in the raw archives whose bucket changes (scripts/classifier_archive_diff.R):\n")
+  system2("Rscript", "scripts/classifier_archive_diff.R")
+  cat("\n")
+}
+
 # ---- 2. rebuild with the working-tree classifier, and say what moved ----
 cat("Rebuilding with the working-tree classifier...\n")
 rebuilt <- rebuild_all()

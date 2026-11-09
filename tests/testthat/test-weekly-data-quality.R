@@ -333,6 +333,20 @@ test_that("no placeholder board entry ships in any posting-level output (item 10
   }
 })
 
+test_that("posting spells carry the bucket the current classifier gives their title", {
+  # The spells are built from every raw archive, not from the history files,
+  # so reclassify_committed_data.R once reported "nothing to write" while the
+  # spells still held the old buckets (2026-11-08: 17 WY archive titles, MT's
+  # "Little Raiders Daycare"). Fix: Rscript scripts/build_posting_spells.R.
+  for (f in c("posting_spells_k12.csv", "posting_spells_he.csv")) {
+    p <- here::here(f)
+    if (!file.exists(p)) next
+    s <- utils::read.csv(p, stringsAsFactors = FALSE)
+    want <- if (f == "posting_spells_k12.csv") classify_k12_position(s$Title) else classify_he_job_type(s$Title)
+    expect_identical(classification_mismatches(s$Position, want, s$Title), "", label = paste(f, "Position"))
+  }
+})
+
 test_that("duration-spell dummies agree with the position / job type they encode (item 10)", {
   # The 2026-11-01 audit found is_support_staff never set for Transportation
   # and Food Services.
