@@ -200,7 +200,17 @@ dedupe_against_wsba <- function(district_postings, wsba_postings, district_name)
   if (length(wsba_titles_here) == 0) return(district_postings)
 
   wsba_norm <- dedup_title_key(wsba_titles_here)
-  district_postings[!dedup_title_key(district_postings$Title) %in% wsba_norm, , drop = FALSE]
+  own <- dedup_title_key(district_postings$Title)
+  # One district posting for both teams ("JH Assistant Basketball Coaches",
+  # Sheridan #3) that WSBA lists as a Boys and a Girls row: WSBA's rows carry
+  # the two positions, so the district's combined row is the duplicate
+  # (decided 2026-11-09). Only a title that names no gender is matched this
+  # way, so a district's "Boys ... Coach" is never dropped for WSBA's
+  # "Girls ... Coach". No other case in the last 30 WY archives.
+  gender <- "\\b(boy|girl|men|women)\\b"
+  no_gender <- function(k) trimws(gsub("\\s+", " ", gsub(gender, " ", k)))
+  both_teams <- !grepl(gender, own) & own %in% no_gender(wsba_norm[grepl(gender, wsba_norm)])
+  district_postings[!(own %in% wsba_norm | both_teams), , drop = FALSE]
 }
 
 empty_misc_result <- function() {

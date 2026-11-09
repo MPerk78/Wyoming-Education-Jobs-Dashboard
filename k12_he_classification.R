@@ -150,7 +150,7 @@ classify_k12_position <- function(title) {
 
     # Administration-related positions
     # "Dean of", not bare "Dean" -- Dean Morgan is a Casper school name.
-    grepl("Principal|Director|Coordinator|Administrator|Supervisor|Administrative|Superintendent|Business ?Manager|\\bChief\\b|Dean of|General Counsel",
+    grepl("Principal|Director|Coordinator|\\bCoord\\b|Administrator|Supervisor|Administrative|Superintendent|Business ?Manager|\\bChief\\b|Dean of|General Counsel",
           title, ignore.case = TRUE) ~ "Administration",
 
     # Part-time / reduced-FTE teaching positions -- kept out of the full-FTE

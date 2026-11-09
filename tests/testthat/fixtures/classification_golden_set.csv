@@ -192,7 +192,7 @@
 "k12","WY","Administrative Assistant to the Principal (LHS)","Staff",FALSE,""
 "k12","WY","Athletics and Activities Secretary","Staff",FALSE,""
 "k12","MT","Attendance Secretary","Staff",FALSE,""
-"k12","MT","COMMUNICATIONS COORD.","Staff",TRUE,"communications coordinator"
+"k12","MT","COMMUNICATIONS COORD.","Administration",FALSE,"coordinators are Administration (relabeled 2026-11-09)"
 "k12","WY","Data & Purchasing Specialist","Staff",FALSE,""
 "k12","WY","Dean Morgan Office and Records Assistant","Staff",FALSE,""
 "k12","MT","District Clerk","Staff",FALSE,""

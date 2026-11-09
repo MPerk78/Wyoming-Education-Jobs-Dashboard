@@ -121,3 +121,20 @@ test_that("dedupe_against_wsba drops a district-page copy whose title only adds 
                      Location = NA, Posted_Date = NA, Url = NA, stringsAsFactors = FALSE)
   expect_equal(dedupe_against_wsba(own, wsba, "Weston County School District 1")$Title, "Head Boys Swimming Coach")
 })
+
+test_that("a district's one posting for both teams gives way to WSBA's Boys and Girls rows", {
+  # Sheridan #3, 2026-11-08: the district page lists "JH Assistant Basketball
+  # Coaches", WSBA lists a Boys and a Girls row; two positions in all.
+  wsba <- data.frame(Title = c("Junior High Assistant Boys Basketball Coach", "Junior High Assistant Girls Basketball Coach",
+                               "Substitute Custodial Positions"),
+                     District = "Sheridan County School District 3", Location = NA, Posted_Date = NA, Url = NA,
+                     stringsAsFactors = FALSE)
+  own <- data.frame(Title = c("JH Assistant Basketball Coaches", "Substitute Custodial Positions"),
+                    Location = NA, Posted_Date = NA, Link = NA, stringsAsFactors = FALSE)
+  expect_equal(nrow(dedupe_against_wsba(own, wsba, "Sheridan County School District 3")), 0)
+  # A gendered district title is never dropped for the other team's WSBA row.
+  own2 <- data.frame(Title = "Junior High Assistant Boys Basketball Coach", Location = NA, Posted_Date = NA, Link = NA,
+                     stringsAsFactors = FALSE)
+  wsba2 <- wsba[2, ]
+  expect_equal(nrow(dedupe_against_wsba(own2, wsba2, "Sheridan County School District 3")), 1)
+})
