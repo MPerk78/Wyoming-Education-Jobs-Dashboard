@@ -456,6 +456,15 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   * [x] Sheridan #3 both-teams posting; "Coord" -> Administration (2026-11-09; f83f897): a district title naming no
     gender gives way to WSBA's Boys and Girls rows (Mike: two positions); live misc scrape 188 -> 187.
 
+  * [x] "Posted / listed" first-seen fallback (2026-11-09; c57a8a9): 74 of 725 K-12 postings had no date; they now show "First seen <date>" or
+    "On the board since at least <date>" (already up when we first scraped that board), from the posting spells
+    (`posting_first_seen.csv` in the app folder, committed weekly). Mike: first-seen dates will match posted dates
+    more closely the longer the dashboards run. Checked in the rendered app.
+  * [x] Reposts (2026-11-09; not built, measured): a listing that ends and reappears next week under a new ID with
+    the same title looks like an ending plus a new posting (MT 101 / WY 358 strict pairs). Not linked: of the 23 WY
+    SchoolSpring pairs whose old record has a final status, 8 were "filled", i.e. a new vacancy, not the same job.
+    Proposed instead (awaiting Mike): count those endings as "outcome unknown" (censored) in the duration estimates.
+
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
   for day-precision ends (spells, coverage calendar and page-confirmed closings are done).
