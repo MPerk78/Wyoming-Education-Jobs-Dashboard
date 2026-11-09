@@ -438,13 +438,16 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     the committed rows corrected.
   * [x] Drift-issue WSBA wording, weekly-totals downloads, golden-set fixes (2026-11-06/07; f5956f0, data be25eab):
     as in MT; 2 combinedclean rows Administration -> Staff.
+  * [x] Six more golden-set misroutes (2026-11-08; 8436dbc): as in MT (most of the 17 moved titles are WY's, e.g.
+    "Office and Records Assistant" -> Staff); committed data unchanged.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
   for day-precision ends (spells, coverage calendar and page-confirmed closings are done).
 - [ ] Decide what the paused Listing Duration tabs show (both states; spells and durations now rebuilt weekly).
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 3, 5, 6, 7, 8,
-  10, 12, 13 done; next 1, 2 (source category, title normalization), then the 20 golden-set known misses left, 4. ("Activities/Extracurricular" confirmed in the 2026-11-06 data: 7.)
+  10, 12, 13 done; 2 measured, no effect, not built; 1 has a small ceiling (Other is 1.6% MT, 0.1% WY), suggest
+  parking (`claude-notes/2026-11-08_classifier-items-1-2-measured.md`). Left: 14 golden-set known misses (3 K-12), 4. ("Activities/Extracurricular" confirmed in the 2026-11-06 data: 7.)
 - [ ] Sheridan #3's 3 WSBA copies still count next to its 2 direct postings (WSBA words the titles differently and
   links only the district page).
 - [ ] Manual (repo Settings -> Copilot -> Internet access): uwyo.edu.
