@@ -29,8 +29,9 @@
 #
 # Entries found on a district's own page are deduplicated against that
 # same district's WSBA entries by normalized title (lowercased, whitespace/
-# punctuation collapsed) before being combined -- see
-# dedupe_against_wsba(). This is a heuristic match, not exact: differently-
+# punctuation collapsed, dates/file names/"Job Description" dropped,
+# abbreviations spelled out) before being combined -- see
+# dedupe_against_wsba() and dedup_title_key(). This is a heuristic match, not exact: differently-
 # worded titles for the same real posting (e.g. WSBA's "K-12 Music/Band
 # Instructor" vs. a district's own "Job Description - Music Teacher K12")
 # will not be recognized as duplicates and may appear twice. Prefer a
@@ -160,19 +161,46 @@ normalize_title <- function(title) {
   str_trim(str_squish(title))
 }
 
-# Returns district_postings with any row whose normalized title matches a
-# normalized WSBA title for the SAME district removed. Matching is exact
-# on the normalized string, not fuzzy, so differently-worded duplicates
-# will both survive -- see the module-level note on why that's the safer
-# failure mode here.
+# The key dedupe_against_wsba() matches on: normalize_title() after dropping
+# what district pages wrap around a title and WSBA doesn't -- file
+# extensions ("...Coach 8/7/2026.docx"), dates ("Paraprofessional
+# 7/14/2026", "Closes 8/26"), school years ("2026-27 School Year"), "Job
+# Description" -- with the common abbreviations (JH, HS, MS, Asst, SPED)
+# spelled out and plurals dropped. Still an exact match on what's left: a
+# subset rule was measured and rejected (it paired "Speech-Language
+# Pathologist" with "...Pathologist Assistant"). 2026-11-08, last 30 WY
+# archives: 7 more duplicate pairs (Sublette #1, Washakie #2, Weston #1,
+# Park #16), nothing distinct merged.
+dedup_title_key <- function(title) {
+  t <- tolower(as.character(title))
+  t <- gsub("\\.(docx?|pdf)\\b", " ", t)
+  t <- gsub("\\b(closes?|closing|posted|deadline)\\b[^a-z]*\\d{1,2}/\\d{1,2}(/\\d{2,4})?", " ", t)
+  t <- gsub("\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b", " ", t)
+  t <- gsub("\\b(20)?\\d{2}\\s*[-/\u2013]\\s*(20)?\\d{2}\\b(\\s+school\\s+year)?", " ", t)
+  t <- gsub("\\b(job\\s+)?description\\b", " ", t)
+  t <- gsub("[^a-z0-9]+", " ", t)
+  abbrev <- c(jh = "junior high", hs = "high school", ms = "middle school", asst = "assistant",
+              sped = "special education")
+  vapply(strsplit(trimws(t), " +"), function(w) {
+    w <- ifelse(w %in% names(abbrev), abbrev[w], w)
+    w <- unlist(strsplit(w, " "))
+    w <- sub("(?<=[a-z]{3})(es|s)$", "", w, perl = TRUE)
+    paste(w[nzchar(w)], collapse = " ")
+  }, character(1))
+}
+
+# Returns district_postings with any row whose dedup_title_key() matches a
+# WSBA title's for the SAME district removed. Matching is exact on that
+# key, not fuzzy, so differently-worded duplicates will both survive -- see
+# the module-level note on why that's the safer failure mode here.
 dedupe_against_wsba <- function(district_postings, wsba_postings, district_name) {
   if (nrow(district_postings) == 0) return(district_postings)
 
   wsba_titles_here <- wsba_postings$Title[wsba_postings$District == district_name]
   if (length(wsba_titles_here) == 0) return(district_postings)
 
-  wsba_norm <- normalize_title(wsba_titles_here)
-  district_postings[!normalize_title(district_postings$Title) %in% wsba_norm, , drop = FALSE]
+  wsba_norm <- dedup_title_key(wsba_titles_here)
+  district_postings[!dedup_title_key(district_postings$Title) %in% wsba_norm, , drop = FALSE]
 }
 
 empty_misc_result <- function() {

@@ -95,3 +95,29 @@ test_that("dedupe_against_wsba is a no-op when the district has no WSBA entries 
   result <- dedupe_against_wsba(district_postings, wsba_postings, "Lincoln County School District 2")
   expect_equal(nrow(result), 1)
 })
+
+test_that("dedup_title_key matches the wrappers district pages add, and keeps distinct jobs apart", {
+  # Real pairs from the WY archives (2026-08 to 2026-11): district page vs WSBA.
+  same <- list(
+    c("Elementary Special Education Paraprofessional 7/14/2026", "Elementary Special Education Paraprofessional"),
+    c("High School Girls Assistant Basketball Coach 8/7/2026.docx", "High School Girls Assistant Basketball Coach"),
+    c("K-12 Music Teacher 2026-27 School Year", "K-12 Music Teacher"),
+    c("Speech Language Pathologist Job Description", "Speech-Language Pathologist"),
+    c("MS Boys Basketball Coach", "Middle School Boys Basketball Coach"),
+    c("Middle School  Special Education Paraprofessional 08/04/2026", "Middle School Special Education Paraprofessional"))
+  for (p in same) expect_identical(dedup_title_key(p[1]), dedup_title_key(p[2]), label = p[1])
+  # Different jobs a looser (subset) rule would have merged.
+  different <- list(
+    c("Speech-Language Pathologist", "Speech Language Pathologist Assistant (SLPA) 26-27.docx"),
+    c("Assistant Girls Wrestling Coach", "Middle School Assistant Girls Wrestling Coach"),
+    c("JH Assistant Basketball Coaches", "Junior High Assistant Boys Basketball Coach"))
+  for (p in different) expect_false(identical(dedup_title_key(p[1]), dedup_title_key(p[2])), label = p[1])
+})
+
+test_that("dedupe_against_wsba drops a district-page copy whose title only adds a date or file name", {
+  own <- data.frame(Title = c("Speech Language Pathologist Job Description", "Head Boys Swimming Coach"),
+                    Location = NA, Posted_Date = NA, Link = NA, stringsAsFactors = FALSE)
+  wsba <- data.frame(Title = "Speech-Language Pathologist", District = "Weston County School District 1",
+                     Location = NA, Posted_Date = NA, Url = NA, stringsAsFactors = FALSE)
+  expect_equal(dedupe_against_wsba(own, wsba, "Weston County School District 1")$Title, "Head Boys Swimming Coach")
+})
