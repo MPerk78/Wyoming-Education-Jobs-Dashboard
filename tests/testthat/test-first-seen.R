@@ -55,3 +55,13 @@ test_that("the committed posting_first_seen.csv has the shape the app reads", {
   expect_false(any(is.na(as.Date(f$First_Seen))))
   expect_false(anyDuplicated(paste(f$Segment, f$Key)) > 0)
 })
+
+test_that("relative posted dates from WY college boards become dates, not stale text", {
+  env <- app_functions(c("relative_posted_label"))
+  run <- as.Date("2026-11-06")
+  got <- env$relative_posted_label(c("Posted 3 days ago", "Posted 2 weeks ago", "Posted Today", "Posted more than 30 days ago",
+                                     "Posted more than 30 days ago", "2026-10-01", NA), run,
+                                   c(NA, NA, NA, NA, "2026-08-04", NA, NA))
+  expect_equal(got, c("About 2026-11-03", "About 2026-10-23", "About 2026-11-06", "Before 2026-10-07",
+                      "Before 2026-08-04", "2026-10-01", NA))
+})

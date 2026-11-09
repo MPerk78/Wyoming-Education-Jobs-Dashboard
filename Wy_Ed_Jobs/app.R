@@ -102,10 +102,40 @@ fill_first_seen <- function(posted, district, title, url, segment, lookup = firs
   label <- ifelse(lookup$Left_Censored[k] %in% "TRUE", paste("On the board since at least", seen), paste("First seen", seen))
   ifelse(blank & !is.na(k) & !is.na(seen) & nzchar(seen), label, posted)
 }
+# Some WY college boards (LCCC, Gillette, Central Wyoming, Casper: 114 of 470
+# postings on 2026-11-06) print the posted date relative to the scrape day
+# ("Posted 3 weeks ago", "Posted more than 30 days ago"). Shown as written,
+# that text goes stale during the week and never ages into "Listed since".
+# Dated back from the run instead, as parse_wy_posted_date() in
+# posting_spells.R does: "About <date>"; "more than N days ago" gives only an
+# upper bound, "Before <date>", or the week we first saw it when earlier.
+relative_posted_label <- function(posted, run_date, first_seen = NA) {
+  out <- as.character(posted)
+  s <- sub("^posted ", "", tolower(trimws(gsub("\\s+", " ", out))))
+  exact <- !is.na(s) & grepl("^(today|\\d+ (hour|day|week|month)s? ago)$", s)
+  n <- suppressWarnings(as.numeric(sub("^(\\d+).*", "\\1", s)))
+  n[s %in% "today"] <- 0
+  unit <- ifelse(grepl("week", s), 7, ifelse(grepl("month", s), 30, ifelse(grepl("day", s), 1, 0)))
+  out[exact] <- paste("About", format(run_date - n[exact] * unit[exact]))
+  more <- !is.na(s) & grepl("^more than \\d+ days? ago$", s)
+  if (any(more)) {
+    bound <- run_date - as.numeric(sub("^more than (\\d+).*", "\\1", s[more]))
+    seen <- suppressWarnings(as.Date(rep_len(first_seen, length(out))[more]))
+    bound <- as.Date(ifelse(!is.na(seen) & seen < bound, seen, bound), origin = "1970-01-01")
+    out[more] <- paste("Before", format(bound))
+  }
+  out
+}
+first_seen_date <- function(district, title, url, segment, lookup = first_seen_table) {
+  if (is.null(lookup) || !all(c("Segment", "Key", "First_Seen") %in% names(lookup))) return(rep(NA_character_, length(title)))
+  lookup <- lookup[lookup$Segment == segment, , drop = FALSE]
+  lookup$First_Seen[match(first_seen_key(district, title, url), lookup$Key)]
+}
 POSTED_LISTED_NOTE <- paste0(
   "Posted / listed is the date the posting gives. Where the job board gives none, it shows the first week this ",
   "dashboard found the posting (\"First seen\"), or \"On the board since at least\" when the posting was already up ",
-  "the first time we checked that board. ")
+  "the first time we checked that board. \"About <date>\" and \"Before <date>\" are dates worked out from a board ",
+  "that says \"Posted 3 weeks ago\" or \"more than 30 days ago\". ")
 
 # Pay as the posting itself states it (Pay_* from extract_posted_pay() in the
 # pipeline): "$21.46–$22.81/hr", "$46,500–$71,803/yr", "$3,691 stipend".
@@ -667,6 +697,8 @@ for (col in c("Pay_Min", "Pay_Max", "Pay_Unit", "Pay_Text",
               "Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year", "Est_Source")) {
   if (!col %in% names(ccdata)) ccdata[[col]] <- NA
 }
+he_run_date <- suppressWarnings(max(as.Date(substr(as.character(ccdata$Archive_Date), 1, 10)), na.rm = TRUE))
+if (!is.finite(he_run_date)) he_run_date <- Sys.Date()
 ccdata <- ccdata %>%
   validate_and_pad_schema(c("Institution", "Title", "Location", "Posted_Date", "Link"), "hedata.xlsx") %>%
   mutate(`Posted Pay` = format_posted_pay(Pay_Min, Pay_Max, Pay_Unit),
@@ -678,7 +710,8 @@ ccdata <- ccdata %>%
   mutate(
     Appointment = classify_he_appointment(Title),
     Posted_Date = format_posted_or_listed_date(Posted_Date),
-    Posted_Date = fill_first_seen(Posted_Date, Institution, Title, Link, "HE")
+    Posted_Date = fill_first_seen(Posted_Date, Institution, Title, Link, "HE"),
+    Posted_Date = relative_posted_label(Posted_Date, he_run_date, first_seen_date(Institution, Title, Link, "HE"))
   ) %>%
   rename(`Posted / listed` = Posted_Date)
 ccdata$Link <- paste0('<a href="', ccdata$Link, '" target="_blank">', ccdata$Link, '</a>')
