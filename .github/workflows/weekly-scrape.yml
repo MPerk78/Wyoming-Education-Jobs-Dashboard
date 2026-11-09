@@ -319,7 +319,7 @@ jobs:
           [ -f schoolspring_endings.csv ] && git add schoolspring_endings.csv || true
           [ -f posting_status.csv ] && git add posting_status.csv || true
           for f in posting_spells_k12.csv posting_durations_k12.csv posting_spells_he.csv posting_durations_he.csv \
-                   frozen_boards.csv advertised_windows.csv; do [ -f $f ] && git add $f || true; done
+                   frozen_boards.csv advertised_windows.csv Wy_Ed_Jobs/posting_first_seen.csv; do [ -f $f ] && git add $f || true; done
           [ -f coverage_calendar.csv ] && git add coverage_calendar.csv || true
           if git diff --cached --quiet; then
             echo "No data changes this run -- nothing to commit."

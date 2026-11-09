@@ -530,3 +530,29 @@ summarize_posting_durations <- function(spells, group = NULL, min_events = 20) {
                Note = if (enough) "" else paste("fewer than", min_events, "endings"), stringsAsFactors = FALSE)
   }))
 }
+
+# --------------------------------------------------------------------------
+# First seen, for the dashboard's "Posted / listed" column
+# --------------------------------------------------------------------------
+# Many boards give no posted date (MT: 546 of 1,380 K-12 postings on
+# 2026-11-03, mostly Apptegy district sites). For those the app shows the
+# first weekly run that found the posting instead. The app reads only its own
+# folder and the posting IDs differ between files, so this writes a small
+# lookup keyed on what the app shows: district/institution, title, link.
+# Left_Censored = the posting was already up the first time we scraped that
+# board, so its real start is earlier ("On the board since at least").
+# Identical in the MT and WY repos; the app has its own copy of the key.
+first_seen_key <- function(district, title, url) {
+  sq <- function(x) tolower(gsub("\\s+", " ", trimws(as.character(x))))
+  paste(sq(district), sq(title), trimws(as.character(url)), sep = " | ")
+}
+first_seen_lookup <- function(panel, spells, segment) {
+  latest <- max(panel$Run_Date)
+  cur <- panel[panel$Run_Date == latest, c("Posting_ID", "District", "title", "url"), drop = FALSE]
+  cur <- merge(cur, spells[, c("Posting_ID", "First_Seen", "Left_Censored")], by = "Posting_ID")
+  cur$Key <- first_seen_key(cur$District, cur$title, cur$url)
+  cur <- cur[order(cur$Key, as.character(cur$First_Seen)), , drop = FALSE]
+  cur <- cur[!duplicated(cur$Key), , drop = FALSE]
+  data.frame(Segment = rep(segment, nrow(cur)), Key = cur$Key, First_Seen = as.character(cur$First_Seen),
+             Left_Censored = as.logical(cur$Left_Censored), stringsAsFactors = FALSE)
+}

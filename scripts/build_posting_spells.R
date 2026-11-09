@@ -54,6 +54,11 @@ he_durations <- bind_rows(summarize_posting_durations(he_spells),
                           summarize_posting_durations(he_spells, "District") %>% mutate(Group = paste("Institution:", Group))) %>%
   mutate(As_Of = max(he_spells$Last_Seen))
 write.csv(he_spells, "posting_spells_he.csv", row.names = FALSE)
+# "Posted / listed" falls back to the first run that found a posting when its
+# board gives no date (first_seen_lookup(), posting_spells.R).
+first_seen <- rbind(first_seen_lookup(panel, spells, "K-12"), first_seen_lookup(he_panel, he_spells, "HE"))
+write.csv(first_seen, file.path("Wy_Ed_Jobs", "posting_first_seen.csv"), row.names = FALSE)
+cat("Wy_Ed_Jobs/posting_first_seen.csv:", nrow(first_seen), "current postings\n")
 write.csv(he_durations, "posting_durations_he.csv", row.names = FALSE)
 cat("posting_spells_he.csv:", nrow(he_spells), "postings,", sum(he_spells$In_Durations), "in durations,",
     sum(he_spells$Event & he_spells$In_Durations), "endings. Median days listed (all):",

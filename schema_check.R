@@ -23,6 +23,9 @@
 # happen to be in the file today") -- k12_salary_history.csv is
 # deliberately absent since nothing in app.R reads it yet.
 REQUIRED_SCHEMAS <- list(
+  # "Posted / listed" fallback (scripts/build_posting_spells.R); optional in
+  # app.R, which shows the column as before without it.
+  "posting_first_seen.csv" = c("Segment", "Key", "First_Seen", "Left_Censored"),
   "combinedclean.csv" = c("title", "date_posted", "position", "location", "url", "posting_id", "District", "Close_Date",
                           "Pay_Min", "Pay_Max", "Pay_Unit", "Pay_Text",
                           "Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year"),

@@ -80,6 +80,33 @@ format_posted_or_listed_date <- function(dates, stale_after_days = 180) {
   values
 }
 
+# "Posted / listed" for a board that gives no posted date: the first weekly
+# run that found the posting (posting_first_seen.csv, written by
+# scripts/build_posting_spells.R; the key must match first_seen_key() in
+# posting_spells.R). "On the board since at least" when the posting was
+# already up the first time that board was scraped. Without the file (a
+# deploy before the weekly run first writes it) the column is as before.
+first_seen_key <- function(district, title, url) {
+  sq <- function(x) tolower(gsub("\\s+", " ", trimws(as.character(x))))
+  paste(sq(district), sq(title), trimws(as.character(url)), sep = " | ")
+}
+first_seen_table <- tryCatch(read.csv("posting_first_seen.csv", colClasses = "character", fileEncoding = "UTF-8"),
+                             error = function(e) NULL, warning = function(w) NULL)
+fill_first_seen <- function(posted, district, title, url, segment, lookup = first_seen_table) {
+  posted <- as.character(posted)
+  if (is.null(lookup) || !all(c("Segment", "Key", "First_Seen", "Left_Censored") %in% names(lookup))) return(posted)
+  lookup <- lookup[lookup$Segment == segment, , drop = FALSE]
+  k <- match(first_seen_key(district, title, url), lookup$Key)
+  blank <- is.na(posted) | !nzchar(trimws(posted))
+  seen <- lookup$First_Seen[k]
+  label <- ifelse(lookup$Left_Censored[k] %in% "TRUE", paste("On the board since at least", seen), paste("First seen", seen))
+  ifelse(blank & !is.na(k) & !is.na(seen) & nzchar(seen), label, posted)
+}
+POSTED_LISTED_NOTE <- paste0(
+  "Posted / listed is the date the posting gives. Where the job board gives none, it shows the first week this ",
+  "dashboard found the posting (\"First seen\"), or \"On the board since at least\" when the posting was already up ",
+  "the first time we checked that board. ")
+
 # Pay as the posting itself states it (Pay_* from extract_posted_pay() in the
 # pipeline): "$21.46–$22.81/hr", "$46,500–$71,803/yr", "$3,691 stipend".
 # Units are never converted -- an hourly wage isn't turned into an annual
@@ -175,6 +202,7 @@ combineddata <- combineddata %>%
          Pay_Min, Pay_Max, Pay_Unit, Est_Pay, Est_Pay_Unit) %>%
   mutate(District = str_squish(as.character(District))) %>%
   mutate(date_posted = format_posted_or_listed_date(date_posted)) %>%
+  mutate(date_posted = fill_first_seen(date_posted, District, title, url, "K-12")) %>%
   arrange(District, title) %>%
   mutate(url = paste0('<a href="', url, '" target="_blank">', url, '</a>')) %>%
   rename(Title = title, Position = position, Location = location,
@@ -649,7 +677,8 @@ ccdata <- ccdata %>%
   arrange(Institution, Title) %>%
   mutate(
     Appointment = classify_he_appointment(Title),
-    Posted_Date = format_posted_or_listed_date(Posted_Date)
+    Posted_Date = format_posted_or_listed_date(Posted_Date),
+    Posted_Date = fill_first_seen(Posted_Date, Institution, Title, Link, "HE")
   ) %>%
   rename(`Posted / listed` = Posted_Date)
 ccdata$Link <- paste0('<a href="', ccdata$Link, '" target="_blank">', ccdata$Link, '</a>')
@@ -1461,7 +1490,7 @@ ui <- page_navbar(
       p(class = "text-muted small mb-2",
         "Posted Pay is what the posting itself states; the other pay columns are labeled estimates, not this job's offer. ",
         info_popover("About the pay columns",
-          p(class = "mb-0", paste0("Posted Pay is the pay the job posting itself states (hourly, daily, annual, or a season stipend, as written); blank where the posting gives no figure. ",
+          p(class = "mb-0", POSTED_LISTED_NOTE, paste0("Posted Pay is the pay the job posting itself states (hourly, daily, annual, or a season stipend, as written); blank where the posting gives no figure. ",
         "Typical pay (BLS est.) fills in where the posting states none: the Bureau of Labor Statistics' ",
         if (!is.na(oews_year)) paste0("May ", oews_year, " ") else "",
         "median pay for that role in the posting's region (hover for the role and area; OEWS, all employers, not just schools), so treat it as a regional estimate, not this job's offer. "),
@@ -1685,7 +1714,7 @@ ui <- page_navbar(
       p(class = "text-muted small mb-2",
         "Posted Pay is what the posting itself states; the other pay columns are labeled estimates, not this job's offer. ",
         info_popover("About the pay columns",
-          p(class = "mb-0", "Posted Pay is the pay the job posting itself states (hourly, annual, or per credit hour, as written); blank where the posting gives no figure. Typical pay (est.) fills in for salaried staff postings that state none, not this job's offer: for the University of Wyoming, the median salary of UW staff with the same title in UW's published salary book; for the other colleges, the college's average pay for its full-time staff in that job category (IPEDS). Hover for the source. Hourly and student jobs get no estimate. Avg Faculty Salary reflects full-time instructional staff compensation from IPEDS via Urban Institute."))),
+          p(class = "mb-0", POSTED_LISTED_NOTE, "Posted Pay is the pay the job posting itself states (hourly, annual, or per credit hour, as written); blank where the posting gives no figure. Typical pay (est.) fills in for salaried staff postings that state none, not this job's offer: for the University of Wyoming, the median salary of UW staff with the same title in UW's published salary book; for the other colleges, the college's average pay for its full-time staff in that job category (IPEDS). Hover for the source. Hourly and student jobs get no estimate. Avg Faculty Salary reflects full-time instructional staff compensation from IPEDS via Urban Institute."))),
       DTOutput("he_jobs", fill = FALSE)
     ),
     nav_panel(
