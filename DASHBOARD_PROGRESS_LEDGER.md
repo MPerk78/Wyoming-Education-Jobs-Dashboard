@@ -468,6 +468,11 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
 
   * [x] Shared role-hint classifier support (2026-11-09; eec6601): same code as MT; WY passes no hint, no WY change.
 
+  * [x] College data integrity (2026-11-09; 2439826): 114 of 470 college postings (LCCC, Gillette, Central Wyoming,
+    Casper) had relative posted dates ("Posted 3 weeks ago") shown as written; the app now shows "About <date>" or
+    "Before <date>". Also measured, no change needed: standing adjunct and student postings (Western since 2018) are
+    open by the can-apply standard, marked "Listed since", excluded from durations; titles that name only past years: 0.
+
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
   for day-precision ends (spells, coverage calendar and page-confirmed closings are done).
