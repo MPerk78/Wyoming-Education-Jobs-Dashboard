@@ -448,13 +448,19 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     last 30 archives, none distinct merged (subset matching measured and rejected); live: Weston #1 16 -> 15, Park #16
     4 -> 3. Sheridan #3's double count was mostly the 11-07 parser fix; 1 ambiguous row left.
 
+  * [x] Eleven HE golden-set known misses (2026-11-09; 68a86ad): laborers, stationary engineer, lab/husbandry/
+    paleontology, "(Student)" titles, counselor/financial assistance, classroom support, night watch, enterprise
+    architect. Archive diff: 21 HE titles move, all intended; golden set 548 of 551; HE posting spells refreshed.
+    Review tools added 11-08 (archive diff, spells invariant, guard rows; toolkit footgun 16, `sibling_sync.R`).
+
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
   for day-precision ends (spells, coverage calendar and page-confirmed closings are done).
 - [ ] Decide what the paused Listing Duration tabs show (both states; spells and durations now rebuilt weekly).
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 3, 5, 6, 7, 8,
   9, 10, 11, 12, 13 done; 2 measured, no effect, not built; 1 has a small ceiling (Other is 1.6% MT, 0.1% WY), suggest
-  parking (`claude-notes/2026-11-08_classifier-items-1-2-measured.md`). Left: 14 golden-set known misses (3 K-12), 4. ("Activities/Extracurricular" confirmed in the 2026-11-06 data: 7.)
+  parking (`claude-notes/2026-11-08_classifier-items-1-2-measured.md`). Left: 3 golden-set known misses (2 file-name
+  titles; "COMMUNICATIONS COORD." labeled Staff though every Coordinator is Administration), 4. ("Activities/Extracurricular" confirmed in the 2026-11-06 data: 7.)
 - [ ] WSBA vs district-page near-duplicates left after 2026-11-08 (exact key match only, on purpose): Sheridan #3
   "JH Assistant Basketball Coaches" next to WSBA's Boys and Girls rows (one posting, two positions: 1 extra row);
   Weston #1 "Head Middle School Girls Soccer Coach" / "MS Head Girls Soccer Coach" (word order); Park #16 "K-12 School
