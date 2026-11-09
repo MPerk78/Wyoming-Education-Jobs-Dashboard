@@ -1174,6 +1174,81 @@ build_other_share_report_markdown <- function(flagged, date = Sys.Date()) {
 }
 
 # --------------------------------------------------------------------------
+# Keyword conflicts (classification safeguards item 9)
+# --------------------------------------------------------------------------
+# A title carrying a word that names one bucket while the classifier put it
+# in another: the hand audit of 2026-11-01, as rules. Each rule is a signal
+# (regex, case-insensitive), the buckets that are fine for it, and an
+# optional `unless` regex for titles where the word is legitimately
+# secondary (a nutrition-services secretary, a "Secretary/Para" dual role).
+# Non-blocking: listed in the drift issue so a person decides whether the
+# classifier needs a rule. Tuned 2026-11-08 against every archived title
+# since 2025-10-01 in both states, where only real misroutes remained.
+k12_keyword_conflict_rules <- list(
+  list(id = "coach aide outside Athletics",
+       signal = "\\bAides?\\b.*(Football|Basketball|Volleyball|Wrestling|Soccer|\\bSwim|\\bGolf\\b|\\bTrack\\b|Cross Country|Baseball|Softball|Tennis)|(Football|Basketball|Volleyball|Wrestling|Soccer|\\bSwim|\\bGolf\\b|\\bTrack\\b|Cross Country|Baseball|Softball|Tennis).*\\bAides?\\b",
+       ok = c("Athletics", "Substitute", "Activities/Extracurricular")),
+  list(id = "food-service word outside Food Services",
+       signal = "\\b(Kitchen|Cooks?|Nutrition|Cafeteria|Food Services?|Dishwasher)\\b",
+       ok = c("Food Services", "Substitute"),
+       unless = "Teacher|Instructor|Culinary|Director|Supervisor|Manager|Coordinator|Secretary|Bookkeeper|Clerk|Administrative Assistant|Driver|Warehouse|Transport|Custodian|Custodial|/"),
+  list(id = "bus aide or monitor outside Transportation",
+       signal = "\\bBus\\b.*\\b(Aides?|Monitors?|Para\\w*)\\b|\\b(Aides?|Monitors?)\\b.*\\bBus\\b",
+       ok = c("Transportation", "Substitute"), unless = "/|\\bor\\b|&|\\band\\b"),
+  list(id = "bus driver outside Transportation", signal = "\\bBus Drivers?\\b",
+       ok = c("Transportation", "Substitute"), unless = "/|\\bor\\b|&|\\band\\b|Driver'?s?\\s*Ed"),
+  list(id = "custodian outside Custodial/Maintenance", signal = "Custodian|Custodial|Janitor",
+       ok = c("Custodial/Maintenance", "Substitute"), unless = "/|\\bor\\b|&|\\band\\b|Secretary|Supervisor|Director|Manager"),
+  list(id = "teacher title in Paraprofessional", signal = "\\bTeacher\\b",
+       ok = setdiff(c("Substitute", "Paraprofessional", "Activities/Extracurricular", "Transportation", "Food Services",
+                      "Athletics", "Support Services", "Staff", "Custodial/Maintenance", "Administration",
+                      "Part-Time Teacher", "Teacher", "Child Care", "Other"), "Paraprofessional"),
+       unless = "Assistant|Aides?\\b|Associate|Para|Helper"),
+  list(id = "principal or superintendent outside Administration", signal = "\\b(Principal|Superintendent)\\b",
+       ok = c("Administration", "Substitute"), unless = "Secretary|Assistant to|Clerk|Administrative Assistant|Office|/"),
+  list(id = "secretary or clerk outside Staff", signal = "\\b(Secretary|Clerk)\\b",
+       ok = c("Staff", "Substitute"), unless = "/")
+)
+he_keyword_conflict_rules <- list(
+  list(id = "custodian outside Maintenance & Service", signal = "Custodian|Custodial|Janitor",
+       ok = c("Maintenance & Service", "Student Positions", "Temporary Position"),
+       unless = "Supervisor|Director|Manager|Dish|Cook|Kitchen"),
+  list(id = "postdoc outside Research & Science", signal = "Post-?doc", ok = "Research & Science"),
+  list(id = "adjunct outside Adjunct/Part-Time Faculty", signal = "\\bAdjunct\\b", ok = "Adjunct/Part-Time Faculty")
+)
+
+# The first rule each title trips, or NA.
+find_keyword_conflicts <- function(title, bucket, rules) {
+  title <- as.character(title)
+  out <- rep(NA_character_, length(title))
+  for (r in rules) {
+    hit <- grepl(r$signal, title, ignore.case = TRUE, perl = TRUE) & !(bucket %in% r$ok)
+    if (!is.null(r$unless)) hit <- hit & !grepl(r$unless, title, ignore.case = TRUE, perl = TRUE)
+    out[hit & is.na(out)] <- r$id
+  }
+  out
+}
+
+# hits: data.frame(source, type, title, bucket, rule).
+build_keyword_conflict_report_markdown <- function(hits, date = Sys.Date(), max_rows = 25) {
+  if (nrow(hits) == 0) return(character(0))
+  h <- hits[!duplicated(paste(hits$type, hits$title)), , drop = FALSE]
+  shown <- utils::head(h, max_rows)
+  c(
+    paste0("### Titles whose words point to a different bucket (", date, ")"),
+    "",
+    paste("This week's postings whose title names one kind of job while the classifier put it in another",
+          "(a custodian outside Custodial, a bus aide outside Transportation). Either the classifier needs",
+          "a rule, or the title is a real exception; add it to the golden set either way."),
+    "",
+    sprintf("- \"%s\" (%s, %s): %s -- %s", substr(gsub("[\r\n]+", " ", shown$title), 1, 120), shown$source,
+            shown$type, shown$bucket, shown$rule),
+    if (nrow(h) > max_rows) sprintf("- ...and %d more", nrow(h) - max_rows),
+    ""
+  )
+}
+
+# --------------------------------------------------------------------------
 # Frozen boards (WY spells trust audit 2026-11-05, finding 2)
 # --------------------------------------------------------------------------
 # A board whose whole posting set has stayed identical for weeks is a stale

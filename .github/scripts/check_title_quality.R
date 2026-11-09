@@ -4,9 +4,11 @@
 #     (page text, a summary, a level without its role, markup, pay the
 #     Posted Pay column doesn't carry), listed per source;
 #   - per-source Other share: a source whose share of postings the
-#     classifier puts in Other jumped against its own recent weeks.
-# Both go into /tmp/drift_report.md. Writes /tmp/title_lint.csv and
-# /tmp/other_share_flagged.csv either way.
+#     classifier puts in Other jumped against its own recent weeks;
+#   - keyword conflicts (item 9): titles whose words name a different bucket
+#     from the one the classifier gave them.
+# All go into /tmp/drift_report.md. Writes /tmp/title_lint.csv,
+# /tmp/other_share_flagged.csv and /tmp/keyword_conflicts.csv either way.
 
 suppressPackageStartupMessages(library(dplyr))
 source("k12_he_classification.R")
@@ -87,10 +89,25 @@ cat(sprintf("Other share: %.1f%% of K-12 and %.1f%% of HE postings in Other; %d 
             length(k12_history), length(he_history)))
 write.csv(other_flagged, "/tmp/other_share_flagged.csv", row.names = FALSE)
 
-report_lines <- c(build_other_share_report_markdown(other_flagged), build_title_lint_report_markdown(hits))
+# ---- 9. keyword conflicts ----
+conflicts <- function(df, title_col, bucket, rules, label) {
+  rule <- find_keyword_conflicts(df[[title_col]], bucket, rules)
+  hit <- !is.na(rule)
+  data.frame(source = df$source[hit], type = rep(label, sum(hit)), title = df[[title_col]][hit],
+             bucket = bucket[hit], rule = rule[hit], stringsAsFactors = FALSE)
+}
+conflict_hits <- rbind(conflicts(k12, "title", classify_k12_position(k12$title), k12_keyword_conflict_rules, "K-12"),
+                       conflicts(he, "Title", classify_he_job_type(he$Title), he_keyword_conflict_rules, "Higher Ed"))
+cat(sprintf("Keyword conflicts: %d K-12 and %d HE posting(s) whose title names a different bucket.\n",
+            sum(conflict_hits$type == "K-12"), sum(conflict_hits$type == "Higher Ed")))
+write.csv(conflict_hits, "/tmp/keyword_conflicts.csv", row.names = FALSE)
+
+report_lines <- c(build_other_share_report_markdown(other_flagged), build_title_lint_report_markdown(hits),
+                  build_keyword_conflict_report_markdown(conflict_hits))
 if (length(report_lines) > 0) {
   if (nrow(other_flagged) > 0) print(other_flagged, row.names = FALSE)
   if (nrow(hits) > 0) print(hits[, c("source", "type", "reason")], row.names = FALSE)
+  if (nrow(conflict_hits) > 0) print(conflict_hits[, c("source", "type", "bucket", "rule")], row.names = FALSE)
   if (file.exists("/tmp/drift_report.md")) {
     write(c("", "---", "", report_lines), file = "/tmp/drift_report.md", append = TRUE)
   } else {

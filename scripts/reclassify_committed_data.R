@@ -107,6 +107,17 @@ cat("\nFiles that change:\n")
 print(p[differs(p), c("File", "Committed_Rows", "Rebuilt_Rows", "Only_Committed", "Only_Rebuilt")], row.names = FALSE)
 if (!any(differs(p))) {
   cat("Nothing to write: the committed data already matches the classifier.\n")
+  # The posting spells are built from every raw archive, not from these nine
+  # files, so a classifier change that only touches older archived titles
+  # still moves them (2026-11-08: MT's "Little Raiders Daycare" posting).
+  if (apply_changes) {
+    cat("Refreshing the posting spells, which come from the raw archives...\n")
+    if (file.exists("scripts/build_posting_spells.R") && system2("Rscript", "scripts/build_posting_spells.R") != 0) {
+      warning("scripts/build_posting_spells.R failed; rerun it by hand.")
+    }
+  } else {
+    cat("The posting spells come from the raw archives and can still change: rerun with --apply to refresh them.\n")
+  }
   quit(save = "no", status = 0)
 }
 

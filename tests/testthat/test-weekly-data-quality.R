@@ -301,6 +301,27 @@ test_that("committed HE Job_Type / Category equal the current classifier", {
                    label = "facultydata.csv Category")
 })
 
+test_that("this week's share of postings in Other stays under a ceiling (item 11)", {
+  # Other has never been above 3.4% of a week's postings under the current
+  # classifier (2026-11-08: MT 16 archived weeks, WY ~120, K-12 and HE). Far
+  # above that means a scraper is reading page text instead of titles, or a
+  # classifier change stopped matching a whole kind of title.
+  ceiling <- 0.08
+  k12 <- read_wy("combinedclean.csv")
+  share <- mean(classify_k12_position(k12$title) == "Other")
+  expect(share <= ceiling, sprintf("%.1f%% of this week's K-12 postings are in Other (ceiling %.0f%%), e.g. %s",
+                                   100 * share, 100 * ceiling,
+                                   paste(utils::head(unique(k12$title[classify_k12_position(k12$title) == "Other"]), 8),
+                                         collapse = " | ")))
+  skip_if_not(file.exists(WY("hedata.xlsx")), "hedata.xlsx not found")
+  he <- readxl::read_excel(WY("hedata.xlsx"))$Title
+  he_share <- mean(classify_he_job_type(he) == "Other")
+  expect(he_share <= ceiling, sprintf("%.1f%% of this week's HE postings are in Other (ceiling %.0f%%), e.g. %s",
+                                      100 * he_share, 100 * ceiling,
+                                      paste(utils::head(unique(he[classify_he_job_type(he) == "Other"]), 8),
+                                            collapse = " | ")))
+})
+
 test_that("no placeholder board entry ships in any posting-level output (item 10)", {
   titles <- list(combinedclean = read_wy("combinedclean.csv")$title,
                  k12jobanalysis = read_wy("k12jobanalysis.csv")$title,

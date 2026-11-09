@@ -854,3 +854,40 @@ test_that("other_share_counts and build_other_share_report_markdown", {
   expect_true(any(grepl("**Florence** (K-12): usually 0% Other, now 2 of 10", md, fixed = TRUE)))
   expect_length(build_other_share_report_markdown(flagged[0, ]), 0)
 })
+
+test_that("find_keyword_conflicts flags titles whose words name another bucket, and spares real exceptions", {
+  # Real archived titles (2026-11-08 tuning run). Flagged: what the classifier
+  # got wrong before its fixes that day, given the bucket it had.
+  flagged <- find_keyword_conflicts(
+    c("Temporary Business Office Support Clerk", "CCA Cross Country Aide", "Bus Paraprofessional - Transportation",
+      "Kitchen Aide"),
+    c("Support Services", "Support Services", "Paraprofessional", "Support Services"),
+    k12_keyword_conflict_rules)
+  expect_equal(flagged, c("secretary or clerk outside Staff", "coach aide outside Athletics",
+                          "bus aide or monitor outside Transportation", "food-service word outside Food Services"))
+  expect_equal(find_keyword_conflicts("Custodian - Washakie Dining Center", "Culinary", he_keyword_conflict_rules),
+               "custodian outside Maintenance & Service")
+  # Spared: the word is secondary, or the title is a dual role.
+  spared <- find_keyword_conflicts(
+    c("Nutrition Services Secretary", "Summer Nutrition Services Van Driver", "Secretary/Paraprofessional",
+      "Alternative High School Principal / Counselor", "Bus Driver/Classroom Paraprofessional", "Para Teacher Assistant"),
+    c("Staff", "Transportation", "Paraprofessional", "Support Services", "Paraprofessional", "Paraprofessional"),
+    k12_keyword_conflict_rules)
+  expect_true(all(is.na(spared)))
+  expect_true(is.na(find_keyword_conflicts("Hourly Pooled - Custodian/Dish Room Attendant - Bakery", "Culinary",
+                                           he_keyword_conflict_rules)))
+  # The bucket the classifier gives today raises nothing for any of these.
+  t <- c("Temporary Business Office Support Clerk", "CCA Cross Country Aide", "Bus Paraprofessional - Transportation")
+  expect_true(all(is.na(find_keyword_conflicts(t, classify_k12_position(t), k12_keyword_conflict_rules))))
+})
+
+test_that("build_keyword_conflict_report_markdown lists each title once, and nothing when there are none", {
+  expect_identical(build_keyword_conflict_report_markdown(
+    data.frame(source = character(), type = character(), title = character(), bucket = character(), rule = character())),
+    character(0))
+  hits <- data.frame(source = c("Laramie #1", "Laramie #1"), type = "K-12", title = "Kitchen Aide",
+                     bucket = "Support Services", rule = "food-service word outside Food Services")
+  md <- build_keyword_conflict_report_markdown(hits, date = "2026-11-08")
+  expect_equal(sum(grepl("Kitchen Aide", md)), 1)
+  expect_match(md[1], "different bucket \\(2026-11-08\\)")
+})

@@ -111,6 +111,11 @@ classify_k12_position <- function(title) {
        grepl("Food|Kitchen|Nutrition|Cafeteria|\\bSN\\b|\\bCook", title, ignore.case = TRUE)) ~ "Food Services",
     grepl("\\bBus\\b.*\\b(Aides?|Monitors?)\\b|\\b(Aides?|Monitors?)\\b.*\\bBus\\b", title, ignore.case = TRUE) ~ "Transportation",
 
+    # Clerical jobs whose title also says "Support" ("Business Office Support
+    # Clerk", "Building Secretary Support"): Staff, not Support Services
+    # (keyword-conflict check, 2026-11-08).
+    grepl("\\b(Secretary|Clerk)\\b.*\\bSupport\\b|\\bSupport\\s+(Secretary|Clerk)\\b", title, ignore.case = TRUE) ~ "Staff",
+
     # Support Services-related positions
     # \bIntern\b, not bare "Intern" -- matched inside "Internal Applicants Only"
     # otherwise, pulling teacher and bus-driver postings into this bucket.
@@ -671,6 +676,12 @@ classify_he_job_type_rules <- function(title) {
     # athletics (golden set, 2026-11-07: "Student Success Coach", "GEAR UP
     # Success Coach", "Academic Coach Talent Search").
     grepl("(Academic|Success|Retention|Career|Completion|Enrollment|College|Life|Navigation)\\s+Coach|GEAR UP|Advisor|Advising|Enrollment Counselor|Financial Aid|Tutor|Career Peer|Tribal Education Assistant|Night ESL Class Aide|Writing Consultant|Learning Commons|Testing Center|Camp Counselor", title, ignore.case = TRUE) ~ "Advising and Student Services",
+
+    # A custodian whose building is a dining hall ("Custodian - Washakie Dining
+    # Center") is still a custodian; dual custodian/dish-room jobs stay
+    # Culinary (keyword-conflict check, 2026-11-08).
+    (grepl("Custodian|Custodial|Janitor", title, ignore.case = TRUE) &
+       !grepl("Dish|Cook|Baker|Chef|Barista|Kitchen", title, ignore.case = TRUE)) ~ "Maintenance & Service",
 
     # Culinary -- checked before Maintenance & Service so "Cook"/"Baker"
     # land here instead of being swallowed by Maintenance & Service's own
