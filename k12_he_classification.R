@@ -64,7 +64,14 @@ classify_k12_position <- function(title) {
     # \bSubs?\b / "Substit", not bare "Sub" -- matched inside "Subject"/
     # "Suburban"/"Substance Abuse" otherwise. "Substit" keeps typos like
     # "Substiture"; "subs\b" keeps run-together "Kitchensubs".
-    grepl("\\bSubs?\\b|subs\\b|Substit", title, ignore.case = TRUE) ~ "Substitute",
+    # "Sub-Varsity" is a coaching level, not a substitute (golden set).
+    grepl("\\bSubs?\\b(?!-Varsity)|subs\\b|Substit", title, ignore.case = TRUE, perl = TRUE) ~ "Substitute",
+
+    # A "Bus Paraprofessional" rides the bus: Transportation, like bus aides
+    # and monitors below (2026-11-01 audit). Checked before Paraprofessional.
+    # Only "Bus Para..." itself: dual roles such as "Bus Driver/Classroom
+    # Paraprofessional" stay Paraprofessional.
+    grepl("\\bBus\\s+Para", title, ignore.case = TRUE) ~ "Transportation",
 
     # Paraprofessional-related positions
     # \bPara, not bare "Para" -- matched inside "Preparation"/"Comparative"
@@ -98,7 +105,7 @@ classify_k12_position <- function(title) {
     # aides, kitchen/nutrition aides, bus aides and monitors. Checked before
     # Support Services, whose bare "Aide"/"Monitor" would otherwise take them.
     (grepl("\\bAid(e|es|s)?\\b", title, ignore.case = TRUE) &
-       grepl("\\bCoach|Football|Basketball|Volleyball|Wrestling|Soccer|\\bSwim|\\bGolf\\b|\\bTrack\\b|Nordic|\\bSki\\b|Baseball|Softball|Tennis|Athletic",
+       grepl("\\bCoach|Football|Basketball|Volleyball|Wrestling|Soccer|\\bSwim|\\bGolf\\b|\\bTrack\\b|Cross Country|Nordic|\\bSki\\b|Baseball|Softball|Tennis|Athletic",
              title, ignore.case = TRUE)) ~ "Athletics",
     (grepl("\\bAid(e|es|s)?\\b|Technician|Support Personnel", title, ignore.case = TRUE) &
        grepl("Food|Kitchen|Nutrition|Cafeteria|\\bSN\\b|\\bCook", title, ignore.case = TRUE)) ~ "Food Services",
@@ -107,15 +114,15 @@ classify_k12_position <- function(title) {
     # Support Services-related positions
     # \bIntern\b, not bare "Intern" -- matched inside "Internal Applicants Only"
     # otherwise, pulling teacher and bus-driver postings into this bucket.
-    grepl("Counselor|Psychologist|Therapist|Pathologist|Occupational|Alternative Behavior Program|Audiologist|Lifeguard|Interpreter|Translator|Monitor|Safety Patrol|Social Worker|Technology Intern|Tutor|Instructional Facilitator|Resource Officer|Behavior|Occupational|Aide|\\bAids?\\b|Support|\\bLPN\\b|Mental Health (Specialist|Clinician|Therapist)|\\bIntern(ship)?s?\\b|Crossing Guard|Crosswalk Guard|Noon Duty|Recess|Lunchroom Supervis|General Duty Assistant|\\bGDA\\b|Liaison|Advocate|Ambassador|Orientation and Mobility|\\bSLP|Speech[- ]Language|Physical Therapy|Accompanist|\\bPsych\\b|Security|Assistive Technolog",
+    grepl("Counselor|Psychologist|Therapist|Pathologist|Occupational|Alternative Behavior Program|Audiologist|Lifeguard|Interpreter|Translator|Monitor|Safety Patrol|Social Worker|Technology Intern|Tutor|Instructional Facilitator|Resource Officer|Behavior|Occupational|\\bAides?\\b|\\bAids?\\b|Support|\\bLPN\\b|Mental Health (Specialist|Clinician|Therapist)|\\bIntern(ship)?s?\\b|Crossing Guard|Crosswalk Guard|Noon Duty|Recess|Lunchroom Supervis|General Duty Assistant|\\bGDA\\b|Liaison|Advocate|Ambassador|Orientation and Mobility|\\bSLP|Speech[- ]Language|Physical Therapy|Accompanist|\\bPsych\\b|Security|Assistive Technolog",
           title, ignore.case = TRUE) ~ "Support Services",
 
     # Staff-related positions (checked before Teacher so clerical titles like "General Secretary - Library" land here).
     # "Administrative Assistant" is clerical, not Administration (golden set, 2026-11-07).
-    grepl("Administrative (Assistant|Secretary|Clerk)|Admin\\.? Asst|Secretary|Clerk|Office Manager|Clerical|Registrar|Payroll|Human Resources|Bookkeeper|Receptionist|Accounts (Payable|Receivable)|Purchasing|Accountant|Accounting|Benefits Specialist|Business (Services|Office) Specialist", title, ignore.case = TRUE) ~ "Staff",
+    grepl("Administrative (Assistant|Secretary|Clerk)|Admin\\.? Asst|Secretary|Clerk|Office Manager|Clerical|Registrar|Payroll|Human Resources|Bookkeeper|Receptionist|Accounts (Payable|Receivable)|Purchasing|Accountant|Accounting|Benefits Specialist|Business (Services|Office) Specialist|Office Assistant|Records Assistant", title, ignore.case = TRUE) ~ "Staff",
 
     # Custodial/Maintenance-related positions
-    grepl("Custodian|Custodial|Janitor|Maintenance|Cleaner|Snow Removal|Facility|Electrician|HVAC|Grounds|Lawn|Housekeep|Carpenter|Painter|Plumber|Laborer|Sweeper|Warehouse|Field Crew",
+    grepl("Custodian|Custodial|Janitor|Maintenance|Cleaner|Snow Removal|Facility|Electrician|HVAC|Grounds|Lawn|Housekeep|Carpenter|Painter|Plumber|Laborer|Sweeper|Warehouse|Field Crew|Mower|Mowing",
           title, ignore.case = TRUE) ~ "Custodial/Maintenance",
 
     # Transportation-related positions
