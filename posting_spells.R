@@ -40,6 +40,19 @@
 # `min_events` endings. Read them as "days a posting stays listed", not
 # time-to-fill: only SchoolSpring says filled.
 POSTING_SPELL_EVENTS <- c("no longer listed", "closed (confirmed)", "filled", "canceled", "review")
+
+# Relisted: a spell whose posting dropped off and a posting with the same
+# title, at the same district and source, appears in the source's very next
+# run. Usually the district re-advertising, but not always: of 23 WY
+# SchoolSpring cases whose old record has a final status (2026-11-09), 8 were
+# "filled", a new vacancy with the same title. So it is neither linked to the
+# new posting nor counted as an ending: its outcome is unknown (censored at its
+# last sighting), unless the platform itself says it was filled.
+relisted_next_run <- function(district, source, title, first_seen, next_run) {
+  key <- paste(district, source, tolower(gsub("\\s+", " ", trimws(title))), sep = "\u001f")
+  starts <- paste(key, format(first_seen), sep = "\u001f")
+  !is.na(next_run) & paste(key, format(next_run), sep = "\u001f") %in% starts
+}
 EVERGREEN_TITLE_PATTERN <- paste0(
   "\\bsub(stitute)?s?\\b|substitute|on[- ]call|always accepting|accepting applications|",
   "ongoing|continuous|general application|interest (form|list)|^copy of\\b")
@@ -444,6 +457,8 @@ build_posting_spells <- function(panel, calendar = NULL, endings = NULL, frozen 
     sp$Moved_Boards ~ "censored: moved boards",
     sp$Next_Run_Source_Status %in% c("ok", "ok_proxy") ~ "no longer listed",
     TRUE ~ paste0("censored: source ", sp$Next_Run_Source_Status))
+  relisted <- relisted_next_run(sp$District, sp$Posting_Source, sp$Title, sp$First_Seen, sp$Next_Run)
+  sp$Ending[relisted & sp$Ending %in% setdiff(POSTING_SPELL_EVENTS, "filled")] <- "censored: relisted next run"
   sp$Event <- sp$Ending %in% POSTING_SPELL_EVENTS
 
   posted <- suppressWarnings(as.Date(substr(sp$Posted_Date, 1, 10)))
