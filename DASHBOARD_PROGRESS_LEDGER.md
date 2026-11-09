@@ -412,7 +412,10 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     time-to-fill. Open problems: title identity (133 spells merge same-title postings), frozen boards (17 runs at
     12 districts; Fremont #38 the same postings for 57 weeks, also inflating weekly counts), coverage gaps only
     visible as whole-district absences, HE pools (237 of 719 spells, median 196 days).
-  * [ ] Add `Pay_*` to `hedata.xlsx` in `REQUIRED_SCHEMAS_XLSX` once the first weekly run writes it.
+  * [x] `Pay_Min`/`Pay_Max`/`Pay_Unit`/`Pay_Text` required in `hedata.xlsx` (`REQUIRED_SCHEMAS_XLSX`, 2026-11-09):
+    the weekly runs already write them; `app.R` pads a missing pay column with NA, so before this a dropped column
+    would have shown no posted pay without failing the schema step. `Est_Source` too (the HE table's
+    "Typical pay (est.)" reads it).
 
   * [x] Posting-level spells (2026-11-05/06; f5956f0, data be25eab): MT's design (board-host source, per-posting IDs
     keyed by platform and number, posted-date starts, healthy-source endings, Kaplan-Meier with delayed entry), plus
