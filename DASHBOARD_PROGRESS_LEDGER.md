@@ -476,7 +476,13 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
   for day-precision ends (spells, coverage calendar and page-confirmed closings are done).
-- [ ] Decide what the paused Listing Duration tabs show (both states; spells and durations now rebuilt weekly).
+- [ ] What the paused Listing Duration tabs show (both states; spells and durations now rebuilt weekly).
+  Decision (Mike, 2026-11-09): the tabs stay paused until we are sure the data is accurate. Proposed checks
+  (not yet agreed): (a) about 4 weekly runs after the 11-09/10 pushes (relistings censored, first-seen fallback,
+  page-confirmed closings) with no processing change that moves the medians by more than a few days (the OPI
+  dedup alone moved MT K-12 from 63 to 28 days; censoring relistings moved MT HE from 21.5 to 31.5); (b) the spells
+  trust audit (`claude-notes/2026-11-02_spells-trust-audit.md`) re-run on that data, with few endings left that a
+  known data artifact explains (68% on 11-02); (c) the OPI matcher check against fresh OPI data done.
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 3, 5, 6, 7, 8,
   9, 10, 11, 12, 13 done; 2 measured, no effect, not built; 1 has a small ceiling (Other is 1.6% MT, 0.1% WY), suggest
   parking (`claude-notes/2026-11-08_classifier-items-1-2-measured.md`). Left: 3 golden-set known misses (2 file-name
