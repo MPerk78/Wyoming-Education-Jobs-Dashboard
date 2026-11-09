@@ -443,6 +443,10 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   * [x] Classification safeguards 9 and 11 (2026-11-08; f357ca5): as in MT. 1 combinedclean row (Temporary Business
     Office Support Clerk) Support Services -> Staff; posting spells refreshed, which also carry the morning's 17
     moved archive titles (spells Other 85 -> 71, Staff 283 -> 297).
+  * [x] WSBA/district-page dedup key (2026-11-08; e2826cb): `dedup_title_key()` drops dates, file names, "Job
+    Description", school years and expands JH/HS/MS/Asst/SPED before the exact match. 7 more duplicate pairs in the
+    last 30 archives, none distinct merged (subset matching measured and rejected); live: Weston #1 16 -> 15, Park #16
+    4 -> 3. Sheridan #3's double count was mostly the 11-07 parser fix; 1 ambiguous row left.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
@@ -451,7 +455,11 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 3, 5, 6, 7, 8,
   9, 10, 11, 12, 13 done; 2 measured, no effect, not built; 1 has a small ceiling (Other is 1.6% MT, 0.1% WY), suggest
   parking (`claude-notes/2026-11-08_classifier-items-1-2-measured.md`). Left: 14 golden-set known misses (3 K-12), 4. ("Activities/Extracurricular" confirmed in the 2026-11-06 data: 7.)
-- [ ] Sheridan #3's 3 WSBA copies still count next to its 2 direct postings (WSBA words the titles differently and
-  links only the district page).
+- [ ] WSBA vs district-page near-duplicates left after 2026-11-08 (exact key match only, on purpose): Sheridan #3
+  "JH Assistant Basketball Coaches" next to WSBA's Boys and Girls rows (one posting, two positions: 1 extra row);
+  Weston #1 "Head Middle School Girls Soccer Coach" / "MS Head Girls Soccer Coach" (word order); Park #16 "K-12 School
+  Guidance Counselor" / "School Guidance Counselor". Not duplicates: Platte #1's WSBA "Substitute Custodians" and
+  "Substitute Teachers" twice each are Glendo and Wheatland (the misc path drops WSBA's Location; keeping it would
+  change those rows' Posting_IDs).
 - [ ] Manual (repo Settings -> Copilot -> Internet access): uwyo.edu.
 
