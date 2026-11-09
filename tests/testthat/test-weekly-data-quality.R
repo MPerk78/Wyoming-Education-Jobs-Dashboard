@@ -283,9 +283,9 @@ classification_mismatches <- function(got, want, title) {
 test_that("committed K-12 position / Category / Broad_Category equal the current classifier", {
   cc <- read_wy("combinedclean.csv")
   k <- read_wy("k12jobanalysis.csv")
-  expect_identical(classification_mismatches(cc$position, classify_k12_position(cc$title), cc$title), "",
+  expect_identical(classification_mismatches(cc$position, classify_k12_position(cc$title, cc[["Role_Hint"]]), cc$title), "",
                    label = "combinedclean.csv position")
-  expect_identical(classification_mismatches(k$position, classify_k12_position(k$title), k$title), "",
+  expect_identical(classification_mismatches(k$position, classify_k12_position(k$title, k[["Role_Hint"]]), k$title), "",
                    label = "k12jobanalysis.csv position")
   expect_identical(classification_mismatches(k$Category, classify_k12_subject(k$title), k$title), "",
                    label = "k12jobanalysis.csv Category")
@@ -342,7 +342,7 @@ test_that("posting spells carry the bucket the current classifier gives their ti
     p <- here::here(f)
     if (!file.exists(p)) next
     s <- utils::read.csv(p, stringsAsFactors = FALSE)
-    want <- if (f == "posting_spells_k12.csv") classify_k12_position(s$Title) else classify_he_job_type(s$Title)
+    want <- if (f == "posting_spells_k12.csv") classify_k12_position(s$Title, s[["Role_Hint"]]) else classify_he_job_type(s$Title)
     expect_identical(classification_mismatches(s$Position, want, s$Title), "", label = paste(f, "Position"))
   }
 })

@@ -154,11 +154,13 @@ in_committed_order <- function(new, old, id_cols) {
     pos[is.na(pos)] <- unname(last_of_week[new$Archive_Date[is.na(pos)]]) + 0.5
   }
   pos[is.na(pos)] <- Inf
-  out <- new[order(pos, seq_along(pos)), names(old)[names(old) %in% names(new)], drop = FALSE]
+  # Committed columns in their order, then any column the pipeline now adds
+  # (e.g. Role_Hint, 2026-11-09) at the end, as the next weekly run writes it.
+  out <- new[order(pos, seq_along(pos)), c(names(old)[names(old) %in% names(new)], setdiff(names(new), names(old))), drop = FALSE]
   # Each column as the committed file stores it (a number unquoted, text
   # quoted): Est_Year was written as a number by a hand repair on 2026-11-03
   # and as text by the pipeline.
-  for (col in names(out)) {
+  for (col in intersect(names(out), names(old))) {
     committed_type <- class(utils::type.convert(old[[col]], as.is = TRUE))[1]
     if (committed_type %in% c("integer", "numeric", "logical") && is.character(out[[col]])) {
       out[[col]] <- methods::as(out[[col]], committed_type)

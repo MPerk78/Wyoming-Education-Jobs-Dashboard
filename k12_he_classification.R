@@ -55,10 +55,12 @@ fix_title_encoding <- function(title) {
 # K-12
 # ---------------------------------------------------------------------------
 
-# Coarse position bucket from the raw job title.
-classify_k12_position <- function(title) {
+# Coarse position bucket from the raw job title. role_hint (k12_role_hint(),
+# OPI postings' descriptions) refines a few title-only misfilings; NULL or NA
+# leaves the title's bucket.
+classify_k12_position <- function(title, role_hint = NULL) {
   title <- fix_title_encoding(title)
-  dplyr::case_when(
+  position <- dplyr::case_when(
     # Substitute -- checked first, so every substitute posting lands here
     # whatever role it covers ("Substitute Paraprofessional", "Sub Bus Driver").
     # \bSubs?\b / "Substit", not bare "Sub" -- matched inside "Subject"/
@@ -198,6 +200,61 @@ classify_k12_position <- function(title) {
     # Other positions
     TRUE ~ "Other"
   )
+  apply_k12_role_hint(position, role_hint)
+}
+
+# ---------------------------------------------------------------------------
+# Role hint from a posting's description (OPI Jobs for Teachers, MT)
+# ---------------------------------------------------------------------------
+# OPI's title is only its subject-area field ("Elementary Curriculum",
+# "Administrative - Other"), so the title alone misfiles some postings. On
+# 2026-11-09, 16 of 215 counted OPI postings were misfiled, each confirmed by
+# reading its description: long-term substitutes and part-time teachers
+# counted as full Teacher postings, paraeducators under "Elementary
+# Curriculum", teachers under "Administrative - Other". k12_role_hint() reads
+# the description's opening for a few unambiguous signals; NA when there is
+# none. classify_k12_position(title, role_hint) applies it only in the moves
+# listed there, so a hint can never send a posting to Administration or away
+# from a bucket the title names specifically. Identical in the MT and WY repos
+# (WY has no descriptions and never passes a hint).
+K12_ROLE_NOUNS <- c(
+  "Paraprofessional" = "para-?professional|para-?educator|para educator|teacher'?s? aide|instructional aide",
+  "Administration" = "principal|superintendent|director|coordinator|administrator|dean|business manager",
+  "Counselor" = "counselor",
+  "Teacher" = "teacher|instructor|librarian|educator")
+k12_role_hint <- function(description) {
+  lead <- substr(gsub("\\s+", " ", fix_title_encoding(as.character(description))), 1, 250)
+  lead[is.na(lead)] <- ""
+  long_term_sub <- grepl("long[- ]?term sub", lead, ignore.case = TRUE)
+  part_time <- grepl("part[- ]time|half[- ]time|(?<![\\w.])0?\\.[1-9]\\s*FTE\\b", lead, ignore.case = TRUE, perl = TRUE) &
+    !grepl("full[- ]time|1\\.0\\s*FTE", lead, ignore.case = TRUE)
+  # The role named first in the opening.
+  first <- vapply(lead, function(t) {
+    # "paraprofessional support in the classroom" describes a teacher's
+    # setting, not the role (Cottonwood, 2026-11-09).
+    pos <- vapply(names(K12_ROLE_NOUNS), function(n) {
+      tail <- if (n == "Paraprofessional") "(?!\\s+(support|staff))" else ""
+      m <- regexpr(paste0("\\b(", K12_ROLE_NOUNS[[n]], ")s?\\b", tail), t, ignore.case = TRUE, perl = TRUE)
+      if (m < 0) Inf else m
+    }, numeric(1))
+    if (all(is.infinite(pos))) NA_character_ else names(K12_ROLE_NOUNS)[which.min(pos)]
+  }, character(1), USE.NAMES = FALSE)
+  dplyr::case_when(
+    long_term_sub ~ "Substitute",
+    first %in% "Paraprofessional" ~ "Paraprofessional",
+    first %in% "Teacher" & part_time ~ "Part-Time",
+    first %in% c("Teacher", "Counselor", "Administration") ~ first,
+    TRUE ~ NA_character_)
+}
+apply_k12_role_hint <- function(position, role_hint) {
+  h <- if (is.null(role_hint)) rep(NA_character_, length(position)) else as.character(role_hint)
+  dplyr::case_when(
+    h %in% "Substitute" & position %in% c("Teacher", "Part-Time Teacher", "Paraprofessional", "Other") ~ "Substitute",
+    h %in% "Paraprofessional" & position %in% c("Teacher", "Part-Time Teacher", "Administration", "Other") ~ "Paraprofessional",
+    h %in% "Part-Time" & position %in% "Teacher" ~ "Part-Time Teacher",
+    h %in% "Teacher" & position %in% c("Administration", "Other") ~ "Teacher",
+    h %in% "Counselor" & position %in% c("Administration", "Other") ~ "Support Services",
+    TRUE ~ position)
 }
 
 # Fine-grained subject category, computed only for position == "Teacher" rows.
