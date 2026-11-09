@@ -625,7 +625,7 @@ classify_he_job_type_rules <- function(title) {
     # (Part-Time)" otherwise hits the Part-Time + Teacher adjunct rule, and
     # bare "Instructional" (Technologist, Designer, Lab Coordinator) used to
     # land these in the faculty bucket.
-    grepl("Classroom Aide|Instructional Aide|Instructional Assistant|Teacher Aide|Teacher Assistant|Assistant Teacher|Associate Teacher|Children.s (Discovery )?Center|\\bECLC\\b",
+    grepl("Classroom Aide|Instructional Aide|Instructional Assistant|Teacher Aide|Teacher Assistant|Assistant Teacher|Associate Teacher|Classroom Support|Children.s (Discovery )?Center|\\bECLC\\b",
           title, ignore.case = TRUE) ~ "Support Services",
     grepl("Instructional (Technologist|Designer|Design|Technology|Specialist|Lab)", title, ignore.case = TRUE) ~ "Professional",
 
@@ -659,7 +659,7 @@ classify_he_job_type_rules <- function(title) {
     grepl("Instructor|Instructional Professor|Teacher|Faculty|Professor|Lecturer|Post Doc|Postdoc|Subject Matter Expert|Librarian|Educator", title, ignore.case = TRUE) ~ "Instructor/Teacher/Faculty",
 
     # Student Positions
-    grepl("Student Worker|Student Position|Work[- ]?Study|Students Only|Student Library Aid|Student Employment|Student Assistant|Student Staff|Student Lab Assistant|Student Ambassador|\\bFWS\\b", title, ignore.case = TRUE) ~ "Student Positions",
+    grepl("Student Worker|Student Position|Work[- ]?Study|Students Only|Student Library Aid|Student Employment|Student Assistant|Student Staff|Student Lab Assistant|Student Ambassador|\\bFWS\\b|\\(Student\\)|^\\s*Student\\s*,", title, ignore.case = TRUE) ~ "Student Positions",
 
     # Healthcare
     grepl("Nurse|Wellbeing|Health|Medicine|Medical Support Assistant|\\bRN\\b|Dietitian|Psychiatric|Practice Provider", title, ignore.case = TRUE) ~ "Healthcare",
@@ -675,7 +675,7 @@ classify_he_job_type_rules <- function(title) {
     # Academic, success and retention coaches advise students; they aren't
     # athletics (golden set, 2026-11-07: "Student Success Coach", "GEAR UP
     # Success Coach", "Academic Coach Talent Search").
-    grepl("(Academic|Success|Retention|Career|Completion|Enrollment|College|Life|Navigation)\\s+Coach|GEAR UP|Advisor|Advising|Enrollment Counselor|Financial Aid|Tutor|Career Peer|Tribal Education Assistant|Night ESL Class Aide|Writing Consultant|Learning Commons|Testing Center|Camp Counselor", title, ignore.case = TRUE) ~ "Advising and Student Services",
+    grepl("(Academic|Success|Retention|Career|Completion|Enrollment|College|Life|Navigation)\\s+Coach|GEAR UP|Advisor|Advising|Enrollment Counselor|Financial Aid|Tutor|Career Peer|Tribal Education Assistant|Night ESL Class Aide|Writing Consultant|Learning Commons|Testing Center|Camp Counselor|^\\s*Counselor\\b|Financial Assistance", title, ignore.case = TRUE) ~ "Advising and Student Services",
 
     # A custodian whose building is a dining hall ("Custodian - Washakie Dining
     # Center") is still a custodian; dual custodian/dish-room jobs stay
@@ -702,18 +702,23 @@ classify_he_job_type_rules <- function(title) {
     grepl("Accountant|Receivable|Accounts|Payroll|Bursar|Accounting|Cashier|Financial Associate|Storekeeper", title, ignore.case = TRUE) ~ "Accounting/Finance",
 
     # Research & Science (only actual research/scientific roles)
-    grepl("Research Associate|Laboratory Technician|Research Scientist|Research Assistant|Lab Assistant|Laboratory Assistant|Lab/Clinical|Farm M|Researcher|ologist\\b|Research Pilot", title, ignore.case = TRUE) ~ "Research & Science",
+    grepl("Research Associate|Laboratory Technician|Research Scientist|Research Assistant|Lab Assistant|Laboratory Assistant|Lab/Clinical|Farm M|Researcher|ologist\\b|Research Pilot|Laboratory Aide|Lab Aide|Husbandry|Paleontolog|Fossil", title, ignore.case = TRUE) ~ "Research & Science",
 
     # Technical -- bare "Specialist" excluded (it shadows later, more
     # specific buckets like Support Services' "Library Information
     # Specialist"; only qualified "<Thing> Specialist" phrases stay here).
+    # A stationary engineer runs the heating plant; enterprise/solutions/data
+    # architects are IT (golden set, 2026-11-09).
+    grepl("Stationary Engineer", title, ignore.case = TRUE) ~ "Maintenance & Service",
+    grepl("(Enterprise|Solutions?|Data|Cloud|Software) Architect", title, ignore.case = TRUE) ~ "Technical",
+
     grepl("Control Specialist|Engineer|IT Support Technician|Information Security Analyst|Programmer Analyst|Network Specialist|Data Operation Engineer|Design Engineer|GIS Specialist|Systems? Administrator|Network Administrator|Software|Information Technology|\\bI\\. ?T\\.|Computer|Linux|Developer|Programmer|\\bIT\\b", title, ignore.case = TRUE) ~ "Technical",
 
     # Maintenance & Service ("Cook"/"Baker" excluded -- see Culinary above)
-    grepl("Maintenance|Technician|Facilities|Grounds|Custodian|HVAC|Plumber|Carpenter|Logistics Handler|Glazier|Painter|Operator|Mechanic|Flooring|Electrician|Locksmith|Custodial|Warehouse|Mail|Postal|Shipping|Receiving|Foreman|Stage Tech|Scene Shop", title, ignore.case = TRUE) ~ "Maintenance & Service",
+    grepl("Maintenance|Technician|Facilities|Grounds|Custodian|HVAC|Plumber|Carpenter|Logistics Handler|Glazier|Painter|Operator|Mechanic|Flooring|Electrician|Locksmith|Custodial|Warehouse|Mail|Postal|Shipping|Receiving|Foreman|Stage Tech|Scene Shop|Laborer", title, ignore.case = TRUE) ~ "Maintenance & Service",
 
     # Support Services
-    grepl("Safety|Security|Police|Dispatch|Fire Marshal|Interpreter|Custodian|Laborer|Driver|Cleaner|Facilities|Grounds|Library Information Specialist|Museum Exhibit Specialist|Specialist, Student Services|Lifeguard|Resident Assistant|Campus Services I|Outdoor Recreation Lab Room|Bookstore Sales Clerk|Student Service Assistant|Aide|Monitor|Attendant|Scorekeeper|Referee|Accompanist|Stall Assistant",
+    grepl("Safety|Security|Police|Dispatch|Fire Marshal|Interpreter|Custodian|Laborer|Driver|Cleaner|Facilities|Grounds|Library Information Specialist|Museum Exhibit Specialist|Specialist, Student Services|Lifeguard|Resident Assistant|Campus Services I|Outdoor Recreation Lab Room|Bookstore Sales Clerk|Student Service Assistant|Aide|Monitor|Attendant|Scorekeeper|Referee|Accompanist|Stall Assistant|Night Watch",
           title, ignore.case = TRUE) ~ "Support Services",
 
     # Management ("Coordinator" excluded -- Professional's own copy of that
