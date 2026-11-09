@@ -466,6 +466,8 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     Built instead (Mike, option 1): those endings are "outcome unknown" (censored) in the duration estimates
     (7066848): K-12 median 25.5 -> 26.5 days, college 59.5 unchanged. A platform-reported "filled" keeps its ending.
 
+  * [x] Shared role-hint classifier support (2026-11-09; eec6601): same code as MT; WY passes no hint, no WY change.
+
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
   for day-precision ends (spells, coverage calendar and page-confirmed closings are done).
