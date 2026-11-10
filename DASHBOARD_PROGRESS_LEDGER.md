@@ -511,6 +511,10 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     boot smoke pass on its output; full suite 499.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
+- [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
+  222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
+  likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).
+  Options: a footnote on its row/popup, hide its students-per-teacher figure, or leave it.
 - [ ] After the 2026-11-13 run writes them: remove `pending`'s salarymap2.csv entries in
   `tests/testthat/test-data-dictionary.R` (Child_Poverty_Basis, Free_Reduced_Lunch_Share, FRL_Schools_Reporting,
   FRL_Year). They were documented before any run wrote them, and the blocking pre-run suite would have stopped that
