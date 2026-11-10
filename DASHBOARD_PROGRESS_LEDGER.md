@@ -482,6 +482,10 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     "Cashier" (not bare "Server", which can be IT). Archive diff over both states (7,825 K-12 titles): only those 2
     titles move, Other -> Food Services; committed data unchanged, MT posting spells refreshed (Food Services 49 -> 50
     postings). Golden set 551 of 551.
+  * [x] Fremont County School District 38 child poverty (2026-11-09): SAIPE files Arapahoe as an *elementary*
+    district in the Census school-district map, so the unified-only request missed it (the 08-06 note called it
+    absent from SAIPE). `fetch_census_saipe_child_poverty()` now also asks for the elementary geography (2024:
+    16.8%; a 204 with no body adds no rows). Live: 48 of 48 districts have a rate; the 5 charter rows are next.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check

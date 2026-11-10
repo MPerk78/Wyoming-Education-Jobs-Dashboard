@@ -26,11 +26,10 @@
 # "school district (unified)" (GEOCAT 970) is the right geography type for
 # Wyoming -- WY districts are K-12 unified districts, not the separate
 # elementary/secondary districts SAIPE also tracks in some other states.
-# Fremont County School District 38 (Arapahoe Charter High School) is the
-# one confirmed real WY district absent from SAIPE's output entirely
-# (checked live 2026-08-06) -- left as a real NA after the join rather than
-# something to force-match, the same kind of genuine coverage gap every
-# other external source in this project already has somewhere.
+# Fremont County School District 38 (Arapahoe) is the exception: SAIPE files
+# it under "school district (elementary)", so fetch_census_saipe_child_poverty()
+# asks for that geography too (an 2026-08-06 note called it absent from SAIPE;
+# it was only absent from the unified list).
 
 suppressMessages({
   library(httr2)
@@ -70,18 +69,29 @@ parse_saipe_json <- function(json_text) {
   body
 }
 
+# Unified districts, plus SAIPE's elementary geography: the Census school-
+# district map files Fremont County School District 38 (Arapahoe) as an
+# elementary district, so a unified-only request missed it (2024: 16.8%;
+# the earlier "absent from SAIPE" note was this, found 2026-11-09). A year
+# with no elementary districts answers 204 with no body: no rows.
 fetch_census_saipe_child_poverty <- function(year = NULL, api_key = census_api_key()) {
   year <- year %||% latest_saipe_year(api_key = api_key)
-  resp <- request(SAIPE_SCHDIST_ENDPOINT) %>%
-    req_url_query(
-      get = paste(c("SD_NAME", "SAEPOVRAT5_17RV_PT"), collapse = ","),
-      `for` = "school district (unified)",
-      `in` = paste0("state:", WY_STATE_FIPS),
-      time = year,
-      key = api_key
-    ) %>%
-    perform_with_retry()
-  parse_census_saipe_child_poverty(resp_body_string(resp), year)
+  fetch_geo <- function(geocat) {
+    resp <- request(SAIPE_SCHDIST_ENDPOINT) %>%
+      req_url_query(
+        get = paste(c("SD_NAME", "SAEPOVRAT5_17RV_PT"), collapse = ","),
+        `for` = paste0("school district (", geocat, ")"),
+        `in` = paste0("state:", WY_STATE_FIPS),
+        time = year,
+        key = api_key
+      ) %>%
+      perform_with_retry()
+    if (!resp_has_body(resp)) return(NULL)
+    body <- resp_body_string(resp)
+    if (!nzchar(trimws(body))) return(NULL)
+    parse_census_saipe_child_poverty(body, year)
+  }
+  dplyr::bind_rows(fetch_geo("unified"), fetch_geo("elementary"))
 }
 
 parse_census_saipe_child_poverty <- function(json_text, year) {

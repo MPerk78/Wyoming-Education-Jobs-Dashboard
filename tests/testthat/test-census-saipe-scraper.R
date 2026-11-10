@@ -52,3 +52,28 @@ test_that("parse_census_saipe_child_poverty returns an empty, correctly-shaped f
   expect_equal(nrow(result), 0)
   expect_equal(names(result), c("District", "Child_Poverty_Rate", "SAIPE_Year"))
 })
+
+# Real fixture: SAIPE's 2024 "school district (elementary)" response for
+# Wyoming, captured 2026-11-09 -- its only row is Fremont County School
+# District 38 (Arapahoe), which the unified list leaves out.
+test_that("fetch_census_saipe_child_poverty adds the elementary geography (Fremont County School District 38)", {
+  unified <- read_fixture("census_saipe_schdist_2024.json")
+  elementary <- read_fixture("census_saipe_schdist_elementary_2024.json")
+  responses <- list(
+    httr2::response(status_code = 200, headers = list("Content-Type" = "application/json"), body = charToRaw(unified)),
+    httr2::response(status_code = 200, headers = list("Content-Type" = "application/json"), body = charToRaw(elementary))
+  )
+  httr2::local_mocked_responses(responses)
+  result <- fetch_census_saipe_child_poverty(year = 2024, api_key = "test")
+  expect_equal(nrow(result), 6)
+  expect_equal(result$Child_Poverty_Rate[result$District == "Fremont County School District 38"], 0.168)
+})
+
+test_that("an empty elementary answer (HTTP 204, no body) adds no rows", {
+  httr2::local_mocked_responses(list(
+    httr2::response(status_code = 200, headers = list("Content-Type" = "application/json"),
+                    body = charToRaw(read_fixture("census_saipe_schdist_2024.json"))),
+    httr2::response(status_code = 204, body = raw(0))
+  ))
+  expect_equal(nrow(fetch_census_saipe_child_poverty(year = 2024, api_key = "test")), 5)
+})
