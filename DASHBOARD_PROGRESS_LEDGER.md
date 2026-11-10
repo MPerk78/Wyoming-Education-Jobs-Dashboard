@@ -475,6 +475,8 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     Casper) had relative posted dates ("Posted 3 weeks ago") shown as written; the app now shows "About <date>" or
     "Before <date>". Also measured, no change needed: standing adjunct and student postings (Western since 2018) are
     open by the can-apply standard, marked "Listed since", excluded from durations; titles that name only past years: 0.
+  * [x] Copilot Internet access (repo Settings, Mike, 2026-11-09): uwyo.edu. The setting now matches
+    `.github/copilot-allowlist.txt`.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
@@ -494,5 +496,4 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   Girls Soccer Coach" / "MS Head Girls Soccer Coach" (word order; a word-order-blind key would merge "Assistant
   Teacher" with "Teacher Assistant"); Park #16 "K-12 School Guidance Counselor" / "School Guidance Counselor" (subset).
   Not duplicates: Platte #1's WSBA substitute rows (Glendo and Wheatland).
-- [ ] Manual (repo Settings -> Copilot -> Internet access): uwyo.edu.
 
