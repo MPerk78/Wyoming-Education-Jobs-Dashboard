@@ -25,6 +25,14 @@ test_that("every column in every public research CSV is documented in data_dicti
 
   app_dir <- here::here("Wy_Ed_Jobs")
 
+  # Columns documented ahead of the weekly run that first writes them
+  # (2026-11-09): absent from the committed file until then, so this suite (the
+  # weekly run's first, blocking step) would stop that very run. Remove each
+  # entry once a weekly run has written the column.
+  pending <- list(
+    "salarymap2.csv" = c("Child_Poverty_Basis", "Free_Reduced_Lunch_Share", "FRL_Schools_Reporting", "FRL_Year")
+  )
+
   for (f in documented_files) {
     file_path <- file.path(app_dir, f)
     expect_true(file.exists(file_path), info = paste("Documented file does not exist:", f))
@@ -39,7 +47,7 @@ test_that("every column in every public research CSV is documented in data_dicti
                  info = paste("File", f, "has columns missing in data_dictionary.csv:",
                               paste(missing_in_dict, collapse = ", ")))
 
-    missing_in_file <- setdiff(dict_cols, actual_cols)
+    missing_in_file <- setdiff(setdiff(dict_cols, actual_cols), pending[[f]])
     expect_equal(missing_in_file, character(0),
                  info = paste("data_dictionary.csv documents columns not in file", f, ":",
                               paste(missing_in_file, collapse = ", ")))
