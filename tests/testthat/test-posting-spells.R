@@ -200,6 +200,13 @@ test_that("a posting relisted under a new ID the next run is 'outcome unknown', 
   nxt <- as.Date(c("2026-04-17", NA, NA, NA, NA))
   # Same district, source and title (case and spacing aside), first seen the old one's next run.
   expect_equal(relisted_next_run(d, src, title, first, nxt), c(TRUE, FALSE, FALSE, FALSE, FALSE))
+  # Punctuation aside too (WY spells audit 2026-11-10: 41 of these were counted as endings).
+  expect_true(relisted_next_run(d[1:2], src[1:2], c("Paraeducator- SPED Related Services", "Paraeducator - SPED Related Services"),
+                                first[1:2], nxt[1:2])[1])
+  expect_true(relisted_next_run(d[1:2], src[1:2], c("Special Ed, Para Professional", "Special Ed. Para Professional"),
+                                first[1:2], nxt[1:2])[1])
+  # Words still have to match.
+  expect_false(relisted_next_run(d[1:2], src[1:2], c("Para Professional", "Paraprofessional II"), first[1:2], nxt[1:2])[1])
   # A different title, source or district, or a later run, is not a relisting.
   expect_equal(relisted_next_run(d[c(1, 3)], src[c(1, 3)], c("Custodian", "Elementary Teacher"), first[c(1, 3)],
                                  as.Date(c("2026-04-17", NA))), c(FALSE, FALSE))

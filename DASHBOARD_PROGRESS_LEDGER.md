@@ -511,6 +511,13 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     numbers (all had sorted as text, server-side); one wording for the free-meals note; golden-set guard row for the
     Cashier rule. Rehearsal (`claude-notes/2026-11-09_rehearsal-wy-review-fixes.log`): all steps passed; app tests and
     boot smoke pass on its output; full suite 499.
+  * [x] Two spell artifacts from the 11-10 audit (2026-11-10, both states' code): `fix_title_encoding()` decodes every
+    numeric HTML entity (`decode_numeric_entities()`; it missed the hex `&#x27;`, so Albany's "Girls&#x27;" broke
+    identity and Natrona's "Boy&#x27;s" showed on the dashboard), and `relisted_next_run()` ignores punctuation
+    ("Paraeducator- SPED" relisted as "Paraeducator - SPED"). Spells rebuilt: K-12 endings 7,680 -> 7,631 (48 more
+    relistings censored), medians unchanged (K-12 26.5, HE 59.5; Part-Time Teacher 17.5 -> 24.5 on 47 endings);
+    reclassify: 1 combinedclean title changes. Classifier archive diff (both states): no bucket moves. Rehearsal
+    (`claude-notes/2026-11-10_rehearsal-wy-entity-relist.log`): all steps passed, 81 sources ok, post-run suite 2,218.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from

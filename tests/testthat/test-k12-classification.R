@@ -234,3 +234,15 @@ test_that("is_placeholder_posting drops non-jobs but keeps standing applicant po
   expect_false(any(is_placeholder_posting(c("Applicant Pool - Substitute Teacher", "MS Science Teacher Job Description",
     "Elementary Teacher", NA))))
 })
+
+test_that("numeric HTML entities in titles are decoded, hex forms included", {
+  # Albany's board switched from "Girls'" to "Girls&#x27;" in 2026, which broke
+  # the posting's identity across runs (an ending plus a new start) and showed
+  # the raw entity on the dashboard (WY spells audit, 2026-11-10).
+  expect_equal(fix_title_encoding("Middle School Girls&#x27; Basketball Coach"), "Middle School Girls' Basketball Coach")
+  expect_equal(fix_title_encoding("Teacher&#x2019;s Aide &#39;26"), "Teacher\u2019s Aide '26")
+  expect_equal(fix_title_encoding("Para &#8211; SPED"), "Para \u2013 SPED")
+  # Not a valid code point: left as written. Named entities still work.
+  expect_equal(fix_title_encoding("Coach &#xD800; &amp; Aide"), "Coach &#xD800; & Aide")
+  expect_equal(fix_title_encoding(c(NA, "Plain Title")), c(NA, "Plain Title"))
+})

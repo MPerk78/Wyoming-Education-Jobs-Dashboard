@@ -49,7 +49,8 @@ POSTING_SPELL_EVENTS <- c("no longer listed", "closed (confirmed)", "filled", "c
 # new posting nor counted as an ending: its outcome is unknown (censored at its
 # last sighting), unless the platform itself says it was filled.
 relisted_next_run <- function(district, source, title, first_seen, next_run) {
-  key <- paste(district, source, tolower(gsub("\\s+", " ", trimws(title))), sep = "\u001f")
+  # Punctuation aside too: "Paraeducator- SPED" relisted as "Paraeducator - SPED".
+  key <- paste(district, source, trimws(gsub("[^[:alnum:]]+", " ", tolower(title))), sep = "\u001f")
   starts <- paste(key, format(first_seen), sep = "\u001f")
   !is.na(next_run) & paste(key, format(next_run), sep = "\u001f") %in% starts
 }
