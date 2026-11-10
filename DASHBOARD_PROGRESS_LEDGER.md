@@ -477,6 +477,11 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     open by the can-apply standard, marked "Listed since", excluded from durations; titles that name only past years: 0.
   * [x] Copilot Internet access (repo Settings, Mike, 2026-11-09): uwyo.edu. The setting now matches
     `.github/copilot-allowlist.txt`.
+  * [x] Last golden-set known misses (2026-11-09): `classify_k12_position()` reads "_" as a space (an uploaded
+    file's name: "Dish_Server_Cashier 26 - Copy", Livingston) and Food Services takes word-bounded "Dish" and
+    "Cashier" (not bare "Server", which can be IT). Archive diff over both states (7,825 K-12 titles): only those 2
+    titles move, Other -> Food Services; committed data unchanged, MT posting spells refreshed (Food Services 49 -> 50
+    postings). Golden set 551 of 551.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
@@ -490,8 +495,8 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   known data artifact explains (68% on 11-02); (c) the OPI matcher check against fresh OPI data done.
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 3, 5, 6, 7, 8,
   9, 10, 11, 12, 13 done; 2 measured, no effect, not built; 1 has a small ceiling (Other is 1.6% MT, 0.1% WY), suggest
-  parking (`claude-notes/2026-11-08_classifier-items-1-2-measured.md`). Left: 3 golden-set known misses (2 file-name
-  titles; "COMMUNICATIONS COORD." labeled Staff though every Coordinator is Administration), 4. ("Activities/Extracurricular" confirmed in the 2026-11-06 data: 7.)
+  parking (`claude-notes/2026-11-08_classifier-items-1-2-measured.md`). Golden set 551 of 551, no known misses (2026-11-09:
+  the 2 file-name titles fixed; "COMMUNICATIONS COORD." was already relabeled in 3389731). Left: 4. ("Activities/Extracurricular" confirmed in the 2026-11-06 data: 7.)
 - [ ] WSBA vs district-page near-duplicates left (exact key match only, on purpose): Weston #1 "Head Middle School
   Girls Soccer Coach" / "MS Head Girls Soccer Coach" (word order; a word-order-blind key would merge "Assistant
   Teacher" with "Teacher Assistant"); Park #16 "K-12 School Guidance Counselor" / "School Guidance Counselor" (subset).

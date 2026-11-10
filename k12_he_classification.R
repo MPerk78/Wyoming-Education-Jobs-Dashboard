@@ -60,6 +60,10 @@ fix_title_encoding <- function(title) {
 # leaves the title's bucket.
 classify_k12_position <- function(title, role_hint = NULL) {
   title <- fix_title_encoding(title)
+  # An uploaded file's name uses underscores for spaces ("Dish_Server_Cashier
+  # 26 - Copy", Livingston); "_" is a word character, so \b patterns would
+  # never match inside it (golden set, 2026-11-09).
+  title <- gsub("_", " ", title, fixed = TRUE)
   position <- dplyr::case_when(
     # Substitute -- checked first, so every substitute posting lands here
     # whatever role it covers ("Substitute Paraprofessional", "Sub Bus Driver").
@@ -178,7 +182,9 @@ classify_k12_position <- function(title, role_hint = NULL) {
           title, ignore.case = TRUE) ~ "Athletics",
 
     # Food Services-related positions
-    grepl("Food|Cook|Nutrition|Cafeteria|Dishwasher|Kitchen|Lunch|Meal|Feeding|Breakfast", title, ignore.case = TRUE) ~ "Food Services",
+    # Word-bounded "Dish"/"Cashier" for dish-room and lunch-line jobs
+    # ("Dish Server Cashier"); not bare "Server", which can be IT.
+    grepl("Food|Cook|Nutrition|Cafeteria|Dishwasher|Kitchen|Lunch|Meal|Feeding|Breakfast|\\bDish(es)?\\b|\\bCashiers?\\b", title, ignore.case = TRUE) ~ "Food Services",
 
     # Student Teaching-related positions
     grepl("Daycare|After School|Head Start|Before School|Early Bird|Lights On|Child ?care", title, ignore.case = TRUE) ~ "Child Care",
