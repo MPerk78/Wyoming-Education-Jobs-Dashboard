@@ -499,6 +499,9 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     (`claude-notes/2026-11-09_rehearsal-wy-frl-employers.log`) found 2 failures only next week's data shows (0
     enrollment -> students-per-teacher 0; data dictionary), both fixed and the full suite re-run on that output:
     497 pass.
+  * [x] Converse County SD 1 and SD 2 map dots swapped back (2026-11-09): since `fb48a72` each carried the other's
+    coordinates (SD 2, Glenrock, sat at Douglas; SD 1 at Glenrock), ~40 km apart; ids and links were right. Found by
+    the toolkit's new `tools/reference_audit.R` (map dot vs the district's CCD schools).
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
