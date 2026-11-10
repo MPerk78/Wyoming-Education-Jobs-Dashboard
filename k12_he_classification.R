@@ -607,6 +607,12 @@ extract_posted_pay <- function(text) {
         # is a season stipend.
         hi >= 7 & hi <= 100 & grepl("\\bhours?\\b|\\bhrs?\\b", tolower(t)) ~ "hour",
         hi >= 250 & hi < 15000 & grepl("coach|advisor|sponsor|stipend|season|extra[- ]?duty|extracurricular", tolower(t)) ~ "stipend",
+        # A bare amount of $7.25-$60 beside a pay word ("starting wage of
+        # $16.04", "Step 1: $13.37", "$21.35 starting pay") is hourly: every
+        # amount in that range with a stated unit was hourly (633 of 633, both
+        # states' postings, 2026-11-10).
+        lo >= 7.25 & hi <= 60 & (grepl("wage|\\bpay\\b|salary|\\brate\\b|schedule|\\bstep\\b|\\bgrade\\b|starting", near_before) |
+                                   grepl("^[^a-z]{0,3}(starting )?(pay|wage)\\b", after)) ~ "hour",
         TRUE ~ NA_character_
       )
       # An "hourly" figure in the thousands, or a "yearly" one under $1,000,

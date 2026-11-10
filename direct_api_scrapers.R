@@ -412,6 +412,17 @@ parse_neogov_card_pay <- function(html_text) {
   pay <- extract_posted_pay(ifelse(is.na(meta_pay), preview, meta_pay))
   from_meta <- !is.na(meta_pay) & !is.na(pay$Pay_Min)
   pay$Pay_Text[from_meta] <- meta_pay[from_meta]
+  # The pay field's unit is the board's pay type, which can be wrong: Gillette's
+  # adjunct cards say "Adjunct - $900.00 Hourly" while the description says
+  # "Grade: $900 per credit hour" (2026-11-10). When the field's unit is
+  # rejected as implausible, the description preview's pay is used instead,
+  # if it states a unit.
+  no_unit <- which(from_meta & is.na(pay$Pay_Unit) & !is.na(preview))
+  if (length(no_unit) > 0) {
+    alt <- extract_posted_pay(preview[no_unit])
+    use <- !is.na(alt$Pay_Min) & !is.na(alt$Pay_Unit)
+    for (col in POSTED_PAY_COLUMNS) pay[[col]][no_unit[use]] <- alt[[col]][use]
+  }
   cbind(data.frame(Job_ID = rvest::html_attr(cards, "data-job-id"), stringsAsFactors = FALSE), pay)
 }
 

@@ -518,6 +518,15 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     relistings censored), medians unchanged (K-12 26.5, HE 59.5; Part-Time Teacher 17.5 -> 24.5 on 47 endings);
     reclassify: 1 combinedclean title changes. Classifier archive diff (both states): no bucket moves. Rehearsal
     (`claude-notes/2026-11-10_rehearsal-wy-entity-relist.log`): all steps passed, 81 sources ok, post-run suite 2,218.
+  * [x] Pay units and advertised windows (2026-11-10, both states' code; `claude-notes/2026-11-10_data-integrity-sweep.md`):
+    `extract_posted_pay()` reads a bare $7.25-$60 beside a pay word as hourly ("starting wage of $16.04", "Step 1:
+    $13.37"; all 633 stated-unit amounts in that range were hourly; over every archived pay text exactly 12 change, all
+    no unit -> hour). `parse_neogov_card_pay()`: when the pay field's unit is rejected, the card's description is used
+    (Gillette's "Adjunct - $900.00 Hourly" is "$900 per credit hour"; fixture `neogov_gillettecollege_p1_2026-11-10.html`).
+    Spells: a posting listed more than a week past its stated date gets no advertised window (Sheridan's 3 past
+    "Initial Review Date"s, 6 stale K-12 dates, one from 2023). Rehearsal
+    (`claude-notes/2026-11-10_rehearsal-wy-pay-windows.log`): all steps passed, 81 sources ok, no posted pay left
+    without a unit, post-run suite 2,230.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from

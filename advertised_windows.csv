@@ -1,14 +1,10 @@
 "Segment","Position","Postings","Median_Days"
-"HE","All",4,37.5
+"HE","All",2,45.5
 "HE","Adjunct/Part-Time Faculty",1,37
-"HE","Administration",1,38
 "HE","Management",1,54
-"HE","Professional",1,17
-"K-12","All",24,14
+"K-12","All",20,14
 "K-12","Support Services",9,14
 "K-12","Athletics",5,44
 "K-12","Custodial/Maintenance",3,9
-"K-12","Food Services",3,13
-"K-12","Paraprofessional",2,15
-"K-12","Teacher",1,25
-"K-12","Transportation",1,20
+"K-12","Food Services",2,12.5
+"K-12","Paraprofessional",1,14

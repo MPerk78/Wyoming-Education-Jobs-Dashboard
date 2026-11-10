@@ -227,3 +227,12 @@ test_that("the committed spells mark relistings unknown but keep platform-report
   expect_false(any(rel & s$Ending %in% setdiff(POSTING_SPELL_EVENTS, "filled")))
   expect_true(all(r <= rel))
 })
+
+test_that("the committed spells give no advertised window to a posting that outlived its stated date", {
+  for (p in here::here(c("posting_spells_k12.csv", "posting_spells_he.csv"))) {
+    skip_if_not(file.exists(p), "posting spells not built")
+    s <- utils::read.csv(p, stringsAsFactors = FALSE)
+    w <- !is.na(s$Advertised_Days)
+    expect_true(all(as.Date(s$Last_Seen[w]) <= as.Date(s$Stated_Close_Date[w]) + 7), info = basename(p))
+  }
+})

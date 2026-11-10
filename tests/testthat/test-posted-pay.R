@@ -171,3 +171,33 @@ test_that("drop_implausible_pay blanks every Pay_* column of a bad row only", {
   expect_true(all(is.na(unlist(out[2, POSTED_PAY_COLUMNS]))))
   expect_equal(out[1, ], df[1, ])
 })
+
+test_that("a NEOGOV pay field with an implausible unit falls back to the card's description", {
+  # Real cards (Gillette College, 2026-11-10): the field says "Adjunct - $900.00
+  # Hourly", the description "Grade: $900 per credit hour".
+  pay <- parse_neogov_card_pay(paste(readLines(test_path("fixtures", "neogov_gillettecollege_p1_2026-11-10.html"),
+                                               warn = FALSE, encoding = "UTF-8"), collapse = "\n"))
+  adj <- pay[!is.na(pay$Pay_Min) & pay$Pay_Min == 900, ]
+  expect_gte(nrow(adj), 2)
+  expect_true(all(adj$Pay_Unit == "credit hour"))
+  expect_true(all(grepl("per credit hour", adj$Pay_Text)))
+  # A field with a plausible unit is still taken from the field.
+  expect_false(any(is.na(pay$Pay_Unit[!is.na(pay$Pay_Min)])))
+})
+
+test_that("a bare $7.25-$60 amount beside a pay word is read as hourly", {
+  # Real posting text, 2026-11-03/06 (Stevensville, Three Forks, Converse #1, Park #6).
+  p <- extract_posted_pay(c("Monday through Friday, with a starting wage of $16.04 with paid time off",
+                            "Activity Drivers: $21.35 starting pay District Paid CDL",
+                            "Salary Schedule: Category C; step 1: $13.37",
+                            "FLSA Status Approval Date Salary GradeNon Exempt $19.20 - $31.70 Email To A Friend",
+                            # Not changed: a stipend, an amount with no pay word, an amount over $60.
+                            "Head Coach stipend $45",
+                            "Bring $20 for the background check",
+                            "Starting salary is $75 for the day"))
+  expect_equal(p$Pay_Unit[1:4], rep("hour", 4))
+  expect_equal(p$Pay_Min[4], 19.2); expect_equal(p$Pay_Max[4], 31.7)
+  expect_equal(p$Pay_Unit[5], "stipend")
+  expect_true(is.na(p$Pay_Unit[6]))
+  expect_false(p$Pay_Unit[7] %in% "hour")
+})

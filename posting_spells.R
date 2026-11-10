@@ -509,6 +509,10 @@ build_posting_spells <- function(panel, calendar = NULL, endings = NULL, frozen 
   # out) aren't deadlines.
   sp$Advertised_Days <- as.numeric(close - sp$Start_Date)
   sp$Advertised_Days[is.na(sp$Advertised_Days) | sp$Advertised_Days < 0 | sp$Advertised_Days > 365] <- NA
+  # A date the posting outlived by more than a week was not its deadline: a
+  # first-review date (Sheridan's "Initial Review Date"), or a stale field
+  # (a 2023 "closing date" on a posting still listed in 2026).
+  sp$Advertised_Days[!is.na(close) & sp$Last_Seen > close + 7] <- NA
   # Age when first seen (delayed entry): a posting up since April that we first
   # saw in August is only at risk of "ending under our eyes" from then on.
   sp$Days_Before_First_Seen <- as.numeric(sp$First_Seen - sp$Start_Date)
