@@ -275,7 +275,8 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     from each listing card's pay line, or its description preview when that line is blank, into `hedata.xlsx` and the
     raw HE archive, with a "Posted Pay" column in the Higher Ed Jobs table. Live 2026-10-30: LCCC 57/84 (NEOGOV prints
     "$0.00" for adjuncts with no stated pay, now read as none), Casper 7/8, Central 8/13, Gillette 21/22.
-    `facultydata.csv` keeps its schema (no Pay_*). PeopleAdmin colleges and UW: not yet.
+    `facultydata.csv` keeps its schema (no Pay_*). PeopleAdmin colleges and UW: since added (2026-11-01, 55654d0;
+    11-06 run: UW 195/229, Sheridan 60/71, Western 34/42, Eastern 10/10, Northwest 1/4).
   * [x] Pay-coverage monitor (2026-10-31): `check_pay_coverage.R` (non-blocking weekly step, in the monitoring
     self-check) flags a source whose postings still arrive but whose share with stated pay fell to <=20% of its own
     average (needs 2+ archived weeks with pay, avg share >=40%, 3+ postings), into the weekly drift issue. Pure logic
@@ -342,7 +343,8 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     values). New `Close_Date` (combinedclean + raw archive): AppliTrack "Closing Date" as written. The 10-30 week was
     moved onto job IDs and corrected from the live boards (263/318; the rest had left the board). WSBA rows linking to
     AppliTrack category pages keep the fingerprint. Fixture `applitrack_output_wy_teton_single_position_type.bin`.
-    Full weekly rehearsal passed. Next: WY's spells have the same trust problems as MT's (not audited).
+    Full weekly rehearsal passed. Next: WY's spells have the same trust problems as MT's (not audited; since audited
+    2026-11-05 and rebuilt at posting level, and re-checked 2026-11-10, see the Listing Duration item).
   * [x] Real posting dates, rest of step 1 (2026-11-04, ported from MT; 8815499): SchoolSpring reads each
     posting's own record (`add_schoolspring_details()`, before `normalize_id_backed_k12_postings()`): `Close_Date`
     (deadline applicants see; "Posted until filled" NA), `Job_Status` (raw archive only) and posted pay from the board's
@@ -530,6 +532,11 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   dedup alone moved MT K-12 from 63 to 28 days; censoring relistings moved MT HE from 21.5 to 31.5); (b) the spells
   trust audit (`claude-notes/2026-11-02_spells-trust-audit.md`) re-run on that data, with few endings left that a
   known data artifact explains (68% on 11-02); (c) the OPI matcher check against fresh OPI data done.
+  WY (b) done 2026-11-10 on the 11-06 run's spells (`claude-notes/2026-11-10_wy-posting-spells-audit.md`): likely
+  artifacts K-12 241 of 7,680 endings in durations (3.1%; median 26.5 -> 27.5 days with them censored), HE 7 of 2,661
+  (0.3%; 59.5 unchanged); widest reading, re-advertised postings included, K-12 750 (9.8%, 31.5 days). Found: a
+  re-titled ad (same board + posted date) reads as an ending (209); `relisted_next_run()` keys on the exact title,
+  so punctuation edits escape it (41; MT same); `fix_title_encoding()` misses hex entities (`&#x27;`, both states).
 - [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 3, 5, 6, 7, 8,
   9, 10, 11, 12, 13 done; 2 measured, no effect, not built; 1 has a small ceiling (Other is 1.6% MT, 0.1% WY), suggest
   parking (`claude-notes/2026-11-08_classifier-items-1-2-measured.md`). Golden set 551 of 551, no known misses (2026-11-09:
