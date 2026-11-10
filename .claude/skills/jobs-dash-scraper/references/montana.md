@@ -33,7 +33,7 @@ Scraper files: `direct_api_scrapers.R` (real ATS APIs, K-12 + HE), `misc_distric
 
 Context data needs no hand mapping since 2026-11-09: CCD staffing, SAIPE child poverty, OPI finance and the free/reduced lunch share come from `mt_district_crosswalk.csv` by the registry's NCES id (plus the town's high-school district by the crosswalk's rules), and `salarymap2.csv` gets the row on the next run. The hand maps (`MT_CCD_LEA_MAP`, `MT_SAIPE_DISTRICT_MAP`, `MT_OPI_FINANCE_LEA_MAP`) still win for the districts in them; add an entry only when the crosswalk ties the wrong districts.
 
-**Apptegy districts** (the most common platform): the scaffold script has no Apptegy mode yet. Follow `references/adopt-new-source.md` § Apptegy.
+**Apptegy districts** (the most common platform): `capture_fixture.R --apptegy`, then `scaffold_district.R` (apptegy mode). See `references/adopt-new-source.md` § Apptegy.
 
 **Postings from employers that aren't public districts** (co-ops, tribal and private schools, a hospital school) reach the map through `other_employers.csv` (repo root), not the registry: one row per posting name with its NCES record (CCD, CCD's BIE directory, or the Private School Universe Survey). A new one is listed in the weekly drift issue ("Employers with postings but no map dot").
 
