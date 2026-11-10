@@ -399,6 +399,7 @@ canonicalize_k12_district <- function(district) {
     district == "Fremont County School District #21" ~ "Fremont County School District 21",
     district == "Washakie County School District No.1" ~ "Washakie County School District 1",
     district == "Cabon County School District 2" ~ "Carbon County School District 2",   # WSBA, 2026-10-30
+    district == "Laramie Montesorri School" ~ "Laramie Montessori Charter School",  # Paylocity, 2026-11-09
     TRUE ~ district
   )
 }

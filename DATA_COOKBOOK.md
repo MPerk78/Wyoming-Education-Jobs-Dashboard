@@ -109,6 +109,8 @@ One row per (`District`, `Archive_Date`), counting **every** position type, not 
 
 ### `salarymap2.csv` — one row per district, static reference + refreshed figures
 
+Besides the 48 districts: the 5 charter schools and, since 2026-11-09, the four employers WSBA lists that aren't districts (Northeast Wyoming BOCES, STRIDE Learning Center, Sweetwater County Child Developmental Center, Wyoming Boys School), so every posting has a map dot. Charters, the BOCES and the Boys School take teachers and students from CCD's school directory (`WY_SCHOOL_LEVEL_IDS` in `Wy_ED_Jobs.Rmd`); the charters and the two early-childhood centers take their surrounding district's SAIPE rate (`Child_Poverty_Basis`). The two Laramie charters are schools inside Albany County SD 1, so their `NCES_LEAID` is blank (it had carried Laramie County SD 1's id).
+
 Not an archive — one current row per of Wyoming's 48 school districts. `District`/`County`/`Latitude`/`Longitude`/`Link`/`Job_Link` are hand-maintained; everything else is refreshed from its live source every run (and left untouched if that run's fetch fails, rather than being blanked out).
 
 | Column | Type | Source | Notes |
@@ -134,6 +136,10 @@ Not an archive — one current row per of Wyoming's 48 school districts. `Distri
 | `ACS_Year` | integer | Census ACS 5-Year | The ACS 5-Year vintage's end year (e.g. `2024` means the 2020–2024 5-year estimate) — the real freshness signal for the four columns above, same convention as `Salary_Year`/`CCD_Year`. |
 | `Child_Poverty_Rate` | numeric | Census SAIPE (`census_saipe_scraper.R`, weekly refresh) | **District-level**, unlike the five ACS columns above — the closest free proxy to free/reduced-lunch eligibility at the actual district a posting is in (SAIPE doesn't publish free/reduced-lunch counts directly). Two districts in the same county can and do differ meaningfully here (confirmed with real data: Fremont County SD2 and SD21 sit at 27–28% while Fremont County SD1 sits at 6%, despite sharing the exact same county-level income figure). Fremont County School District 38 (Arapahoe Charter High School) is a confirmed real gap in SAIPE's own coverage. |
 | `SAIPE_Year` | integer | Census SAIPE | The real freshness signal for `Child_Poverty_Rate`, same convention as `ACS_Year`. |
+| `Child_Poverty_Basis` | character | Census geocoder + SAIPE | Set only where the rate is a stand-in: a charter or early-childhood school with no SAIPE geography of its own shows the rate of the district it sits in (`geocode_school_district()`, `ccd_staff_scraper.R`; a split town's two rates averaged), and this column names that district ("Surrounding district: ..."). NA for an ordinary district's own rate. |
+| `Free_Reduced_Lunch_Share` | numeric (0-1) | NCES CCD school directory | Share of students eligible for free or reduced-price lunch: eligible students over enrollment, summed across the entity's schools that report (`fetch_ccd_frl_share()`, `ccd_staff_scraper.R`, since 2026-11-09). A school-based count shown beside SAIPE's model estimate, not a poverty rate: a school serving free meals to all (community eligibility) may count every student, so 100% usually means that. NA when reporting schools hold under 80% of the entity's students. |
+| `FRL_Schools_Reporting` | integer | NCES CCD school directory | How many of the entity's schools reported a lunch count that year. |
+| `FRL_Year` | character | NCES CCD school directory | The entity's newest year with a share (districts skip years; each takes its own). |
 
 ### `k12_salary_history.csv` — multi-year K-12 salary archive
 

@@ -486,6 +486,19 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     district in the Census school-district map, so the unified-only request missed it (the 08-06 note called it
     absent from SAIPE). `fetch_census_saipe_child_poverty()` now also asks for the elementary geography (2024:
     16.8%; a 204 with no body adds no rows). Live: 48 of 48 districts have a rate; the 5 charter rows are next.
+  * [x] Free/reduced lunch share and every posting on the map (2026-11-09): `Free_Reduced_Lunch_Share` (+
+    `FRL_Year`, `FRL_Schools_Reporting`) from CCD's school directory beside SAIPE child poverty, in the District
+    Summary, detail card and popup (each entity's newest reporting year; blank under 80% of students reporting;
+    >= 99.5% labeled "likely free meals for all"). Rehearsal: 50 of 57 map rows (the 3 state charters report no
+    counts). The 5 charters get staffing from CCD school records and their surrounding district's SAIPE rate
+    (`Child_Poverty_Basis`, Census geocoder). New map rows for WSBA's non-district employers: Northeast Wyoming
+    BOCES, STRIDE Learning Center, Sweetwater County Child Developmental Center (street-level location), Wyoming
+    Boys School; "Laramie Montesorri School" (Paylocity) -> Laramie Montessori Charter School
+    (`canonicalize_k12_district()`, committed data rewritten; rebuild parity holds). Snowy Range and Laramie
+    Montessori had Laramie County SD 1's NCES id (now blank: schools inside Albany SD 1). Rehearsal
+    (`claude-notes/2026-11-09_rehearsal-wy-frl-employers.log`) found 2 failures only next week's data shows (0
+    enrollment -> students-per-teacher 0; data dictionary), both fixed and the full suite re-run on that output:
+    497 pass.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check

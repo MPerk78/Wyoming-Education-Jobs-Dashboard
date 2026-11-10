@@ -562,6 +562,67 @@ if (nrow(teacher_fte) > 0) {
 } else {
   message("CCD teacher FTE fetch failed -- leaving salarymap2.csv untouched this run.")
 }
+
+# Map rows that aren't regular CCD districts: charter schools (a charter
+# inside a host district has no district record; the 3 state-authorized ones
+# do, but report staff only at the school), Wyoming Boys School (a Department
+# of Family Services school) and Northeast Wyoming BOCES (a regional service
+# agency; its LEAID, staff summed over its schools). CCD ids for their staffing
+# and free/reduced lunch share (2026-11-09). Kept here, not in salarymap2.csv,
+# where a 12-digit id would round-trip as a number.
+WY_SCHOOL_LEVEL_IDS <- c(
+  "Snowy Range Academy" = "560073000216",               # Albany County SD 1 (Laramie)
+  "Laramie Montessori Charter School" = "560073000542", # Albany County SD 1 (Laramie)
+  "Cheyenne Classical Academy" = "568025700597",
+  "Wyoming Classical Academy" = "568025800598",
+  "Prairie View Community School" = "568025900599",
+  "Wyoming Boys School" = "568025100538",
+  "Northeast Wyoming BOCES" = "5680180"
+)
+# Rows with no Census poverty geography of their own whose students are local:
+# their surrounding district's rate stands in. Not the BOCES or Wyoming Boys
+# School, whose students come from many districts.
+WY_SURROUNDING_POVERTY <- c("Snowy Range Academy", "Laramie Montessori Charter School", "Cheyenne Classical Academy",
+                            "Wyoming Classical Academy", "Prairie View Community School",
+                            "STRIDE Learning Center", "Sweetwater County Child Developmental Center")
+salarymap2 <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8")
+entity_ids <- setNames(as.list(as.character(salarymap2$NCES_LEAID)), salarymap2$District)
+entity_ids[names(WY_SCHOOL_LEVEL_IDS)] <- as.list(WY_SCHOOL_LEVEL_IDS)
+entity_ids <- entity_ids[!vapply(entity_ids, function(x) is.na(x) || x == "NA", logical(1))]
+
+charter_staff <- safe_scrape(
+  "CCD school-level staffing (WY charters, Boys School, BOCES)",
+  scrape_fn = function() {
+    r <- find_latest_ccd_directory_year()
+    sch <- fetch_ccd_school_directory(56, r$year)
+    out <- parse_ccd_school_staffing(sch, entity_ids[names(WY_SCHOOL_LEVEL_IDS)])
+    out$CCD_Year <- rep(r$year, nrow(out))
+    out
+  },
+  expected_cols = c("District", "Teachers_Total_FTE", "Enrollment", "CCD_Year")
+)
+if (nrow(charter_staff) > 0) {
+  i <- match(charter_staff$District, salarymap2$District)
+  ok <- !is.na(i) & !is.na(charter_staff$Teachers_Total_FTE)
+  salarymap2$Teachers_Total_FTE[i[ok]] <- charter_staff$Teachers_Total_FTE[ok]
+  salarymap2$Enrollment[i[ok]] <- charter_staff$Enrollment[ok]
+  salarymap2$CCD_Year[i[ok]] <- charter_staff$CCD_Year[ok]
+}
+
+# Free/reduced-price lunch share beside SAIPE's child poverty rate
+# (fetch_ccd_frl_share(), ccd_staff_scraper.R); each entity's newest
+# reporting year, kept from last run when the fetch fails.
+frl <- safe_scrape(
+  "CCD free/reduced-price lunch share (WY)",
+  scrape_fn = function() fetch_ccd_frl_share(56, entity_ids),
+  expected_cols = c("District", "Free_Reduced_Lunch_Share", "FRL_Schools_Reporting", "FRL_Year")
+)
+if (nrow(frl) > 0) {
+  salarymap2 <- salarymap2 %>%
+    select(-any_of(c("Free_Reduced_Lunch_Share", "FRL_Schools_Reporting", "FRL_Year"))) %>%
+    left_join(frl, by = "District")
+}
+write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
 ```
 
 ### County-level context (income, rent, mining/energy employment share, population trend), from the Census Bureau's ACS 5-Year Estimates
@@ -622,12 +683,24 @@ if (nrow(child_poverty) > 0) {
   # Joins on District, not County -- real district-level data (the closest
   # free proxy to free/reduced-lunch eligibility at the actual district a
   # posting is in), unlike the county-context chunk above. Fremont County
-  # School District 38 (Arapahoe Charter High School) is a confirmed real
-  # gap in SAIPE's own coverage -- left as a genuine NA after this join,
-  # not something to force-match.
+  # School District 38 comes from SAIPE's elementary geography
+  # (fetch_census_saipe_child_poverty()).
   salarymap2 <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8") %>%
-    select(-any_of(c("Child_Poverty_Rate", "SAIPE_Year"))) %>%
+    select(-any_of(c("Child_Poverty_Rate", "SAIPE_Year", "Child_Poverty_Basis"))) %>%
     left_join(child_poverty, by = "District")
+  # A charter or early-childhood center has no SAIPE geography of its own: the district it sits in stands
+  # in (Census geocoder, geocode_school_district()), named in Child_Poverty_Basis
+  # so the dashboard says "surrounding district" (2026-11-09).
+  salarymap2$Child_Poverty_Basis <- NA_character_
+  for (i in which(salarymap2$District %in% WY_SURROUNDING_POVERTY & is.na(salarymap2$Child_Poverty_Rate))) {
+    host <- tryCatch(geocode_school_district(salarymap2$Latitude[i], salarymap2$Longitude[i]), error = function(e) NA_character_)
+    h <- match(host, as.character(salarymap2$NCES_LEAID)); h <- h[!is.na(h)][1]
+    if (!is.na(h) && !is.na(salarymap2$Child_Poverty_Rate[h])) {
+      salarymap2$Child_Poverty_Rate[i] <- salarymap2$Child_Poverty_Rate[h]
+      salarymap2$SAIPE_Year[i] <- salarymap2$SAIPE_Year[h]
+      salarymap2$Child_Poverty_Basis[i] <- paste("Surrounding district:", salarymap2$District[h])
+    }
+  }
   write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
 } else {
   message("Census SAIPE child poverty fetch failed -- leaving salarymap2.csv untouched this run.")
