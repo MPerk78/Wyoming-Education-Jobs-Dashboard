@@ -2430,41 +2430,44 @@ server <- function(input, output, session) {
         # the partial tiers mean.
         `Posting Data` = Data_Coverage,
         `New This Week` = WeeklyNew,
-        `Teacher Vacancy Rate` = ifelse(is.na(Vacancy_Rate), NA_character_, scales::percent(Vacancy_Rate, accuracy = 0.1)),
+        `Teacher Vacancy Rate` = Vacancy_Rate,
         Enrollment,
-        `Students per Teacher` = ifelse(is.na(Students_Per_Teacher), NA_character_, sprintf("%.1f", Students_Per_Teacher)),
-        TeacherBaseSalary = ifelse(is.na(Teacher_Base_Salary), NA_character_, scales::dollar(Teacher_Base_Salary)),
-        TeacherBaseSalaryPrior = ifelse(is.na(Teacher_Base_Salary_Prior_Year), NA_character_, scales::dollar(Teacher_Base_Salary_Prior_Year)),
-        TeacherAvgSalary = ifelse(is.na(Teacher_Avg_Salary), NA_character_, scales::dollar(Teacher_Avg_Salary)),
-        `Superintendent Salary` = ifelse(is.na(Superintendent_Salary), NA_character_, scales::dollar(Superintendent_Salary)),
+        `Students per Teacher` = round(Students_Per_Teacher, 1),
+        TeacherBaseSalary = Teacher_Base_Salary,
+        TeacherBaseSalaryPrior = Teacher_Base_Salary_Prior_Year,
+        TeacherAvgSalary = Teacher_Avg_Salary,
+        `Superintendent Salary` = Superintendent_Salary,
         # County-level context (Census ACS 5-Year) -- constant across
         # sibling districts in the same county, same as any other county-
         # level figure, and deliberately alongside the salary columns
         # rather than off in a separate tab: "$46k pay in a county where
         # median rent is $650/mo" is the actual comparison a prospective
         # teacher is making, not two numbers looked up separately.
-        `County Median Income` = ifelse(is.na(Median_Household_Income), NA_character_, scales::dollar(Median_Household_Income)),
-        `County Median Rent` = ifelse(is.na(Median_Gross_Rent), NA_character_, paste0(scales::dollar(Median_Gross_Rent), "/mo")),
+        `County Median Income` = Median_Household_Income,
+        `County Median Rent (per month)` = Median_Gross_Rent,
         # Share of the county's civilian workforce in mining/oil & gas --
         # Wyoming's energy-producing counties pay teachers measurably more
         # specifically to compete with these wages for the same local
         # labor pool, so this is the one column here that helps explain
         # WHY salaries vary across WY districts, not just what things cost.
-        `County Mining/Energy Jobs` = ifelse(is.na(Mining_Employment_Share), NA_character_, scales::percent(Mining_Employment_Share, accuracy = 0.1)),
-        `County Population Trend (5yr)` = ifelse(is.na(Population_Change_Pct), NA_character_,
-                                                   paste0(ifelse(Population_Change_Pct >= 0, "+", ""), scales::percent(Population_Change_Pct, accuracy = 0.1))),
+        `County Mining/Energy Jobs` = Mining_Employment_Share,
+        `County Population Trend (5yr)` = Population_Change_Pct,
         # District-level, not county-level, unlike the four columns above --
         # the closest free proxy to free/reduced-lunch eligibility at the
         # actual district a posting is in (Census SAIPE doesn't publish
         # free/reduced-lunch counts directly). A prospective teacher sizing
         # up a district's student population, not just its town.
-        `District Child Poverty Rate` = ifelse(is.na(Child_Poverty_Rate), NA_character_,
-                                               paste0(scales::percent(Child_Poverty_Rate, accuracy = 0.1),
-                                                      ifelse(is.na(Child_Poverty_Basis), "", " (surrounding district)"))),
+        # Numbers, formatted by DT below, so the column sorts as numbers (the
+        # table sorts on the server, in R, by the underlying value); where the rate is a
+        # stand-in (a school with no SAIPE geography of its own) the next
+        # column says so.
+        `District Child Poverty Rate` = Child_Poverty_Rate,
+        `Poverty Rate Basis` = ifelse(is.na(Child_Poverty_Rate), NA_character_,
+                                      ifelse(is.na(Child_Poverty_Basis), "District", "Surrounding district")),
         # School-based count beside the Census estimate (CCD school directory):
-        # share of students eligible for free or reduced-price lunch, with its year.
-        `Free/Reduced Lunch` = ifelse(is.na(Free_Reduced_Lunch_Share), NA_character_,
-                                      paste0(scales::percent(Free_Reduced_Lunch_Share, accuracy = 1), " (", FRL_Year, ")"))
+        # share of students eligible for free or reduced-price lunch, and its year.
+        `Free/Reduced Lunch` = Free_Reduced_Lunch_Share,
+        `Lunch Data Year` = ifelse(is.na(Free_Reduced_Lunch_Share), NA_character_, FRL_Year)
       )
     # Real year in the header instead of a generic "Prior Year" label --
     # cleaner than a separate Salary Year column repeating the same value
@@ -2473,8 +2476,16 @@ server <- function(input, output, session) {
     names(df)[names(df) == "TeacherBaseSalaryPrior"] <- paste0("Teacher Base Salary (", prior_label, ")")
     names(df)[names(df) == "TeacherAvgSalary"] <- paste0("Teacher Avg Salary (", wde_label, " WDE)")
 
+    # Numeric columns stay numbers so the server-side sort is numeric
+    # (2026-11-09 review: "9%" sorted after "92%", "100%" first or last);
+    # DT formats them for display. Matched by prefix: some headers get a year.
+    cols_like <- function(prefixes) names(df)[vapply(names(df), function(n) any(startsWith(n, prefixes)), logical(1))]
     datatable(df, filter = "top", extensions = "Buttons",
-              options = list(scrollX = TRUE, dom = "Bfrtip", buttons = c("copy", "csv", "print"), pageLength = 48))
+              options = list(scrollX = TRUE, dom = "Bfrtip", buttons = c("copy", "csv", "print"), pageLength = 48)) %>%
+      formatPercentage(cols_like(c("Teacher Vacancy Rate", "County Mining/Energy Jobs", "District Child Poverty Rate", "County Population Trend (5yr)")), digits = 1) %>%
+      formatPercentage(cols_like(c("Free/Reduced Lunch")), digits = 0) %>%
+      formatCurrency(cols_like(c("Teacher Base Salary", "Teacher Avg Salary", "Superintendent Salary", "County Median Income", "County Median Rent (per month)")), digits = 0) %>%
+      formatRound("Students per Teacher", digits = 1)
   })
 
   # Salary_Year and Salary_Source are the same for every district (one
@@ -2511,18 +2522,19 @@ server <- function(input, output, session) {
       },
       helpText(
         "Free/reduced lunch: share of students eligible for free or reduced-price lunch, NCES Common Core of Data",
-        "school directory (the year in parentheses is that district's newest reporting year) --",
+        "school directory (Lunch Data Year: that district's newest reporting year) --",
         tags$a(href = "https://educationdata.urban.org/documentation/", target = "_blank", "educationdata.urban.org"),
         ". A school-based count, not a poverty estimate: schools serving free meals to all (community eligibility)",
-        "may count every student. Left blank where schools holding under 80% of a district's students reported.",
-        "A charter school or early-childhood center has no Census poverty estimate of its own; it shows its surrounding district's rate."
+        "may count every student; a share of 100% is marked \"every student counted (likely free meals for all)\".",
+        "Left blank where schools holding under 80% of a district's students reported."
       ),
       if (length(saipe_year) > 0) {
         helpText(
           "District child poverty rate: US Census Bureau, Small Area Income and Poverty Estimates (SAIPE)",
           paste0("(", saipe_year[1], ")"), "—",
           tags$a(href = "https://www.census.gov/programs-surveys/saipe/data/datasets.html", target = "_blank", "census.gov/saipe"),
-          ". District-level (unlike the county context above)."
+          ". District-level (unlike the county context above).",
+          "A charter school or early-childhood center has no Census poverty estimate of its own; it shows its surrounding district's rate (marked \"Surrounding district\")."
         )
       }
     )
@@ -2583,7 +2595,7 @@ server <- function(input, output, session) {
       poverty <- if (!is.na(row$Child_Poverty_Rate[1])) scales::percent(row$Child_Poverty_Rate[1], accuracy = 0.1) else "N/A"
       if (!is.na(row$Child_Poverty_Rate[1]) && !is.na(row$Child_Poverty_Basis[1])) poverty <- paste(poverty, "(surrounding district)")
       frl <- if (!is.na(row$Free_Reduced_Lunch_Share[1])) paste0(scales::percent(row$Free_Reduced_Lunch_Share[1], accuracy = 1), " (", row$FRL_Year[1], ")") else "N/A"
-      if (!is.na(row$Free_Reduced_Lunch_Share[1]) && row$Free_Reduced_Lunch_Share[1] >= 0.995) frl <- paste(frl, "- all students, likely free meals for all")
+      if (!is.na(row$Free_Reduced_Lunch_Share[1]) && row$Free_Reduced_Lunch_Share[1] >= 0.995) frl <- paste(frl, "-- every student counted (likely free meals for all)")
 
       column(
         width = col_width,
@@ -3037,14 +3049,16 @@ server <- function(input, output, session) {
              ""),
       ifelse(!is.na(Child_Poverty_Rate),
              paste0("<div style='font-size:0.85em;color:#666;'>",
-                    ifelse(is.na(Child_Poverty_Basis), "District: ", paste0(Child_Poverty_Basis, ": ")),
-                    scales::percent(Child_Poverty_Rate, accuracy = 0.1), " child poverty rate</div>"),
+                    ifelse(is.na(Child_Poverty_Basis), "District: ", ""),
+                    scales::percent(Child_Poverty_Rate, accuracy = 0.1), " child poverty rate",
+                    ifelse(is.na(Child_Poverty_Basis), "", paste0(" (", sub("^Surrounding", "surrounding", Child_Poverty_Basis), ")")),
+                    "</div>"),
              ""),
       ifelse(!is.na(Free_Reduced_Lunch_Share),
              paste0("<div style='font-size:0.85em;color:#666;'>",
                     scales::percent(Free_Reduced_Lunch_Share, accuracy = 1),
                     " of students eligible for free/reduced-price lunch (", FRL_Year, ")",
-                    ifelse(Free_Reduced_Lunch_Share >= 0.995, "; every student counted, likely free meals for all", ""),
+                    ifelse(Free_Reduced_Lunch_Share >= 0.995, " -- every student counted (likely free meals for all)", ""),
                     "</div>"),
              ""),
       ifelse(!is.na(School_Pay_County),

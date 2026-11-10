@@ -59,3 +59,25 @@ test_that("geocode_school_district reads the district id from the Census geocode
   expect_equal(geocode_school_district(41.76044, -104.823155), "5605090")  # Platte County School District 1
   expect_true(is.na(geocode_school_district(NA, NA)))
 })
+
+test_that("a CCD outage stops fetch_ccd_frl_share, so safe_scrape logs an error and keeps nothing", {
+  home <- environment(fetch_ccd_frl_share)
+  real <- get("fetch_ccd_school_directory", envir = home)
+  assign("fetch_ccd_school_directory", function(fips, year) stop("HTTP 503"), envir = home)
+  withr::defer(assign("fetch_ccd_school_directory", real, envir = home))
+  expect_error(fetch_ccd_frl_share(56, list(A = "5600730"), start_year = 2024, years_back = 1), "no CCD school-directory year answered")
+  log <- tempfile()
+  r <- safe_scrape("CCD free/reduced-price lunch share (test)", function() fetch_ccd_frl_share(56, list(A = "5600730"), 2024, 1),
+                   c("District", "Free_Reduced_Lunch_Share", "FRL_Schools_Reporting", "FRL_Year"), log_path = log)
+  expect_equal(nrow(r), 0)
+  expect_equal(utils::read.csv(log)$status, "error")
+})
+
+test_that("surrounding_district_poverty averages a split town, and tells a geocoder failure from no match", {
+  saipe <- data.frame(LEAID = c("1", "2"), Child_Poverty_Rate = c(0.2, 0.1), SAIPE_Year = 2024)
+  p <- surrounding_district_poverty(1, 1, saipe, c("1" = "Elem A", "2" = "H S A"), geocode = function(lat, lon) c("1", "2"))
+  expect_equal(p$status, "ok"); expect_equal(p$rate, 0.15)
+  expect_equal(p$basis, "Surrounding district: Elem A / H S A")
+  expect_equal(surrounding_district_poverty(1, 1, saipe, geocode = function(lat, lon) stop("HTTP 502"))$status, "failed")
+  expect_equal(surrounding_district_poverty(1, 1, saipe, geocode = function(lat, lon) "9")$status, "none")
+})

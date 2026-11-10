@@ -620,7 +620,7 @@ frl <- safe_scrape(
 if (nrow(frl) > 0) {
   salarymap2 <- salarymap2 %>%
     select(-any_of(c("Free_Reduced_Lunch_Share", "FRL_Schools_Reporting", "FRL_Year"))) %>%
-    left_join(frl, by = "District")
+    left_join(frl, by = "District", relationship = "many-to-one")
 }
 write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
 ```
@@ -685,22 +685,39 @@ if (nrow(child_poverty) > 0) {
   # posting is in), unlike the county-context chunk above. Fremont County
   # School District 38 comes from SAIPE's elementary geography
   # (fetch_census_saipe_child_poverty()).
-  salarymap2 <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8") %>%
+  prev_poverty <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8")
+  salarymap2 <- prev_poverty %>%
     select(-any_of(c("Child_Poverty_Rate", "SAIPE_Year", "Child_Poverty_Basis"))) %>%
-    left_join(child_poverty, by = "District")
-  # A charter or early-childhood center has no SAIPE geography of its own: the district it sits in stands
-  # in (Census geocoder, geocode_school_district()), named in Child_Poverty_Basis
-  # so the dashboard says "surrounding district" (2026-11-09).
+    left_join(child_poverty, by = "District", relationship = "many-to-one")
+  # A charter or early-childhood center has no SAIPE geography of its own: the
+  # district(s) it sits in stand in (surrounding_district_poverty(),
+  # ccd_staff_scraper.R; a split town's rates averaged), named in
+  # Child_Poverty_Basis so the dashboard says "surrounding district". A
+  # geocoder failure keeps last run's value and is logged (2026-11-09 review).
   salarymap2$Child_Poverty_Basis <- NA_character_
+  district_rates <- data.frame(LEAID = as.character(salarymap2$NCES_LEAID), Child_Poverty_Rate = salarymap2$Child_Poverty_Rate,
+                               SAIPE_Year = salarymap2$SAIPE_Year, stringsAsFactors = FALSE)
+  district_rates <- district_rates[!is.na(district_rates$LEAID) & district_rates$LEAID != "NA", , drop = FALSE]
+  district_names <- setNames(salarymap2$District, as.character(salarymap2$NCES_LEAID))
+  geo_failed <- character(0)
   for (i in which(salarymap2$District %in% WY_SURROUNDING_POVERTY & is.na(salarymap2$Child_Poverty_Rate))) {
-    host <- tryCatch(geocode_school_district(salarymap2$Latitude[i], salarymap2$Longitude[i]), error = function(e) NA_character_)
-    h <- match(host, as.character(salarymap2$NCES_LEAID)); h <- h[!is.na(h)][1]
-    if (!is.na(h) && !is.na(salarymap2$Child_Poverty_Rate[h])) {
-      salarymap2$Child_Poverty_Rate[i] <- salarymap2$Child_Poverty_Rate[h]
-      salarymap2$SAIPE_Year[i] <- salarymap2$SAIPE_Year[h]
-      salarymap2$Child_Poverty_Basis[i] <- paste("Surrounding district:", salarymap2$District[h])
+    p <- surrounding_district_poverty(salarymap2$Latitude[i], salarymap2$Longitude[i], district_rates, district_names)
+    if (p$status == "ok") {
+      salarymap2$Child_Poverty_Rate[i] <- p$rate
+      salarymap2$SAIPE_Year[i] <- p$year
+      salarymap2$Child_Poverty_Basis[i] <- p$basis
+    } else if (p$status == "failed") {
+      geo_failed <- c(geo_failed, salarymap2$District[i])
+      k <- match(salarymap2$District[i], prev_poverty$District)
+      for (col in intersect(c("Child_Poverty_Rate", "SAIPE_Year", "Child_Poverty_Basis"), names(prev_poverty))) {
+        if (!is.na(k)) salarymap2[[col]][i] <- prev_poverty[[col]][k]
+      }
     }
   }
+  log_scrape_result("Census geocoder (surrounding-district poverty, WY)",
+                    status = if (length(geo_failed)) "error" else "ok",
+                    n_rows = sum(!is.na(salarymap2$Child_Poverty_Basis)),
+                    error_message = if (length(geo_failed)) paste("geocoder failed for:", paste(geo_failed, collapse = "; ")) else NA_character_)
   write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
 } else {
   message("Census SAIPE child poverty fetch failed -- leaving salarymap2.csv untouched this run.")

@@ -502,6 +502,13 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   * [x] Converse County SD 1 and SD 2 map dots swapped back (2026-11-09): since `fb48a72` each carried the other's
     coordinates (SD 2, Glenrock, sat at Douglas; SD 1 at Glenrock), ~40 km apart; ids and links were right. Found by
     the toolkit's new `tools/reference_audit.R` (map dot vs the district's CCD schools).
+  * [x] Review fixes (2026-11-10): a CCD outage now logs an error and keeps last run's lunch values (shared
+    `fetch_ccd_frl_share()`); the charters' and centers' surrounding-district rate uses the shared, tested
+    `surrounding_district_poverty()` (a split town averaged; a geocoder failure keeps last run's value and is logged);
+    the lunch-share and SAIPE joins have `relationship = "many-to-one"`; the District Summary's numeric columns sort as
+    numbers (all had sorted as text, server-side); one wording for the free-meals note; golden-set guard row for the
+    Cashier rule. Rehearsal (`claude-notes/2026-11-09_rehearsal-wy-review-fixes.log`): all steps passed; app tests and
+    boot smoke pass on its output; full suite 499.
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] After the 2026-11-13 run writes them: remove `pending`'s salarymap2.csv entries in

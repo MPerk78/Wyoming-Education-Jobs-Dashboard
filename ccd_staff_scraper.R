@@ -143,16 +143,28 @@ parse_ccd_frl_share <- function(schools, id_map) {
 
 # Each entity takes the newest year in which it has a share (FRL_Year says
 # which): some districts skip a year (WY 2024: 8 of 48 reported no counts).
+# When no year's directory answers at all (CCD down), it stops instead of
+# returning blank rows, so safe_scrape() logs an error and the pipeline keeps
+# last run's values (review, 2026-11-09: an outage had logged "ok" and blanked
+# every district's share).
 fetch_ccd_frl_share <- function(fips, id_map, start_year = as.integer(format(Sys.Date(), "%Y")), years_back = 4) {
   out <- NULL
+  answered <- 0L
+  errors <- character(0)
   for (year in seq(start_year, start_year - years_back)) {
     todo <- setdiff(names(id_map), out$District)
     if (length(todo) == 0) break
-    schools <- tryCatch(fetch_ccd_school_directory(fips, year), error = function(e) data.frame())
+    schools <- tryCatch(fetch_ccd_school_directory(fips, year),
+                        error = function(e) { errors <<- c(errors, conditionMessage(e)); data.frame() })
     if (nrow(schools) == 0 || !"free_or_reduced_price_lunch" %in% names(schools)) next
+    answered <- answered + 1L
     r <- parse_ccd_frl_share(schools, id_map[todo])
     r <- r[!is.na(r$Free_Reduced_Lunch_Share), , drop = FALSE]
     if (nrow(r) > 0) out <- dplyr::bind_rows(out, transform(r, FRL_Year = as.character(year)))
+  }
+  if (answered == 0L) {
+    stop("fetch_ccd_frl_share(): no CCD school-directory year answered",
+         if (length(errors)) paste0(" (", errors[1], ")") else "")
   }
   missing <- setdiff(names(id_map), out$District)
   dplyr::bind_rows(out, data.frame(District = missing, Free_Reduced_Lunch_Share = rep(NA_real_, length(missing)),
@@ -199,4 +211,27 @@ geocode_school_district <- function(lat, lon) {
   ids <- unlist(lapply(c("Unified School Districts", "Elementary School Districts", "Secondary School Districts"),
                        function(layer) { g <- geo[[layer]]; if (is.data.frame(g) && nrow(g) > 0 && !is.null(g$GEOID)) as.character(g$GEOID) }))
   if (length(ids) == 0) NA_character_ else unique(ids)
+}
+
+# A school's surrounding-district child poverty rate (charter, private, tribal
+# or early-childhood school with no SAIPE geography of its own): the SAIPE
+# rates of the districts geocode() finds at its point, averaged where a town is
+# split into elementary and secondary districts. `saipe`: LEAID,
+# Child_Poverty_Rate (and SAIPE_Year). `district_names`: LEAID -> display name.
+# Returns status "ok", "none" (no district found / no rate) or "failed" (the
+# geocoder errored: the caller keeps last run's value and logs it).
+surrounding_district_poverty <- function(lat, lon, saipe, district_names = NULL, geocode = geocode_school_district) {
+  res <- list(status = "none", rate = NA_real_, year = NA, basis = NA_character_)
+  host <- tryCatch(geocode(lat, lon), error = function(e) structure(NA_character_, failed = TRUE))
+  if (isTRUE(attr(host, "failed"))) { res$status <- "failed"; return(res) }
+  h <- match(host, as.character(saipe$LEAID))
+  h <- h[!is.na(h) & !is.na(saipe$Child_Poverty_Rate[h])]
+  if (length(h) == 0) return(res)
+  ids <- as.character(saipe$LEAID[h])
+  nm <- if (!is.null(district_names)) unique(ifelse(is.na(district_names[ids]), ids, district_names[ids])) else ids
+  res$status <- "ok"
+  res$rate <- mean(saipe$Child_Poverty_Rate[h])
+  if ("SAIPE_Year" %in% names(saipe)) res$year <- saipe$SAIPE_Year[h[1]]
+  res$basis <- paste("Surrounding district:", paste(nm, collapse = " / "))
+  res
 }

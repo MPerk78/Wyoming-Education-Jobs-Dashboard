@@ -556,3 +556,4 @@
 "he","WY","Custodian - Residential Dining Center, North Hall","Maintenance & Service",FALSE,"guard: a dining hall custodian is a custodian"
 "he","WY","Library Assistant (Student)","Student Positions",FALSE,"guard: (Student) marks a student job"
 "he","WY","Construction Laborer - Equipment Services","Maintenance & Service",FALSE,""
+"k12","MT","Lifeguards/Swim Instructor/ Supervisor/Cashier","Support Services",FALSE,"guard: a pool cashier is not Food Services (Cashier rule, 2026-11-09)"
