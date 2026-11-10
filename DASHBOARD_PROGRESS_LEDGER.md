@@ -485,7 +485,9 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
-  for day-precision ends (spells, coverage calendar and page-confirmed closings are done).
+  for day-precision ends (spells, coverage calendar and page-confirmed closings are done): plan written 2026-11-09
+  (`claude-notes/2026-11-09_daily-presence-check-plan.md`; all 38 districts, 85% of postings; WSBA left out), waiting
+  on Mike's go-ahead.
 - [ ] What the paused Listing Duration tabs show (both states; spells and durations now rebuilt weekly).
   Decision (Mike, 2026-11-09): the tabs stay paused until we are sure the data is accurate. Proposed checks
   (not yet agreed): (a) about 4 weekly runs after the 11-09/10 pushes (relistings censored, first-seen fallback,
