@@ -2,28 +2,58 @@
 
 You only get here once you've seen real current postings on the live page and know its platform (see `discovery.md`). Adoption touches several files that have to agree with each other. The state reference has the exact list for that repo, and the test suite enforces most of it.
 
-## Steps
+## Steps (Automated Workflow)
 
-1. **Capture a real fixture.** Fetch it the way the scraper will, whether that's an API response, raw HTML, or the chromote innerText for JS-rendered pages. Save it dated in `tests/testthat/fixtures/`. For a zero-code platform add, a fixture is still worth it if the district's board has a quirk; otherwise a live run in the commit message is enough, which matches how earlier registry-only swaps were done.
-
-2. **Scraper.**
-   - *Existing platform:* no new parser. For Apptegy / Red Rover / other chromote-driven boards, check whether there's a per-district dispatch table (Montana's `APPTEGY_DISTRICT_SCRAPERS`, the shared-chromote district list in `Mt_ED_Jobs.Rmd`) that needs an entry.
-   - *Bespoke:* add a `fetch_<name>_postings()` (I/O only) plus `parse_<name>_postings()` (a pure function of the captured text/HTML, so it's testable on the fixture) pair, in the right tier file (structured API → `direct_api_scrapers.R`, heuristic → `misc_district_scrapers.R` / `misc_college_scrapers.R`). Put a comment above it saying what marker it keys on, and its scope: whether substitutes count, which sections are excluded, and why. Use `perform_with_retry()`. Return `Title, Location, Posted_Date, Link`. Prefer a reusable platform-level parser (Wyoming's `parse_edlio_postings`, `parse_schoolblocks_postings`; Montana's `parse_redrover_postings`) over a one-off whenever the structure is the platform's and not the district's.
-
-3. **Tests.** In the matching `test-*.R`, assert the exact titles read off the fixture, plus at least one negative (a nav link or boilerplate line that must *not* come through). If the scraper resolves through `drift_check.R`'s `resolve_scraper_call()` / `SCRAPER_CALL_SPECS`, make sure the new platform/heuristic name resolves there too. Otherwise drift checks and `repro_scraper.R` can't reach it, and a future break won't be auto-fixable.
-
-4. **Registry + wiring.** Add the registry row (full schema; Montana needs real lat/long and the county), then wire the call into the pipeline `.Rmd` if the platform isn't registry-driven.
-
-5. **Registry-coupled files.** These go in the same commit (see the state reference for the current list), e.g. Montana's Copilot allowlist host, the salary-map "not yet covered" list in `test-salary-scrapers.R`, the documented district count in `README.md` / `CLAUDE.md` / `DATA_COOKBOOK.md`, and the backlog record.
-
-6. **Verify.**
+1. **Probe the live URL**:
    ```bash
-   Rscript scripts/repro_scraper.R "<new registry name>"     # live run returns the real postings
-   Rscript -e 'testthat::test_dir("tests/testthat")'        # full suite green
+   Rscript scripts/probe_district.R "<url>"
    ```
-   `git diff --stat` should show only what you meant to change.
+   Confirms live postings exist and flags bot-gate status / platform before downloading.
 
-7. **Commit per batch** of 3–6 districts. In the message, name each district: URL, platform, postings found live, and anything declined in the same pass with its reason.
+2. **Capture fixture with automatic secret sanitization**:
+   ```bash
+   Rscript scripts/capture_fixture.R --url "<url>" --slug "<slug>"
+   ```
+   Saves to `tests/testthat/fixtures/<slug>_jobs.html` with all `AIza...` Google API tokens automatically redacted.
+
+3. **Scaffold mechanical changes across 6 coupled files**:
+   ```bash
+   Rscript scripts/scaffold_district.R \
+     --district "Full District Name" \
+     --city "City" \
+     --county "County Name" \
+     --lat 48.1234 \
+     --lon -114.5678 \
+     --url "https://..." \
+     --slug "<slug>"
+   ```
+
+4. **Implement parser selector & update test assertions**:
+   - Write selector logic in `parse_<slug>_postings` inside `misc_district_scrapers.R`.
+   - Update `tests/testthat/test-misc-district-scrapers.R` with expected titles from the fixture.
+
+5. **Verify the batch**:
+   ```bash
+   Rscript scripts/verify_batch.R
+   ```
+   Runs all allowlist, salary setdiff, schema check, data integrity, deduplication, and unit tests, and guards against committing Claude autofix experiment files.
+
+6. **Verify live scraper execution**:
+   ```bash
+   Rscript scripts/repro_scraper.R "<new registry name>"
+   ```
+
+7. **Commit per batch** of 2–4 districts.
+
+## Apptegy (Montana; no scaffold mode yet)
+
+Apptegy sites sit behind a Fastly "Client Challenge" that a plain request can't pass, so they ride the pipeline's shared headless-Chrome session (`fetch_apptegy_k12_postings()`). Olney-Bissell (2026-11-09) is the worked example:
+
+1. **Read the rendered page** with chromote, the way the pipeline does (`Page$navigate`, wait, `document.documentElement.outerHTML`). Find the posting's structural marker. Apptegy pages carry their content as page-builder JSON in the HTML; `decode_apptegy_pagebuilder_nodes()` + `find_all_apptegy_nodes(..., type == "CONTENT_NODE_TEXT")` give each text block's HTML. Olney-Bissell's titles are the block's `<strong>` text; Savage's are accordion panels (`CONTENT_NODE_PANEL`).
+2. **Fixture:** the outerHTML, dated (`apptegy_<slug>_pagedata_YYYY-MM-DD.html`), with any `AIza...` key redacted. About 1.2 MB, like Savage's.
+3. **Code:** `parse_<slug>_postings(html_text, url)` and `fetch_<slug>_postings(chromote_session, url)` in `misc_district_scrapers.R`, and an entry in `APPTEGY_DISTRICT_SCRAPERS` keyed by the exact registry `District`. Registry `Platform` is `Apptegy`. Add the district's name to the Apptegy `safe_scrape()` label in `Mt_ED_Jobs.Rmd` (only its prefix is matched).
+4. **Tests:** unit tests on the fixture (exact titles; no instructions or "Application" links; zero rows on a page without page-builder data), a `fetch_*` test with `fake_chromote_session()`, and the district added to the big `fetch_apptegy_k12_postings` dispatcher test (fixture, URL match, total count, per-district count).
+5. Then the usual: allowlist, DLI, counts, backlog; `scripts/repro_scraper.R "<District>"` for the live run.
 
 ## Sanity checks that have caught real mistakes
 

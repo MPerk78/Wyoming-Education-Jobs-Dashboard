@@ -26,6 +26,72 @@ So everything below serves one rule: **nothing gets written into a parser, a fix
 
 `references/platform-fingerprints.md` maps page signatures to platforms and to the existing scraper for each. You'll need it in every task.
 
+## Automated CLI Toolset (Token-Saving Workflow)
+
+**Montana only:** these scripts live in the Montana repo's `scripts/`. Wyoming has none of them yet; adopt by hand there (`references/wyoming.md`).
+
+To minimize LLM token usage and prevent manual editing errors across coupled files, use the repo's CLI scripts:
+
+1. **Scan candidates in bulk**:
+   ```bash
+   python3 scripts/scan_candidates.py <url1> <url2> <url3>
+   ```
+   Rapidly probes candidate district URLs, follows redirects, checks HTTP status, flags bot-gates (Fastly Client Challenge `_fs-ch-`, Cloudflare, 403), detects CMS (WordPress, Weebly, Edlio, Apptegy, Google Sites, CyberSchool), discovers employment subpages, and prints ready-to-run tool commands.
+
+2. **Probe specific target without dumping HTML into context**:
+   ```bash
+   Rscript scripts/probe_district.R "<url>"
+   ```
+   Checks for bot-gate challenges, extracts candidate postings and document links in compact text (~20 lines). If a bot gate is detected, do not attempt static scraping with `httr2` — route to chromote or mark as blocked. Suggests the appropriate `--cms` flag.
+
+3. **Capture fixture with automatic secret sanitization**:
+   ```bash
+   Rscript scripts/capture_fixture.R --url "<url>" --slug "<slug>"
+   ```
+   Fetches raw HTML and automatically redacts any Google client API tokens (`AIza...`) to `REDACTED_API_KEY_GOOGLE_CLIENT_TOKEN_01` before saving to `tests/testthat/fixtures/<slug>_jobs.html`.
+
+4. **Scaffold mechanical changes across all 8 coupled files**:
+   ```bash
+   Rscript scripts/scaffold_district.R \
+     --district "Full District Name" \
+     --city "City" \
+     --county "County Name" \
+     --lat 48.1234 \
+     --lon -114.5678 \
+     --url "https://..." \
+     --slug "<slug>" \
+     [--cms "<weebly|wordpress|edlio|google_sites|generic>"]
+   ```
+   Idempotently updates all 8 coupled files in a single execution:
+   - `k12_district_registry.csv` (with duplicate prevention)
+   - `.github/copilot-allowlist.txt` (alphabetized domain insertion)
+   - `tests/testthat/test-salary-scrapers.R` (unmapped setdiff)
+   - `Mt_ED_Jobs.Rmd` (safe_scrape block, date standardization, direct_df bind)
+   - `misc_district_scrapers.R` (CMS-specific boilerplate fetch/parse functions)
+   - `tests/testthat/test-misc-district-scrapers.R` (unit test templates)
+   - `README.md` (updates K-12 coverage count)
+   - `DATA_COOKBOOK.md` (updates K-12 coverage count)
+   *Note:* If `--cms` is omitted, the script inspects the downloaded fixture and auto-detects the CMS.
+
+5. **Implement parser selector and empty-state handling**:
+   Refine the selector logic in `parse_<slug>_postings` inside `misc_district_scrapers.R` and the specific title assertions in `test-misc-district-scrapers.R`.
+   - **Weebly CMS pattern**: Extract `#wsite-content h2.wsite-content-title, #wsite-content .paragraph`. Filter out negative/empty markers (`"No opening at this time"`, `"No vacancies"`, `"None at this time"`) to return 0 rows cleanly on empty pages.
+   - **WordPress / Divi CMS pattern**: Extract `.entry-content, article` elements. Filter out static notices (`"Safe Re-Opening Plan"`, `"Sample"`, `"ADA Accessibility"`).
+   - **Edlio / Educational Networks pattern**: Extract `a[href*="show_job.jsp"]`. Filter out generic forms (`"Job Applications"`, `"Employment Opportunities"`).
+   - **Finalsite CMS pattern**: Look for `.fsResourceElement a.fsResourceLink` or `alt` attributes under "Current Postings". Strip `.pdf` and un-camelcase (`SubsMusicTeachingPosition` → `Subs Music Teaching Position`).
+   - **Wix / Google Sites pattern**: Filter generic application PDF download prompts (`"Potomac School District Application"`, `"Click here to download"`) so pages with standing application forms return 0 rows cleanly.
+
+6. **Rapid and Regression Verification**:
+   - **Fast sub-second targeted verification** (auto-detects active batch fixtures from `git status` or accepts `--filter`, running allowlist, salary setdiff, schema check, data integrity, deduplication, and only the active tests in < 2 seconds):
+     ```bash
+     Rscript scripts/verify_batch.R
+     ```
+   - **Full regression verification** (runs all 188+ district test blocks):
+     ```bash
+     Rscript scripts/verify_batch.R --all
+     ```
+   Both checks also ensure no Claude autofix experiment files are staged.
+
 ## Identify the platform before writing any code
 
 The cheapest win is a district on a platform that already has a scraper. In that case adoption is just a registry row. Three Forks, Anaconda, and Philipsburg added 42 postings that way, and Butte, Belgrade, and Hamilton were fixed the same way after they migrated off AppliTrack. Always check this before anything bespoke:
@@ -43,7 +109,8 @@ Build one only when the live page has a **structural marker** that separates pos
 - openings are only in free prose (that's the LLM-extract shadow pilot in Montana, not a scraper; see the state reference)
 - the page only offers generic "apply here" / application-form links, with no titles
 - postings sit behind a login, a Google Drive folder, or a scanned PDF
-- the page is stale, contradictory, or belongs to a same-named district in another state
+- the page is stale, contradictory, or belongs to a same-named district in another state (search results mix them: `valleyviewschools.net` is Valley View, Arkansas, not Polson's)
+- the site blocks GitHub's servers (`references/fix-broken-scraper.md` §6): never work around bot protection
 
 One confirmed case isn't worth a whole new extraction technique (the Box Elder precedent). But when a real page has real postings and the existing approach demonstrably returns 0, build the new technique properly. Apptegy's embedded-JSON decoder came about that way. In local sessions, ask the user if the right investment level isn't clear.
 

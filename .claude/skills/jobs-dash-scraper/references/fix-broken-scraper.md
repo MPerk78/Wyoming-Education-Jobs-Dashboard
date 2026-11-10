@@ -38,3 +38,11 @@ When your render of the page shows none of the titles CI saw, suspect your envir
 ## 5. Chronic site-side flakiness
 
 If a source fails intermittently for an identifiable reason, a narrow, commented fix is fine. Precedents: Custer's apex domain has no A record so the `www.` host is pinned, and Roberts gets a retry on Cloudflare 5xx. A blanket retry or timeout increase is not. Rocky Mountain College's 429s are known site-side and deliberately left alone.
+
+## 6. A site that blocks GitHub's servers
+
+A source that errors with **HTTP 403 on every CI run but loads from home** (MT Arrowhead #75, Cloudflare, since 2026-09-07) is blocking the runners' data-center addresses, not breaking. A headless browser, the Copilot agent or the Claude auto-fix workflow all run on the same GitHub machines and get the same 403.
+
+- **Don't work around it.** Changing the user agent, routing through a proxy or third-party fetcher, or solving a bot challenge with a headless browser all get past protection the site chose. No scheduled jobs on Mike's computer either (a "fetch from home" fallback was built and withdrawn on 2026-11-09).
+- **The options:** ask the district or its web host to let the weekly request through (Cloudflare can allow one visitor), use OPI or another public listing when the district posts there, or retire the source and say so on the dashboard. Keep the source meanwhile, so the coverage calendar shows the 403 each week.
+- In CI, report it on the issue and stop: no code change fixes a block.
