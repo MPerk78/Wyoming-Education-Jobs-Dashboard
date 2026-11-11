@@ -558,6 +558,9 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     (every earlier run failed "Workflow initiated by non-human actor"). Checked with a fake `gh` (hand-over, no
     credential, already handed over, too new, PR awaiting review, unreadable comments). Suites (NOT_CRAN=true): MT 3,932,
     WY 2,047, 0 failed.
+    First real Claude run (WY #7, run 43079089307, 2026-11-11): Claude signed in and finished (11 turns, $0.35), but
+    the guard step's `git add -A -- . ':!.autofix'` exits 1 because `.autofix` is gitignored, so no run could ever
+    reach its PR/report step. Now `git add -A` then `git reset -- .autofix`.
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] **R package migration (current focus, Mike 2026-11-10):** shared code moves to `bostickmike/edjobs`, pinned in
   `EDJOBS_VERSION` (plan and status: `claude-notes/2026-11-10_r-package-migration-plan.md`). Phase 0 merged 11-11
