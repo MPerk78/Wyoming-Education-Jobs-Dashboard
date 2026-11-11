@@ -891,3 +891,42 @@ test_that("build_keyword_conflict_report_markdown lists each title once, and not
   expect_equal(sum(grepl("Kitchen Aide", md)), 1)
   expect_match(md[1], "different bucket \\(2026-11-08\\)")
 })
+
+# Standing substitute lists (MT issue #13, Lone Rock, 2026-11-10): an LLM-read
+# list of substitute pools doesn't make a source "likely_broken" unless the
+# source posts substitute jobs itself.
+test_that("substitute lines are set aside only for a source whose own titles have none", {
+  pool <- c("bus driver substitutes", "classroom teacher substitutes", "kitchen substitutes", "para professionals substitutes")
+  expect_length(drop_standing_pool_titles(pool, c("Special Education Paraprofessional", "Bus Driver and Maintenance Director")), 0)
+  # a board that posts substitute jobs: the same lines are real misses
+  expect_equal(drop_standing_pool_titles(pool, c("Substitute Teacher", "3rd Grade Teacher")), pool)
+  # no history to judge by: keep everything
+  expect_equal(drop_standing_pool_titles(pool, NULL), pool)
+  # real titles survive next to pool lines; "Subject"-like words aren't substitutes
+  expect_equal(drop_standing_pool_titles(c("kitchen substitutes", "Subject Area Specialist", "Bus subs"), "Math Teacher"),
+               "Subject Area Specialist")
+})
+
+test_that("an LLM read of only a standing substitute list no longer promotes to likely_broken", {
+  pool <- c("bus driver substitutes", "classroom teacher substitutes", "custodial substitutes",
+            "kitchen substitutes", "office staff substitutes", "para professionals substitutes")
+  out <- combine_verdict_with_llm("inconclusive", pool, c("Special Education Paraprofessional"))
+  expect_equal(out$verdict, "looks_genuinely_empty")
+  expect_match(out$note, "standing substitute list \\(6")
+  # the old behaviour stands where the source does post substitutes, or without history
+  expect_equal(combine_verdict_with_llm("inconclusive", pool, "Substitute Teacher")$verdict, "likely_broken")
+  expect_equal(combine_verdict_with_llm("inconclusive", pool)$verdict, "likely_broken")
+  # a real title among the pool lines still promotes
+  expect_equal(combine_verdict_with_llm("inconclusive", c(pool, "Head Cook"), "Bus Driver")$verdict, "likely_broken")
+})
+
+test_that("recent_source_titles reads one source's titles from the K-12 and HE archives", {
+  dir <- withr::local_tempdir(); k <- file.path(dir, "k"); h <- file.path(dir, "h"); dir.create(k); dir.create(h)
+  write.csv(data.frame(District = c("A", "B"), title = c("Math Teacher", "Substitute Teacher")), file.path(k, "combined_2026-11-03.csv"), row.names = FALSE)
+  write.csv(data.frame(District = "A", title = "Bus Driver"), file.path(k, "combined_2026-11-10.csv"), row.names = FALSE)
+  writexl::write_xlsx(data.frame(Institution = "U", Title = "Adjunct"), file.path(h, "hedata_2026-11-10.xlsx"))
+  expect_setequal(recent_source_titles("A", "K-12", k12_dir = k, he_dir = h), c("Math Teacher", "Bus Driver"))
+  expect_equal(recent_source_titles("A", "K-12", weeks = 1, k12_dir = k, he_dir = h), "Bus Driver")
+  expect_equal(recent_source_titles("U", "Higher Ed", k12_dir = k, he_dir = h), "Adjunct")
+  expect_null(recent_source_titles("A", "K-12", k12_dir = file.path(dir, "none"), he_dir = h))
+})

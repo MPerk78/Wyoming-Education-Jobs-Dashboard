@@ -540,6 +540,10 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     .xlsx columns are typed like .csv; rows that passed on zero matched rows now count what must be there (21 rows).
     Suite 2,258 (0 failed).
 
+  * [x] Standing substitute lists in the drift check (2026-11-10; same change in MT; MT issue #13, Lone Rock): an
+    LLM-read list of substitute pools no longer makes a source likely_broken unless the source's own titles over its
+    last 8 archived runs include a substitute posting (49 of 59 direct sources here do). `drop_standing_pool_titles()`,
+    `recent_source_titles()` (drift_check.R); `corroborate_drift.R` passes the history. Suite 2,270 (0 failed).
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
   222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:

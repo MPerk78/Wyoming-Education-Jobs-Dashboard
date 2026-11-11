@@ -417,7 +417,44 @@ score_page_text_for_job_signal <- function(page_text) {
 #     downgrade to "looks_genuinely_empty" (conservative: both weak signals
 #     now agree there's nothing there).
 #   - otherwise: unchanged.
-combine_verdict_with_llm <- function(verdict, llm_titles) {
+# Standing substitute-recruiting lists ("We are always looking for
+# substitutes: bus driver substitutes, kitchen substitutes, ...") read like
+# postings to an LLM, but most boards that run them aren't posting jobs there.
+# Lone Rock (MT issue #13, 2026-11-10): its two real openings came down, the
+# scraper rightly returned 0, and the LLM's six substitute lines made it
+# "likely_broken". Whether a substitute line is a missed posting depends on
+# the source: 127 of 183 MT and 49 of 59 WY direct sources list substitute
+# postings themselves (last 8 weeks, 2026-11-10). So the lines are set aside
+# only when the source's own recent titles have none.
+STANDING_POOL_PATTERN <- "(?i)\\bsub(stitute)?s?\\b"
+
+# llm_titles minus substitute lines when history_titles (the source's own
+# recent titles) has no substitute title; NULL history keeps everything.
+drop_standing_pool_titles <- function(llm_titles, history_titles = NULL) {
+  if (is.null(history_titles) || !length(llm_titles)) return(llm_titles)
+  if (any(grepl(STANDING_POOL_PATTERN, history_titles, perl = TRUE))) return(llm_titles)
+  llm_titles[!grepl(STANDING_POOL_PATTERN, llm_titles, perl = TRUE)]
+}
+
+# The titles one source returned over its last `weeks` archived runs (K-12:
+# Archivek12_Data District/title; "Higher Ed": Archived_HE_Data Institution/Title), or
+# NULL when there are no archives to read.
+recent_source_titles <- function(name, type = "K-12", weeks = 8, k12_dir = "Archivek12_Data", he_dir = "Archived_HE_Data") {
+  he <- type %in% c("Higher Ed", "HE")   # check_drift.R labels HE sources "Higher Ed"
+  files <- utils::tail(sort(list.files(if (he) he_dir else k12_dir,
+                                       pattern = if (he) "^hedata_\\d{4}-\\d{2}-\\d{2}\\.xlsx$" else "^combined_\\d{4}-\\d{2}-\\d{2}\\.csv$",
+                                       full.names = TRUE)), weeks)
+  if (!length(files)) return(NULL)
+  unlist(lapply(files, function(f) tryCatch({
+    x <- if (he) as.data.frame(readxl::read_excel(f, col_types = "text")) else utils::read.csv(f, colClasses = "character")
+    if (he) x$Title[x$Institution %in% name] else x$title[x$District %in% name]
+  }, error = function(e) character(0))))
+}
+
+combine_verdict_with_llm <- function(verdict, llm_titles, history_titles = NULL) {
+  kept <- drop_standing_pool_titles(llm_titles, history_titles)
+  pooled <- length(llm_titles) - length(kept)
+  llm_titles <- kept
   n <- length(llm_titles)
 
   if (n > 0 && !identical(verdict, "confirmed_broken")) {
@@ -431,7 +468,9 @@ combine_verdict_with_llm <- function(verdict, llm_titles) {
 
   if (n == 0 && identical(verdict, "inconclusive")) {
     return(list(verdict = "looks_genuinely_empty",
-                note = "an LLM read no postings off the live page either"))
+                note = if (pooled > 0) paste0("an LLM read only a standing substitute list (", pooled,
+                                              " line(s)) off the live page, and this source never posts substitute jobs")
+                       else "an LLM read no postings off the live page either"))
   }
 
   list(verdict = verdict, note = NA_character_)
