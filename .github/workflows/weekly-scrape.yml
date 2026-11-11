@@ -7,6 +7,12 @@ on:
     - cron: '0 13 * * 5'
   workflow_dispatch: {}
 
+# One weekly run at a time: a second run waits for the first (MT has had this
+# since 2026-11-03, when a late scheduled run overlapped a manual one).
+concurrency:
+  group: weekly-scrape
+  cancel-in-progress: false
+
 permissions:
   contents: write
   issues: write
@@ -14,7 +20,34 @@ permissions:
   actions: write
 
 jobs:
+  # GitHub starts the scheduled run hours late (MT 2026-11-10: 13:00 UTC cron,
+  # started 20:05). A manual run dispatched earlier the same day has already
+  # pushed that day's data, so the late scheduled run would only fail at its
+  # push (same-day files conflict). This job lets a scheduled run see that and
+  # stop cleanly. Manual dispatches always run. (Workflow plan 2026-11-10, 2.2.)
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+      - name: Skip a scheduled run when today's data refresh is already on main
+        id: check
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          if [ "${{ github.event_name }}" = "schedule" ] && \
+             git log -n 50 --format=%s | grep -qxF "Automated weekly data refresh ($today)"; then
+            echo "::notice::Today's data refresh ($today) is already on main (a manual run); skipping this scheduled run."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
   scrape:
+    needs: guard
+    if: needs.guard.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -198,6 +231,15 @@ jobs:
         continue-on-error: true
         run: Rscript .github/scripts/check_frozen_boards.R
 
+      # run_expectations.csv: what a person expects after a change lands,
+      # checked here instead of read off the log (workflow plan 2026-11-10,
+      # 2.1). Summary on the run page; failures go in the drift issue.
+      # Same non-blocking shape.
+      - name: Check this run against run_expectations.csv
+        id: check_run_expectations
+        continue-on-error: true
+        run: Rscript .github/scripts/check_run_expectations.R
+
       # Closes the one real gap continue-on-error opens up: a bug that
       # CRASHES one of the three monitoring steps above is indistinguishable
       # from "ran fine, found nothing to report" unless something checks for
@@ -218,6 +260,7 @@ jobs:
           [ "${{ steps.check_rebuild_parity.outcome }}" = "failure" ] && FAILED="$FAILED check_rebuild_parity.R"
           [ "${{ steps.check_frozen_boards.outcome }}" = "failure" ] && FAILED="$FAILED check_frozen_boards.R"
           [ "${{ steps.build_posting_spells.outcome }}" = "failure" ] && FAILED="$FAILED build_posting_spells.R"
+          [ "${{ steps.check_run_expectations.outcome }}" = "failure" ] && FAILED="$FAILED check_run_expectations.R"
 
           if [ -z "$FAILED" ]; then
             echo "All monitoring steps ran without crashing."

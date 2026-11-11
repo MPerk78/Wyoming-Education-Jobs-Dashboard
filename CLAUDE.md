@@ -46,7 +46,9 @@ Rscript .github/scripts/check_salary_drift.R   # diagnostic: WSBA/IPEDS coverage
 Rscript .github/scripts/check_census_drift.R   # diagnostic: ACS/SAIPE coverage + value plausibility
 Rscript .github/scripts/check_pay_coverage.R   # diagnostic: sources whose posted pay went missing vs. their own history, plus implausible amounts blanked this run
 Rscript .github/scripts/check_title_quality.R  # diagnostic: titles that aren't job titles (page text, summaries, pay Posted Pay lacks), and sources whose Other share jumped vs. their last 8 weeks
+RUN_DATE=2026-11-13 Rscript .github/scripts/check_run_expectations.R  # diagnostic: this run's files against run_expectations.csv
 ```
+`run_expectations.csv` holds one row per thing a person expects after a change lands (file, R filter, R measure, min/max, the run dates it applies to; logic in `run_expectations.R`, same file in both state repos). Write expectations for the next run there rather than as a hand-read watch-list; `test-run-expectations.R` validates the file, and failures go in the drift issue. A `guard` job ahead of the scrape skips a *scheduled* run when main already has that day's `Automated weekly data refresh` commit (GitHub starts the cron hours late, after a manual dispatch has pushed); manual dispatches always run, and `concurrency` keeps two runs from overlapping.
 `check_salary_drift.R` also flags the pay-estimate reference tables (OEWS, QCEW, IPEDS staff pay, UW salary book) whose refresh failed, was rejected by `write_reference_file()`, didn't run, or went stale -- see DATA_COOKBOOK.md, "Pay data-quality guards".
 
 Disaster-recovery / verification rebuilds (reprocess the full raw archive from scratch, bypassing the incremental accumulator):
