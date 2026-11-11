@@ -57,6 +57,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Before anything runs apt (2026-11-11 *.ubuntu.com DNS outage).
+      - uses: ./.github/actions/apt-mirror-fallback
+
       - uses: r-lib/actions/setup-pandoc@v2
 
       - uses: r-lib/actions/setup-r@v2

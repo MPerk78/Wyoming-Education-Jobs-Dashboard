@@ -1,0 +1,21 @@
+name: apt mirror fallback
+description: >
+  Point apt at mirrors.edge.kernel.org when azure.archive.ubuntu.com does not
+  resolve, and give apt timeouts so a dead mirror fails fast instead of hanging
+  the job. From ~15:20 UTC 2026-11-11 hosted runners could not resolve
+  *.ubuntu.com (every Ubuntu image; other hosts fine), so the apt-get update in
+  setup-r and in our own system-deps step hung until the job timed out. A no-op
+  apart from the timeouts while ubuntu.com resolves. Run it before setup-r.
+  Same file in MT and WY.
+runs:
+  using: composite
+  steps:
+    - name: apt timeouts; kernel.org mirror if ubuntu.com does not resolve
+      shell: bash
+      run: |
+        printf 'Acquire::Retries "2";\nAcquire::http::Timeout "20";\nAcquire::https::Timeout "20";\n' | sudo tee /etc/apt/apt.conf.d/99-timeouts >/dev/null
+        if ! timeout 10 getent hosts azure.archive.ubuntu.com >/dev/null; then
+          echo "::warning::azure.archive.ubuntu.com does not resolve; using mirrors.edge.kernel.org for apt"
+          printf 'http://mirrors.edge.kernel.org/ubuntu/\tpriority:1\n' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
+          sudo sed -i -E 's#https?://(azure\.)?(archive|security)\.ubuntu\.com/ubuntu/?#http://mirrors.edge.kernel.org/ubuntu/#g' /etc/apt/sources.list.d/*.sources
+        fi
