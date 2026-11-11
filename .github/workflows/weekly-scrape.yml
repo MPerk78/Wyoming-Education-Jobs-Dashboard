@@ -91,6 +91,14 @@ jobs:
             "sf"
           ))'
 
+      # Shared code (bostickmike/edjobs) at the version pinned in EDJOBS_VERSION
+      # (R package migration, phase 0, 2026-11-10). Before the test suite: the
+      # tests and the run-expectations step load it.
+      - name: Install edjobs at the pinned version
+        env:
+          GITHUB_PAT: ${{ github.token }}
+        run: Rscript -e 'install.packages("pak"); pak::pak(paste0("bostickmike/edjobs@v", trimws(readLines("EDJOBS_VERSION"))), ask = FALSE)'
+
       - name: Install Chrome (for the 4 Apptegy misc-district scrapers)
         id: setup-chrome
         uses: browser-actions/setup-chrome@v1

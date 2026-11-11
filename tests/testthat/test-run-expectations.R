@@ -1,127 +1,16 @@
-# Run expectations (run_expectations.R; workflow plan 2026-11-10, item 2.1).
-# The logic tests use a small hand-built file: they test the evaluator, not a
-# scraper. The last test checks the committed run_expectations.csv, so a typo
-# there fails here rather than during the weekly run.
-source(here::here("run_expectations.R"))
+# Run expectations: the logic moved to the edjobs package (phase 0 of the R
+# package migration, 2026-11-10; its tests live there). This repo keeps two
+# checks: the installed edjobs is the version EDJOBS_VERSION pins, and the
+# committed run_expectations.csv is well formed (a typo fails here, before the
+# weekly run, rather than during it).
 
-exp_row <- function(...) {
-  base <- list(id = "x", applies_from = "2026-11-01", expires = "2026-12-31", file = "data.csv",
-               filter = "", measure = "", min = "", max = "", note = "")
-  as.data.frame(modifyList(base, list(...)), stringsAsFactors = FALSE)
-}
-
-with_data_dir <- function(code) {
-  dir <- withr::local_tempdir(.local_envir = parent.frame())
-  write.csv(data.frame(District = c("A", "A", "B", "C"), Pay_Min = c(40000, NA, 52000, NA),
-                       title = c("Teacher", "Coach &#x27;Asst&#x27;", "Aide", "Bus Driver"),
-                       Archive_Date = c("2026-11-06", "2026-11-13", "2026-11-13", "2026-11-13")),
-            file.path(dir, "data.csv"), row.names = FALSE)
-  dir
-}
-
-test_that("a count, a share and a pattern count are measured against their bounds", {
-  dir <- with_data_dir()
-  exp <- rbind(
-    exp_row(id = "rows_A", filter = 'District == "A"', min = "2", max = "2"),
-    exp_row(id = "pay_share", measure = "mean(!is.na(Pay_Min))", min = "0.6"),
-    exp_row(id = "no_entities", measure = 'sum(grepl("&#x27;", title, fixed = TRUE))', max = "0"),
-    exp_row(id = "latest_run", filter = "Archive_Date == max(Archive_Date)", min = "3", max = "3"))
-  res <- evaluate_run_expectations(exp, run_date = "2026-11-13", root = dir)
-  expect_equal(res$Value, c(2, 0.5, 1, 3))
-  expect_equal(res$Status, c("pass", "fail", "fail", "pass"))
-})
-
-test_that("rows outside their dates are skipped, not failed", {
-  dir <- with_data_dir()
-  exp <- rbind(exp_row(id = "future", applies_from = "2026-11-20", min = "100"),
-               exp_row(id = "old", expires = "2026-11-10", min = "100"))
-  res <- evaluate_run_expectations(exp, run_date = "2026-11-13", root = dir)
-  expect_equal(res$Status, c("not_yet", "expired"))
-  # on the boundary days the row is checked
-  res2 <- evaluate_run_expectations(exp, run_date = "2026-11-20", root = dir)
-  expect_equal(res2$Status[1], "fail")
-  res3 <- evaluate_run_expectations(exp, run_date = "2026-11-10", root = dir)
-  expect_equal(res3$Status[2], "fail")
-})
-
-test_that("a missing file, a broken expression or a non-scalar measure is an error, not a pass", {
-  dir <- with_data_dir()
-  exp <- rbind(exp_row(id = "nofile", file = "missing.csv", min = "0"),
-               exp_row(id = "badcol", filter = "NoSuchColumn == 1", min = "0"),
-               exp_row(id = "vector", measure = "Pay_Min", min = "0"),
-               exp_row(id = "na", measure = "mean(Pay_Min)", min = "0"),
-               exp_row(id = "nonlogical_filter", filter = "District", min = "0"))
-  res <- evaluate_run_expectations(exp, run_date = "2026-11-13", root = dir)
-  expect_true(all(res$Status == "error"))
-  expect_match(res$Detail[3], "single number")
-  expect_match(res$Detail[4], "NA")
-})
-
-test_that("expressions don't see the caller's variables", {
-  dir <- with_data_dir()
-  threshold_from_caller <- 1
-  res <- evaluate_run_expectations(exp_row(measure = "nrow(d) + threshold_from_caller", min = "0"),
-                                   run_date = "2026-11-13", root = dir)
-  expect_equal(res$Status, "error")
-})
-
-test_that("the report lists failures and expired ids, and is one line when all pass", {
-  dir <- with_data_dir()
-  exp <- rbind(exp_row(id = "ok", min = "1"), exp_row(id = "bad|pipe", min = "100", note = "needs 100"),
-               exp_row(id = "gone", expires = "2026-11-01", min = "1"))
-  rep <- build_run_expectations_report_markdown(evaluate_run_expectations(exp, "2026-11-13", root = dir))
-  expect_match(rep[1], "2 checked, 1 passed, 1 failed, 0 errored \\(0 not yet due, 1 expired\\)")
-  expect_true(any(grepl("bad\\\\|pipe", rep, fixed = FALSE)))
-  expect_true(any(grepl("`gone`", rep, fixed = TRUE)))
-  rep_ok <- build_run_expectations_report_markdown(evaluate_run_expectations(exp[1, ], "2026-11-13", root = dir))
-  expect_length(rep_ok, 1)
-})
-
-test_that("validation catches the mistakes a hand-edited file makes", {
-  dir <- with_data_dir()
-  exp <- rbind(exp_row(id = "a", min = "1"), exp_row(id = "a", min = "1"),
-               exp_row(id = "b", applies_from = "11/13/2026", min = "1"),
-               exp_row(id = "c", file = "nope.csv", min = "1"),
-               exp_row(id = "d", filter = "District ==", min = "1"),
-               exp_row(id = "e"),
-               exp_row(id = "f", min = "5", max = "1"))
-  probs <- validate_run_expectations(exp, root = dir, check_files = TRUE)
-  expect_true(any(grepl("duplicate id: a", probs)))
-  expect_true(any(grepl("\\(b\\): applies_from", probs)))
-  expect_true(any(grepl("\\(c\\): no such file", probs)))
-  expect_true(any(grepl("\\(d\\): filter does not parse", probs)))
-  expect_true(any(grepl("\\(e\\): neither min nor max", probs)))
-  expect_true(any(grepl("\\(f\\): min is above max", probs)))
-  expect_length(validate_run_expectations(exp[1, ], root = dir, check_files = TRUE), 0)
-  # without check_files a missing file is not a problem (it is an error row at run time)
-  expect_false(any(grepl("no such file", validate_run_expectations(exp, root = dir))))
-})
-
-test_that("a row naming a file only the coming run writes doesn't fail validation on or after its date", {
-  # WY's posting_status.csv rows (2026-11-13): the pre-run suite validates the
-  # committed file, and failing here would stop the run that writes the file.
-  dir <- with_data_dir()
-  exp <- exp_row(id = "future_file", file = "written_by_the_run.csv", applies_from = "2026-11-13", min = "1")
-  expect_length(validate_run_expectations(exp, root = dir), 0)
-  res <- evaluate_run_expectations(exp, run_date = "2026-11-13", root = dir)
-  expect_equal(res$Status, "error"); expect_match(res$Detail, "could not read")
-})
-
-test_that("an .xlsx file's numbers compare as numbers, as a .csv's do", {
-  dir <- with_data_dir()
-  d <- read.csv(file.path(dir, "data.csv"))
-  writexl::write_xlsx(d, file.path(dir, "data.xlsx"))
-  exp <- rbind(exp_row(id = "csv", filter = "Pay_Min > 45000", min = "0"),
-               exp_row(id = "xlsx", file = "data.xlsx", filter = "Pay_Min > 45000", min = "0"))
-  res <- evaluate_run_expectations(exp, run_date = "2026-11-13", root = dir)
-  expect_equal(res$Value, c(1, 1))   # as text, "52000" > "45000" holds but so would "9000"
-  exp2 <- exp_row(id = "xlsx_small", file = "data.xlsx", filter = "Pay_Min > 9000", min = "0")
-  expect_equal(evaluate_run_expectations(exp2, run_date = "2026-11-13", root = dir)$Value, 2)
+test_that("the installed edjobs is the version EDJOBS_VERSION pins", {
+  expect_equal(as.character(utils::packageVersion("edjobs")), trimws(readLines(here::here("EDJOBS_VERSION"))))
 })
 
 test_that("the committed run_expectations.csv is well formed", {
   path <- here::here("run_expectations.csv")
   skip_if_not(file.exists(path))
-  exp <- read_run_expectations(path)
-  expect_equal(validate_run_expectations(exp, root = here::here()), character(0))
+  exp <- edjobs::read_run_expectations(path)
+  expect_equal(edjobs::validate_run_expectations(exp, root = here::here()), character(0))
 })

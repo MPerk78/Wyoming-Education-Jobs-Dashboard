@@ -39,6 +39,15 @@ runs:
           "leaflet", "plotly", "scales", "shinycssloaders", "sf"
         ))'
 
+    # Shared code (bostickmike/edjobs) at the version pinned in EDJOBS_VERSION
+    # (R package migration, phase 0, 2026-11-10); weekly-scrape.yml installs it
+    # the same way.
+    - name: Install edjobs at the pinned version
+      shell: bash
+      env:
+        GITHUB_PAT: ${{ github.token }}
+      run: Rscript -e 'install.packages("pak"); pak::pak(paste0("bostickmike/edjobs@v", trimws(readLines("EDJOBS_VERSION"))), ask = FALSE)'
+
     - name: Install Chrome
       id: setup-chrome
       uses: browser-actions/setup-chrome@v1

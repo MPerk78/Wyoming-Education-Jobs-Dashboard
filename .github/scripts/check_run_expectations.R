@@ -1,4 +1,4 @@
-# Run expectations (run_expectations.R; workflow plan 2026-11-10, item 2.1).
+# Run expectations (edjobs package; workflow plan 2026-11-10, item 2.1).
 # Non-blocking and informational, like check_drift.R: evaluates every row of
 # run_expectations.csv against this run's freshly written files. Always writes
 # the summary to the run's step summary page and /tmp/run_expectations.csv.
@@ -6,7 +6,7 @@
 # when a row failed or errored, or when the report already exists for another
 # reason, so an all-pass week with nothing else to say files no issue.
 
-source("run_expectations.R")
+suppressPackageStartupMessages(library(edjobs))   # pinned in EDJOBS_VERSION
 
 if (!file.exists("run_expectations.csv")) {
   cat("No run_expectations.csv, nothing to check.\n")
