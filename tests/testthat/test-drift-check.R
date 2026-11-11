@@ -930,3 +930,34 @@ test_that("recent_source_titles reads one source's titles from the K-12 and HE a
   expect_equal(recent_source_titles("U", "Higher Ed", k12_dir = k, he_dir = h), "Adjunct")
   expect_null(recent_source_titles("A", "K-12", k12_dir = file.path(dir, "none"), he_dir = h))
 })
+
+test_that("autofix_escalation_decision hands a stale, unfixed issue to Claude once", {
+  none <- data.frame(state = character(0), changed_files = integer(0))
+  pr <- function(state, files) data.frame(state = state, changed_files = files)
+  # Filed 2026-11-06, still flagged 2026-11-13, Copilot never opened a PR.
+  expect_equal(autofix_escalation_decision("2026-11-06T17:23:00Z", "2026-11-13", character(0), none), "escalate")
+  # Same-week re-run: Copilot gets its week.
+  expect_equal(autofix_escalation_decision("2026-11-11T17:23:00Z", "2026-11-13", character(0), none), "too_new")
+  # Copilot's PR closed unmerged, or open with no changes ("no scraper change proposed"): escalate.
+  expect_equal(autofix_escalation_decision("2026-11-06", "2026-11-13", character(0), pr("CLOSED", 3)), "escalate")
+  expect_equal(autofix_escalation_decision("2026-11-06", "2026-11-13", character(0), pr("OPEN", 0)), "escalate")
+  # An open PR with changes is waiting for Mike; a merged fix that's still flagged needs a person.
+  expect_equal(autofix_escalation_decision("2026-11-06", "2026-11-13", character(0), pr("OPEN", 2)), "pr_awaiting_review")
+  expect_equal(autofix_escalation_decision("2026-11-06", "2026-11-13", character(0), pr(c("CLOSED", "MERGED"), c(1, 1))), "fix_merged")
+  # Only once: the marker comment from the first hand-over blocks a second.
+  expect_equal(autofix_escalation_decision("2026-11-06", "2026-11-20",
+                                           c("Still flagged", paste("Handed to Claude.", AUTOFIX_ESCALATION_MARKER)), none),
+               "already_escalated")
+  expect_equal(autofix_escalation_decision(NA_character_, "2026-11-13", character(0), none), "too_new")
+})
+
+test_that("autofix_linked_prs finds only PRs that close that issue", {
+  prs <- data.frame(number = c(9L, 10L, 11L, 12L), state = c("OPEN", "CLOSED", "OPEN", "MERGED"),
+                    changedFiles = c(0L, 3L, 2L, 1L),
+                    body = c("- Fixes #7", "Closes #7 too", "Fixes #70", NA))
+  got <- autofix_linked_prs(prs, 7)
+  expect_equal(got$number, c(9L, 10L))
+  expect_equal(got$changed_files, c(0L, 3L))
+  expect_equal(nrow(autofix_linked_prs(prs[0, ], 7)), 0)
+  expect_equal(nrow(autofix_linked_prs(prs, 99)), 0)
+})

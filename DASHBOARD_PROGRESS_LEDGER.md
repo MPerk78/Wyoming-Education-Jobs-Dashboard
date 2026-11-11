@@ -549,6 +549,15 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     resolved), so every `apt-get update` hung until the job timed out. New `.github/actions/apt-mirror-fallback`, run
     before R setup in `setup-r-env` (PR checks, Copilot, autofix) and in `weekly-scrape.yml`: apt timeouts always,
     and `mirrors.edge.kernel.org` when azure.archive.ubuntu.com does not resolve (probe: apt-get update 5.6 s).
+  * [x] Claude as the auto-fix fallback (2026-11-11; same change in MT): both states assign new auto-fix issues to
+    Copilot (`AUTOFIX_ENGINE=copilot`; `COPILOT_TOKEN` is one fine-grained PAT for both repos, expires 2027-02-09).
+    An issue still flagged at a later weekly run, at least 5 days old, with no open Copilot PR carrying changes and no
+    merged fix, goes to `claude-autofix.yml` once (`autofix_escalation_decision()`, `autofix_linked_prs()` in
+    drift_check.R; marker comment records the hand-over). Only when a Claude credential is set
+    (`AUTOFIX_CLAUDE_FALLBACK` in weekly-scrape.yml). `claude-autofix.yml` has `allowed_bots: "github-actions"`
+    (every earlier run failed "Workflow initiated by non-human actor"). Checked with a fake `gh` (hand-over, no
+    credential, already handed over, too new, PR awaiting review, unreadable comments). Suites (NOT_CRAN=true): MT 3,932,
+    WY 2,047, 0 failed.
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] **R package migration (current focus, Mike 2026-11-10):** shared code moves to `bostickmike/edjobs`, pinned in
   `EDJOBS_VERSION` (plan and status: `claude-notes/2026-11-10_r-package-migration-plan.md`). Phase 0 merged 11-11

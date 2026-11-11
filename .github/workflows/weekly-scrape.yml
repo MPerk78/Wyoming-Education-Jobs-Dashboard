@@ -326,6 +326,9 @@ jobs:
           COPILOT_TOKEN: ${{ secrets.COPILOT_TOKEN }}
           # claude (default) | copilot | none -- see autofix_engine() in drift_check.R.
           AUTOFIX_ENGINE: ${{ vars.AUTOFIX_ENGINE }}
+          # "true" if a Claude credential is set: then an issue Copilot hasn't
+          # fixed in a week goes to claude-autofix.yml once (2026-11-11).
+          AUTOFIX_CLAUDE_FALLBACK: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
         run: Rscript .github/scripts/file_autofix_issues.R
 
       - name: Regenerate the Connect Cloud manifest

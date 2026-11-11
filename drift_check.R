@@ -734,6 +734,41 @@ autofix_engine <- function(value) {
   v
 }
 
+# Claude as the fallback engine (2026-11-11). With AUTOFIX_ENGINE = "copilot",
+# an issue Copilot hasn't fixed by a later weekly run goes to the Claude
+# workflow once: still flagged, at least AUTOFIX_ESCALATION_MIN_DAYS old, not
+# already handed over (the marker in a comment), no open PR with changes
+# waiting for review, and no merged fix (merged but still flagged is a human
+# problem). A week's wait lets Copilot finish, and lets a board that was
+# briefly empty recover on its own, before a second agent is paid for.
+# `prs` is every PR whose body says "Fixes #<issue>": columns state
+# ("OPEN"/"CLOSED"/"MERGED") and changed_files. Returns the decision as a
+# word, "escalate" or the reason not to.
+AUTOFIX_ESCALATION_MARKER <- "<!-- autofix-escalated: claude -->"
+AUTOFIX_ESCALATION_MIN_DAYS <- 5
+
+autofix_escalation_decision <- function(issue_created, today, comment_bodies, prs) {
+  age <- as.numeric(as.Date(today) - as.Date(substr(issue_created, 1, 10)))
+  if (is.na(age) || age < AUTOFIX_ESCALATION_MIN_DAYS) return("too_new")
+  if (any(grepl(AUTOFIX_ESCALATION_MARKER, comment_bodies, fixed = TRUE))) return("already_escalated")
+  if (NROW(prs) > 0) {
+    if (any(prs$state == "MERGED")) return("fix_merged")
+    if (any(prs$state == "OPEN" & prs$changed_files > 0)) return("pr_awaiting_review")
+  }
+  "escalate"
+}
+
+# PRs (from `gh pr list --json number,state,changedFiles,body`) that say
+# "Fixes/Closes/Resolves #<issue>", as autofix_escalation_decision() wants them.
+autofix_linked_prs <- function(prs, issue_number) {
+  empty <- data.frame(number = integer(0), state = character(0), changed_files = integer(0))
+  if (NROW(prs) == 0) return(empty)
+  pat <- sprintf("(?i)\\b(fix(es|ed)?|close[sd]?|resolve[sd]?)\\s+#%s\\b", issue_number)
+  hit <- grepl(pat, ifelse(is.na(prs$body), "", prs$body), perl = TRUE)
+  if (!any(hit)) return(empty)
+  data.frame(number = prs$number[hit], state = prs$state[hit], changed_files = prs$changedFiles[hit])
+}
+
 parse_autofix_marker <- function(body) {
   if (length(body) == 0 || is.na(body)) return(NA_character_)
   m <- regmatches(body, regexec(AUTOFIX_MARKER_RE, body, perl = TRUE))[[1]]

@@ -70,6 +70,10 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # The weekly run's file_autofix_issues.R dispatches this workflow as
+          # the github-actions bot; without this the action refuses to start
+          # ("Workflow initiated by non-human actor", 2026-11-03).
+          allowed_bots: "github-actions"
           github_token: ${{ github.token }}
           prompt: |
             You are fixing scraper auto-fix issue #${{ inputs.issue_number }} in ${{ github.repository }}, unattended.
