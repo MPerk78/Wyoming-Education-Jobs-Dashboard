@@ -32,7 +32,7 @@ env:
   ISSUE: ${{ inputs.issue_number }}
   # Paths a CI fix may touch. Anything else (registry, Rmd, workflows,
   # accumulated data, docs) is a human change -- see ci-automation.md.
-  ALLOWED_PATHS: '^(direct_api_scrapers\.R|misc_district_scrapers\.R|eastern_wyoming_scraper\.R|scrape_helpers\.R|tests/testthat/.+)$'
+  ALLOWED_PATHS: '^(direct_api_scrapers\.R|misc_district_scrapers\.R|eastern_wyoming_scraper\.R|tests/testthat/.+)$'
 
 jobs:
   fix:

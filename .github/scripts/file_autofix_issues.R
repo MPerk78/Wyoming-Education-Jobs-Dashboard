@@ -24,7 +24,7 @@
 
 source("drift_check.R")
 suppressMessages({ library(httr2); library(rvest); library(dplyr) })
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")   # applitrack_tenant_path() etc., for resolve_scraper_call()
 source("misc_district_scrapers.R") # misc_district_registry
 

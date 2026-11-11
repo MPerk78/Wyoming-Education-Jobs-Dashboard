@@ -168,7 +168,7 @@ test_that("the drift report lists only boards still frozen this run", {
 })
 
 test_that("a posting's own page confirms or overrules its ending, and dates it by a stated closing date", {
-  source(here::here("posting_status.R"))
+  library(edjobs)
   at <- function(id) paste0("https://www.applitrack.com/sweetwater/onlineapp/default.aspx?AppliTrackLayoutMode=detail&AppliTrackJobId=", id)
   p <- rbind(ps_row("2026-10-23", "applitrack:sweetwater:1", "Cook", method = "Stable per-posting ID", url = at(1), posted = "2026-10-01"),
              ps_row("2026-10-23", "applitrack:sweetwater:2", "Aide", method = "Stable per-posting ID", url = at(2), posted = "2026-10-01"),

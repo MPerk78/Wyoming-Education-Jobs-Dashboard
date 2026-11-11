@@ -100,7 +100,7 @@ repair_no_jobs_placeholder <- function(
 
 if (sys.nframe() == 0) {
   source("k12_he_classification.R")
-  source("bls_oews_scraper.R")
+  library(edjobs)
   source("history_accumulator.R")
   source(file.path("scripts", "rebuild_k12_history_from_archive.R"))
 

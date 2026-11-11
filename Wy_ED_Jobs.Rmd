@@ -18,7 +18,7 @@ source("k12_he_classification.R")
 ```{r loop with districts on a direct scraping platform, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
 library(stringr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 # k12_district_registry.csv is the single source of truth for every K-12
@@ -209,7 +209,7 @@ direct <- read.csv("all_direct_k12_job_listings.csv", stringsAsFactors = FALSE)
 # against that district's WSBA entries by normalized title). See
 # misc_district_scrapers.R's header comment for the full platform
 # breakdown and known limitations.
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 source("misc_district_scrapers.R")
 
@@ -264,7 +264,7 @@ wsba_rows <- remove_wsba_direct_duplicates(
 # 2026-11-05). Each kept WSBA row that links a district posting is checked on
 # its platform, and the closed ones are dropped (posting_status.R). A failed
 # check keeps the row; a failure of the whole step keeps them all.
-source("posting_status.R")
+library(edjobs)
 wsba_checks <- tryCatch(
   check_posting_pages(wsba_rows$url, Sys.Date(), session_factory = function() chromote::ChromoteSession$new()),
   error = function(e) { message("WSBA posting checks skipped: ", conditionMessage(e)); NULL })
@@ -325,7 +325,7 @@ tryCatch(refresh_schoolspring_endings("Archivek12_Data", "schoolspring_endings.c
 # no pay (bls_oews_scraper.R). Refreshed only when BLS publishes a new year;
 # a failed check keeps the committed file. Counties come from last run's
 # salarymap2.csv (district -> "Albany County, Wyoming").
-source("bls_oews_scraper.R")
+library(edjobs)
 oews_path <- file.path("Wy_Ed_Jobs", "oews_role_wages.csv")
 tryCatch(refresh_oews_wages("WY", oews_path),
          error = function(e) log_reference_result(oews_path, "error", conditionMessage(e)))
@@ -333,7 +333,7 @@ tryCatch(refresh_oews_wages("WY", oews_path),
 # BLS QCEW average pay of public school employees by county (all roles), the
 # map popup's county context (qcew_school_pay.R). A failed fetch keeps the
 # existing file, and so does a partial or implausible one (write_reference_file()).
-source("qcew_school_pay.R")
+library(edjobs)
 qcew_path <- file.path("Wy_Ed_Jobs", "qcew_county_school_pay.csv")
 tryCatch(write_reference_file(fetch_qcew_school_pay("56"), qcew_path),
          error = function(e) log_reference_result(qcew_path, "error", conditionMessage(e)))
@@ -473,7 +473,7 @@ write.csv(list, "list.csv", row.names = FALSE)
 ### K-12 salary data, from WSBA's publicly shared PDFs
 ```{r wsba salary data, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("salary_scrapers.R")
 
 teacher_salary <- safe_scrape(
@@ -536,7 +536,7 @@ write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FAL
 ### K-12 teacher FTE (staff headcount), from NCES's Common Core of Data via the Urban Institute API
 ```{r ccd teacher fte data, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("ccd_staff_scraper.R")
 
 teacher_fte <- safe_scrape(
@@ -628,7 +628,7 @@ write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FAL
 ### County-level context (income, rent, mining/energy employment share, population trend), from the Census Bureau's ACS 5-Year Estimates
 ```{r census county context data, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("census_acs_scraper.R")
 
 # CENSUS_API_KEY must be set (a GitHub Actions secret in CI, .Renviron
@@ -669,7 +669,7 @@ if (nrow(county_context) > 0) {
 ### District-level child poverty rate, from the Census Bureau's SAIPE program
 ```{r census saipe child poverty data, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("census_acs_scraper.R")  # census_saipe_scraper.R reuses census_api_key()/clean_acs_value()/WY_STATE_FIPS from here
 source("census_saipe_scraper.R")
 
@@ -729,7 +729,7 @@ if (nrow(child_poverty) > 0) {
 ### This chunk scrapes LCCC's data
 ```{r Get Jobs from LCCC, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 # LCCC is on the same NEOGOV platform as Casper/Central/Gillette/Western,
@@ -754,7 +754,7 @@ print(lccc)
 ### This pulls data from Casper College
 ```{r casper college, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 casper_raw <- safe_scrape(
@@ -775,7 +775,7 @@ print(casper)
 ### This pulls jobs data from Western Wyoming
 ```{r western wyoming, echo=TRUE, message=FALSE, warning=FALSE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 # Western is on the same PeopleAdmin platform as Eastern/Sheridan/
@@ -804,7 +804,7 @@ print(western)
 ### This pulls data from Central Wyoming college
 ```{r central wyoming, message=FALSE, echo=TRUE, warning=FALSE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 central_raw <- safe_scrape(
@@ -824,7 +824,7 @@ print(central)
 ### This pulls jobs data from Eastern Wyoming college
 ```{r Eastern, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 # Eastern's own published Atom feed replaces the old RSelenium scraper
@@ -847,7 +847,7 @@ print(eastern)
 ### This pulls data Gillette college
 ```{r gillette, message=FALSE, echo=TRUE, warning=FALSE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 gillette_raw <- safe_scrape(
@@ -866,7 +866,7 @@ print(gillette)
 ### This pulls data from Sheridan College
 ```{r sheridan, echo=TRUE, message=FALSE, warning=FALSE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 # Sheridan is on the same PeopleAdmin platform as Eastern Wyoming --
@@ -890,7 +890,7 @@ print(sheridan)
 ### This pulls data from Northwest College
 ```{r Northwest, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 # Northwest is also on the same PeopleAdmin platform, white-labeled under
@@ -916,7 +916,7 @@ print(northwest)
 ### This pulls data from the University of Wyoming
 ```{r university of Wyoming}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("direct_api_scrapers.R")
 
 # UW's Oracle Cloud HCM recruiting platform exposes a public JSON REST API
@@ -988,7 +988,7 @@ tryCatch(refresh_posting_status("Archivek12_Data", "Archived_HE_Data", "posting_
 # read as ended only when its source was healthy. Every source has been
 # scraped by now; a failure here never stops the run. Employers seen only on
 # WSBA's statewide page (BOCES, academies) take the WSBA feed's row.
-source("coverage_calendar.R")
+library(edjobs)
 tryCatch(refresh_coverage_calendar(
   "coverage_calendar.csv", "scrape_log.csv",
   k12_entities = read.csv("k12_district_registry.csv", stringsAsFactors = FALSE)$District,
@@ -1119,7 +1119,7 @@ write.csv(Allnow_he, file = file.path("Wy_Ed_Jobs", "allnow_he.csv"), row.names 
 ### Higher Ed faculty salary data, from IPEDS via the Urban Institute's Education Data Portal API
 ```{r ipeds he salary data, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("ipeds_salary_scraper.R")
 
 he_salary <- safe_scrape(
@@ -1204,7 +1204,7 @@ if (nrow(he_salary) > 0) {
 ### Higher ed institution fall enrollment (FTE), from IPEDS via the Urban Institute's Education Data Portal API
 ```{r ipeds he enrollment data, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("ipeds_salary_scraper.R")  # ipeds_enrollment_scraper.R reuses fetch_ipeds_paginated()/IPEDS_UNITID_MAP from here
 source("ipeds_enrollment_scraper.R")
 
@@ -1262,7 +1262,7 @@ if (nrow(he_enrollment_trend) > 0) {
 ### Higher ed institution Pell Grant recipient share, from the US Dept. of Education's Federal Student Aid office via the Urban Institute's Education Data Portal API
 ```{r fsa he pell share data, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("ipeds_salary_scraper.R")     # fsa_pell_scraper.R reuses fetch_ipeds_directory_paginated()/IPEDS_UNITID_MAP from here
 source("ipeds_enrollment_scraper.R") # ...and fetch_ipeds_wy_enrollment_for_year()/parse_ipeds_he_enrollment() from here
 source("fsa_pell_scraper.R")
@@ -1290,7 +1290,7 @@ if (nrow(he_pell_share) > 0) {
 ### Higher ed institution county-level context (income, rent, mining/energy employment share, population trend), from the Census Bureau's ACS 5-Year Estimates
 ```{r census county context data he, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
-source("scrape_helpers.R")
+library(edjobs)
 source("census_acs_scraper.R")
 
 # Reuses the exact same fetch_census_county_context() pipeline as the K-12

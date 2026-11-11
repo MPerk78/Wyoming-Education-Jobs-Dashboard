@@ -25,8 +25,8 @@
 source("drift_check.R")
 source("misc_district_scrapers.R") # for misc_district_registry
 source("k12_he_classification.R") # for canonicalize_k12_district
-source("scrape_helpers.R")
-source("llm_extract_scraper.R")      # for llm_titles_from_page_text
+library(edjobs)
+library(edjobs)      # for llm_titles_from_page_text
 library(chromote)
 
 flagged <- read.csv("/tmp/drift_flagged.csv", stringsAsFactors = FALSE)

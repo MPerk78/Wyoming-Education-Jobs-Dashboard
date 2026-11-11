@@ -545,6 +545,11 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     last 8 archived runs include a substitute posting (49 of 59 direct sources here do). `drop_standing_pool_titles()`,
     `recent_source_titles()` (drift_check.R); `corroborate_drift.R` passes the history. Suite 2,270 (0 failed).
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
+- [ ] **R package migration (current focus, Mike 2026-11-10):** shared code moves to `bostickmike/edjobs`, pinned in
+  `EDJOBS_VERSION` (plan and status: `claude-notes/2026-11-10_r-package-migration-plan.md`). Phase 0 merged 11-11
+  (run expectations; edjobs 0.0.1). Phase 1 parts 1-2 on branch `edjobs-phase1` (edjobs 0.2.0: scrape helpers,
+  posting status, coverage calendar, BLS OEWS, BLS QCEW, LLM extraction); rehearsed; waiting on GitHub runners
+  (apt DNS outage 11-11) for package CI, tags, PR checks, then merge.
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
   222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
   likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).

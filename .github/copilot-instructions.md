@@ -40,4 +40,4 @@ The fixture tests only show that the parser handles the fixture. The PR's live c
 - Where a source's scraper is configured: `k12_district_registry.csv` (Applitrack, TedK12, SchoolSpring, RedRoverK12 districts), `misc_district_registry` in `misc_district_scrapers.R` (districts' own pages, dispatched by `fetch_misc_district_postings()`), or a hardcoded call in `Wy_ED_Jobs.Rmd` (higher ed, the charter school). `resolve_scraper_call()` in `drift_check.R` maps a source name to its call.
 - Scraper files: `direct_api_scrapers.R` (real ATS APIs) and `misc_district_scrapers.R` (heuristic HTML/chromote scrapers, plus the WSBA statewide vacancy feed).
 - Column case varies: Applitrack and TedK12 return `title`, the others `Title`.
-- HTTP goes through `perform_with_retry()` in `scrape_helpers.R`, not bare `req_perform()`.
+- HTTP goes through `perform_with_retry()` (from the shared `edjobs` package; don't redefine it here), not bare `req_perform()`.

@@ -17,7 +17,8 @@
 # Usage (repo root): Rscript .github/scripts/check_rebuild_parity.R
 
 suppressPackageStartupMessages({ library(dplyr); library(readxl) })
-for (f in c("k12_he_classification.R", "bls_oews_scraper.R", "history_accumulator.R",
+library(edjobs)   # bls_oews_scraper.R and the scrape helpers moved there (R package migration)
+for (f in c("k12_he_classification.R", "history_accumulator.R",
             "scripts/rebuild_k12_history_from_archive.R", "scripts/rebuild_he_history_from_archive.R")) source(f)
 
 app <- "Wy_Ed_Jobs"

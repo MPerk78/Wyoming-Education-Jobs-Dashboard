@@ -19,7 +19,7 @@
 suppressPackageStartupMessages({ library(dplyr); library(readxl) })
 source("k12_he_classification.R")
 source("posting_spells.R")
-source("posting_status.R")
+library(edjobs)
 
 calendar <- if (file.exists("coverage_calendar.csv")) read.csv("coverage_calendar.csv", colClasses = "character") else NULL
 endings <- if (file.exists("schoolspring_endings.csv")) read.csv("schoolspring_endings.csv", colClasses = "character") else NULL
