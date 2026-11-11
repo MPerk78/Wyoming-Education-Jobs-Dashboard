@@ -867,7 +867,7 @@ fetch_applitrack_postings <- function(tenant_path) {
   parse_applitrack_output(resp_body_string(resp, encoding = "Windows-1252"))
 }
 
-# extract_posted_pay() lives in k12_he_classification.R; standalone scripts
+# extract_posted_pay() is in edjobs, attached by k12_he_classification.R; standalone scripts
 # (repro_scraper.R, live_check_autofix.R) source this file on its own.
 if (!exists("extract_posted_pay", mode = "function")) source("k12_he_classification.R")
 

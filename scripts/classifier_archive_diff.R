@@ -1,18 +1,20 @@
 #!/usr/bin/env Rscript
 # scripts/classifier_archive_diff.R
 #
-# The review for any change to k12_he_classification.R: runs the classifier
-# as committed (git HEAD, or --base <ref>) and the working-tree classifier
-# over every distinct title in the raw archives, and lists every title whose
-# bucket moves. Unit tests and the golden set only cover the titles someone
-# thought of; this covers every title the pipeline has ever seen. On
-# 2026-11-08 it was the only check that caught a "Bus Paraprofessional" rule
-# also taking dual roles such as "Bus Driver/Classroom Paraprofessional".
-# Read every line of the output: each move should be one you meant.
+# The review for any change to the classifier, which lives in the edjobs
+# package since phase 2 of the package migration (2026-11-11): runs the
+# classifier as pinned (edjobs tag v<EDJOBS_VERSION>, or --base <ref>) and the
+# classifier in your edjobs working tree (--edjobs, default ../edjobs) over
+# every distinct title in the raw archives, and lists every title whose bucket
+# moves. Unit tests and the golden set only cover the titles someone thought
+# of; this covers every title the pipeline has ever seen. On 2026-11-08 it was
+# the only check that caught a "Bus Paraprofessional" rule also taking dual
+# roles such as "Bus Driver/Classroom Paraprofessional". Read every line of
+# the output: each move should be one you meant.
 #
-# Usage (repo root):
+# Usage (state repo root):
 #   Rscript scripts/classifier_archive_diff.R
-#   Rscript scripts/classifier_archive_diff.R --base HEAD~1
+#   Rscript scripts/classifier_archive_diff.R --edjobs ~/repos/Jobs_Dash_repos/edjobs --base v0.2.0
 #   Rscript scripts/classifier_archive_diff.R --also ../Wyoming-Education-Jobs-Dashboard   # sibling's archives too
 #   Rscript scripts/classifier_archive_diff.R --out moves.csv
 # Identical in the MT and WY repos. reclassify_committed_data.R runs it first.
@@ -24,7 +26,18 @@ arg_value <- function(flag, default = NULL) {
   i <- match(flag, args)
   if (is.na(i) || i == length(args)) default else args[i + 1]
 }
-base_ref <- arg_value("--base", "HEAD")
+edjobs_dir <- arg_value("--edjobs", "../edjobs")
+base_ref <- arg_value("--base", paste0("v", trimws(readLines("EDJOBS_VERSION", warn = FALSE)[1])))
+CLASSIFIER_PATH <- "R/k12_he_classification.R"
+
+# The classifier file at an edjobs ref, written to a temp file (stops if unreadable).
+edjobs_classifier_at <- function(edjobs_dir, ref) {
+  f <- tempfile(fileext = ".R")
+  if (system2("git", c("-C", edjobs_dir, "show", paste0(ref, ":", CLASSIFIER_PATH)), stdout = f) != 0) {
+    stop("Couldn't read ", CLASSIFIER_PATH, " at ", ref, " in ", edjobs_dir, " (pass --edjobs <edjobs checkout>).")
+  }
+  f
+}
 also <- arg_value("--also")
 out_path <- arg_value("--out")
 
@@ -62,19 +75,15 @@ classifier_moves <- function(old_env, new_env, k12_titles, he_titles) {
 }
 
 if (sys.nframe() == 0) {
-  base_file <- tempfile(fileext = ".R")
-  if (system2("git", c("show", paste0(base_ref, ":k12_he_classification.R")), stdout = base_file) != 0) {
-    stop("Couldn't read k12_he_classification.R at ", base_ref, " (run from the repo root of a git checkout).")
-  }
-  old_env <- new.env(); sys.source(base_file, envir = old_env)
-  new_env <- new.env(); sys.source("k12_he_classification.R", envir = new_env)
+  old_env <- new.env(); sys.source(edjobs_classifier_at(edjobs_dir, base_ref), envir = old_env)
+  new_env <- new.env(); sys.source(file.path(edjobs_dir, CLASSIFIER_PATH), envir = new_env)
 
   roots <- c(".", also)
   k12 <- read_titles(file.path(roots, "Archivek12_Data"), "\\.(csv|xlsx)$", "title")
   he <- read_titles(file.path(roots, "Archived_HE_Data"), "\\.xlsx$", "title")
   moves <- classifier_moves(old_env, new_env, k12$titles, he$titles)
 
-  cat(sprintf("Classifier %s -> working tree, over %d K-12 titles (%d archives) and %d HE titles (%d archives)%s.\n",
+  cat(sprintf("Classifier edjobs %s -> edjobs working tree, over %d K-12 titles (%d archives) and %d HE titles (%d archives)%s.\n",
               base_ref, length(k12$titles), k12$files, length(he$titles), he$files,
               if (is.null(also)) "" else paste0(", including ", also)))
   if (is.null(moves) || nrow(moves) == 0) {

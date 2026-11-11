@@ -284,7 +284,7 @@ other_rows <- other[!is_wsba, , drop = FALSE]
 combined <- dplyr::bind_rows(direct, other_rows, wsba_rows) %>%
   mutate(Archive_Date = Sys.Date())
 
-# fix_title_encoding() (k12_he_classification.R) is applied here, once, at
+# fix_title_encoding() (edjobs) is applied here, once, at
 # the point titles first enter the pipeline -- not just inside
 # classify_k12_position()/classify_k12_subject() below, which only fixed a
 # private copy used for regex matching and discarded it. Without this, a
@@ -342,7 +342,7 @@ oews_wages <- read.csv(oews_path, stringsAsFactors = FALSE,
 district_county <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), stringsAsFactors = FALSE)[, c("District", "County")]
 
 # Categorize positions in the "position" column of the "combinedclean" dataset.
-# classify_k12_position() lives in k12_he_classification.R (sourced above) so
+# classify_k12_position() lives in edjobs (attached by k12_he_classification.R above) so
 # this week's raw jobs-table classification and the accumulated-history
 # append below can't silently drift apart.
 
@@ -1004,7 +1004,7 @@ hedata <- hedata %>% filter(!is_placeholder_posting(Title)) %>% drop_implausible
 # (ipeds_staff_salaries.csv from the previous run), the labeled fallback for
 # staff postings that state no pay. Added after the raw archive write, so
 # the archive stays as scraped.
-source("ipeds_staff_salaries.R")
+library(edjobs)
 staff_path <- file.path("Wy_Ed_Jobs", "ipeds_staff_salaries.csv")
 if (file.exists(staff_path)) {
   he_unitids <- read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"))[, c("Name", "IPEDS_UNITID")]
@@ -1031,7 +1031,7 @@ write_xlsx(hedata, path = file.path("Wy_Ed_Jobs", "hedata.xlsx"))
 hedata <- hedata %>%
   mutate(Institution = canonicalize_he_institution(Institution))
 
-# Job_Type/Category classification lives in k12_he_classification.R (sourced
+# Job_Type/Category classification lives in edjobs (attached by k12_he_classification.R, sourced
 # in setup). Adjunct/pooled titles get their own Job_Type, separate from
 # "Instructor/Teacher/Faculty", so a standing adjunct-pool posting isn't
 # counted the same as full-time faculty hiring.
@@ -1132,7 +1132,7 @@ he_salary <- safe_scrape(
 # IPEDS non-instructional staff pay by category (ipeds_staff_salaries.R), the
 # labeled fallback for HE staff postings that state no pay. The HE munge
 # step reads it on the next run; a failed fetch keeps the existing file.
-source("ipeds_staff_salaries.R")
+library(edjobs)
 local({
   unitids <- na.omit(read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"))$IPEDS_UNITID)
   staff_path <- file.path("Wy_Ed_Jobs", "ipeds_staff_salaries.csv")

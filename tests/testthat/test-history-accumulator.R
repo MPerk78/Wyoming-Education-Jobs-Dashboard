@@ -67,21 +67,6 @@ test_that("append_weekly_rows handles a genuinely empty new-rows data frame with
   expect_equal(nrow(result), 1)
 })
 
-test_that("check_total_matches_parts passes when the Total genuinely equals the sum of parts", {
-  total <- data.frame(Broad_Category = "Math", Archive_Date = "2026-08-06", District = "Total", sum = 5)
-  parts <- data.frame(Broad_Category = "Math", Archive_Date = "2026-08-06",
-                       District = c("A", "B"), sum = c(2, 3))
-  expect_true(check_total_matches_parts(total, parts, group_cols = c("Broad_Category", "Archive_Date")))
-})
-
-test_that("check_total_matches_parts stops when the Total doesn't equal the sum of parts", {
-  total <- data.frame(Broad_Category = "Math", Archive_Date = "2026-08-06", District = "Total", sum = 999)
-  parts <- data.frame(Broad_Category = "Math", Archive_Date = "2026-08-06",
-                       District = c("A", "B"), sum = c(2, 3))
-  expect_error(check_total_matches_parts(total, parts, group_cols = c("Broad_Category", "Archive_Date")),
-               "don't equal the sum")
-})
-
 # ---------------------------------------------------------------------------
 # Equivalence: incremental append vs. from-scratch rebuild, on real archives
 # ---------------------------------------------------------------------------
@@ -276,19 +261,4 @@ test_that("incrementally appending the latest week reproduces a full rebuild thr
   expect_equal(norm(incremental_facultydata), norm(as.data.frame(full_state$facultydata)), ignore_attr = TRUE)
   expect_equal(norm(incremental_allsum_he), norm(as.data.frame(full_state$allsum_he)), ignore_attr = TRUE)
   expect_equal(norm(incremental_weekly_totals), norm(as.data.frame(full_state$he_institution_weekly_totals)), ignore_attr = TRUE)
-})
-
-test_that("rebuild_parity_row ignores row order, NA vs blank and \\r\\n, and counts real differences", {
-  committed <- data.frame(a = c("x", "y", "y"), b = c("1", "", "2\n3"), c = "k", stringsAsFactors = FALSE)
-  same <- committed[c(3, 1, 2), c("a", "b", "c")]
-  same$b[same$b == ""] <- NA
-  same$b <- sub("\n", "\r\n", same$b, fixed = TRUE)
-  r <- rebuild_parity_row("f.csv", committed, same)
-  expect_equal(c(r$Only_Committed, r$Only_Rebuilt), c(0, 0))
-  expect_equal(r$Missing_Cols, "")
-  # A dropped column and a duplicated / missing row both show.
-  r2 <- rebuild_parity_row("f.csv", committed, rbind(committed[c(1, 1, 3), c("a", "b")]))
-  expect_equal(r2$Missing_Cols, "c")
-  expect_equal(c(r2$Only_Committed, r2$Only_Rebuilt), c(1, 1))
-  expect_match(r2$Example, "committed: y \\| <NA>")
 })

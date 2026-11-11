@@ -22,6 +22,10 @@
 # each file (verified against app.R directly, not just "whatever columns
 # happen to be in the file today") -- k12_salary_history.csv is
 # deliberately absent since nothing in app.R reads it yet.
+# check_file_schema() moved to the edjobs package in phase 2 (2026-11-11); attached here so
+# every script that sources this file still has them.
+suppressMessages(library(edjobs))
+
 REQUIRED_SCHEMAS <- list(
   # "Posted / listed" fallback (scripts/build_posting_spells.R); optional in
   # app.R, which shows the column as before without it.
@@ -67,12 +71,3 @@ REQUIRED_SCHEMAS_XLSX <- list(
                   "Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year", "Est_Source")
 )
 
-# Pure function: given one file's actual column names, which of the
-# required ones (if any) are missing? NULL if the schema is fine, so
-# callers can filter with Filter(Negate(is.null), ...) the same way other
-# check_*() functions in this repo do.
-check_file_schema <- function(file_name, actual_cols, required_cols) {
-  missing <- setdiff(required_cols, actual_cols)
-  if (length(missing) == 0) return(NULL)
-  data.frame(file = file_name, missing_column = missing, stringsAsFactors = FALSE)
-}

@@ -1,19 +1,23 @@
 #!/usr/bin/env Rscript
 # scripts/reclassify_committed_data.R
 #
-# Classification safeguards proposal, item 13: after a change to
-# k12_he_classification.R, brings the committed data in line with it, so the
+# Classification safeguards proposal, item 13: after a change to the
+# classifier (edjobs' R/k12_he_classification.R since phase 2 of the package
+# migration, 2026-11-11, or this repo's k12_he_classification.R, which keeps
+# the state's name corrections), brings the committed data in line with it, so the
 # change ships with its data (test-weekly-data-quality.R fails until it does:
 # every committed bucket must equal what today's classifier gives its title).
 #
 # How: the committed K-12 and HE datasets are rebuilt from the raw archives
 # (scripts/rebuild_*_history_from_archive.R), which reproduce the committed
 # files exactly (.github/scripts/check_rebuild_parity.R). Two passes:
-#   1. Guard: rebuild with the classifier as last committed (git HEAD) and
+#   1. Guard: rebuild with the classifier as pinned (edjobs tag
+#      v<EDJOBS_VERSION>, plus this repo's file at git HEAD) and
 #      require it to reproduce the committed files. If it doesn't, the rebuild
 #      has drifted from the pipeline and writing it would change more than the
 #      classification; the script stops.
-#   2. Rebuild with the working-tree classifier and report what moved: every
+#   2. Rebuild with the working-tree classifier (the edjobs checkout, --edjobs,
+#      default ../edjobs, plus this repo's file) and report what moved: every
 #      position / Category / Job_Type change, postings entering or leaving the
 #      teacher and faculty histories, and the files that change.
 # With --apply it writes the nine files, then refreshes the duration spells
@@ -24,11 +28,16 @@
 #   Rscript scripts/reclassify_committed_data.R            # dry run: report only
 #   Rscript scripts/reclassify_committed_data.R --apply    # write
 #   ... --skip-guard   only if the guard's difference is understood and wanted
+#   ... --edjobs <dir>  the edjobs checkout holding the changed classifier
+# --apply also needs that checkout installed (R CMD INSTALL <dir>): the spell
+# builders run as separate R processes and load the installed edjobs.
 
 suppressPackageStartupMessages({ library(dplyr); library(readxl) })
 args <- commandArgs(trailingOnly = TRUE)
 apply_changes <- "--apply" %in% args
 skip_guard <- "--skip-guard" %in% args
+edjobs_dir <- { i <- match("--edjobs", args); if (is.na(i) || i == length(args)) "../edjobs" else args[i + 1] }
+pinned_tag <- paste0("v", trimws(readLines("EDJOBS_VERSION", warn = FALSE)[1]))
 app <- "Wy_Ed_Jobs"
 
 library(edjobs)   # bls_oews_scraper.R and the scrape helpers moved there (R package migration)
@@ -52,14 +61,26 @@ parity <- function(rebuilt) bind_rows(lapply(names(rebuilt), function(f) rebuild
 differs <- function(p) nzchar(p$Missing_Cols) | nzchar(p$Extra_Cols) | p$Only_Committed > 0 | p$Only_Rebuilt > 0
 
 # ---- 1. guard: the committed classifier must reproduce the committed data ----
-classifier_changed <- system2("git", c("diff", "--quiet", "HEAD", "--", "k12_he_classification.R")) != 0
-if (!skip_guard) {
-  head_classifier <- tempfile(fileext = ".R")
-  if (system2("git", c("show", "HEAD:k12_he_classification.R"), stdout = head_classifier) != 0) {
-    stop("Couldn't read k12_he_classification.R at HEAD (run from the repo root of a git checkout).")
+# "Committed" = edjobs at the pinned tag plus this repo's file at HEAD; the
+# working tree = the edjobs checkout plus this repo's working file. Each is
+# sourced into the global environment, where it masks the attached edjobs for
+# the rebuild functions (also sourced there).
+git_file <- function(dir, ref, path) {
+  f <- tempfile(fileext = ".R")
+  if (system2("git", c("-C", dir, "show", paste0(ref, ":", path)), stdout = f) != 0) {
+    stop("Couldn't read ", path, " at ", ref, " in ", dir, " (run from the repo root; pass --edjobs <edjobs checkout>).")
   }
-  if (classifier_changed) source(head_classifier)
-  cat("Guard: rebuilding with the classifier as committed (HEAD)...\n")
+  f
+}
+pinned_classifier <- git_file(edjobs_dir, pinned_tag, "R/k12_he_classification.R")
+working_classifier <- file.path(edjobs_dir, "R/k12_he_classification.R")
+edjobs_changed <- !identical(readLines(pinned_classifier, warn = FALSE), readLines(working_classifier, warn = FALSE))
+state_changed <- system2("git", c("diff", "--quiet", "HEAD", "--", "k12_he_classification.R")) != 0
+classifier_changed <- edjobs_changed || state_changed
+if (!skip_guard) {
+  if (edjobs_changed) source(pinned_classifier)
+  if (state_changed) source(git_file(".", "HEAD", "k12_he_classification.R"))
+  cat("Guard: rebuilding with the classifier as committed (edjobs ", pinned_tag, ", this repo at HEAD)...\n", sep = "")
   g <- parity(rebuild_all())
   if (any(differs(g))) {
     print(g[differs(g), c("File", "Committed_Rows", "Rebuilt_Rows", "Missing_Cols", "Extra_Cols", "Only_Committed", "Only_Rebuilt")],
@@ -69,17 +90,25 @@ if (!skip_guard) {
          "example row per file); --skip-guard overrides.")
   }
   cat("Guard passed: all", nrow(g), "files reproduced.\n\n")
-  source("k12_he_classification.R")
 } else {
   cat("--skip-guard: not checking that the committed classifier reproduces the committed data.\n\n")
 }
-if (!classifier_changed) cat("Note: k12_he_classification.R has no uncommitted changes; reclassifying against HEAD.\n\n")
+source(working_classifier)
+source("k12_he_classification.R")
+if (!classifier_changed) cat("Note: no classifier change (edjobs checkout = ", pinned_tag, ", k12_he_classification.R = HEAD); reclassifying against them.\n\n", sep = "")
+if (apply_changes && edjobs_changed) {
+  # The spell builders run in their own R process with the installed edjobs.
+  inst <- new.env(); sys.source(working_classifier, envir = inst)
+  stale <- Filter(function(n) is.function(inst[[n]]) && !identical(deparse(inst[[n]]), deparse(getExportedValue("edjobs", n))), ls(inst))
+  if (length(stale)) stop("The installed edjobs isn't your edjobs checkout (", paste(head(stale, 3), collapse = ", "),
+                          " differ). Install it first: R CMD INSTALL ", edjobs_dir)
+}
 
 # Every archived title whose bucket the change moves (not only the titles in
 # the committed history): read each line, every move should be intended.
 if (classifier_changed) {
   cat("Titles in the raw archives whose bucket changes (scripts/classifier_archive_diff.R):\n")
-  system2("Rscript", "scripts/classifier_archive_diff.R")
+  system2("Rscript", c("scripts/classifier_archive_diff.R", "--edjobs", edjobs_dir))
   cat("\n")
 }
 

@@ -19,6 +19,10 @@
 # (and the WSBA/misc-district/direct-HTTP work before that) -- comparing
 # against pre-fix data would flag the FIX itself as suspicious drift on
 # every affected district.
+# the shared drift, title-lint, pay-coverage, salary and auto-fix helpers moved to the edjobs package in phase 2 (2026-11-11); attached here so
+# every script that sources this file still has them.
+suppressMessages(library(edjobs))
+
 BASELINE_VALID_FROM <- as.Date("2026-08-03")
 
 WSBA_STATEWIDE_SOURCE <- "WSBA statewide vacancies"
@@ -94,144 +98,15 @@ flag_drift <- function(current_counts, baseline, min_weeks = 2, min_mean_count =
 # in the raw archives. Archives written before a source captured pay have
 # no Pay_* column and are skipped, not counted as zero.
 
-# One row per source: postings (n) and how many state pay (with_pay).
-pay_coverage_counts <- function(names, has_pay) {
-  if (length(names) == 0) {
-    return(data.frame(name = character(0), n = integer(0), with_pay = integer(0),
-                      stringsAsFactors = FALSE))
-  }
-  n <- tapply(rep(1L, length(names)), names, sum)
-  with_pay <- tapply(as.integer(has_pay), names, sum)
-  data.frame(name = names(n), n = as.integer(n), with_pay = as.integer(with_pay[names(n)]),
-             stringsAsFactors = FALSE)
-}
 
-# current: pay_coverage_counts() for this run. history: a list of the same,
-# one per archived week that had Pay_*. A source is flagged when it has at
-# least min_weeks weeks with min_postings or more postings, its average
-# share with pay over those weeks is at least min_share, and this run --
-# with min_postings or more postings, so a source that lost its postings is
-# left to flag_drift() -- has a share at or below drop_threshold times that
-# average.
-flag_pay_coverage_drop <- function(current, history, min_weeks = 2, min_postings = 3,
-                                   min_share = 0.4, drop_threshold = 0.2) {
-  empty <- data.frame(name = character(0), mean_share = numeric(0), n_weeks = integer(0),
-                      n = integer(0), with_pay = integer(0), stringsAsFactors = FALSE)
-  weeks <- do.call(rbind, history)
-  if (is.null(weeks) || nrow(weeks) == 0 || nrow(current) == 0) return(empty)
-  weeks <- weeks[weeks$n >= min_postings, , drop = FALSE]
-  if (nrow(weeks) == 0) return(empty)
-  weeks$share <- weeks$with_pay / weeks$n
-  baseline <- data.frame(
-    name = sort(unique(weeks$name)),
-    stringsAsFactors = FALSE
-  )
-  baseline$n_weeks <- as.integer(table(weeks$name)[baseline$name])
-  baseline$mean_share <- as.numeric(tapply(weeks$share, weeks$name, mean)[baseline$name])
 
-  merged <- merge(baseline, current, by = "name")
-  merged <- merged[merged$n >= min_postings & merged$n_weeks >= min_weeks &
-                     merged$mean_share >= min_share, , drop = FALSE]
-  flagged <- merged[merged$with_pay / merged$n <= merged$mean_share * drop_threshold, , drop = FALSE]
-  if (nrow(flagged) == 0) return(empty)
-  flagged[order(-flagged$mean_share), c("name", "mean_share", "n_weeks", "n", "with_pay")]
-}
 
-build_pay_coverage_report_markdown <- function(flagged, date = Sys.Date()) {
-  if (nrow(flagged) == 0) return(character(0))
-  c(
-    paste0("### Posted pay went missing (", date, ")"),
-    "",
-    paste("These sources still return postings, but far fewer of them carry the pay the posting states",
-          "than usual -- the pay field or detail request the scraper reads has likely changed.",
-          "Postings and counts are unaffected; the Posted Pay column is blank for them."),
-    "",
-    sprintf("- **%s** (%s): usually %.0f%% of postings state pay, now %d of %d",
-            flagged$name, flagged$type, 100 * flagged$mean_share, flagged$with_pay, flagged$n),
-    ""
-  )
-}
 
-# A source dropping to (near) zero is ambiguous on count alone: a genuinely
-# quiet week looks identical to a scraper that started erroring. But
-# safe_scrape() (scrape_helpers.R) already logs which one happened, to
-# scrape_log.csv, in the very same pipeline run that produced this week's
-# drift-flagged counts -- so check there first, before spending a live
-# chromote render on a guess. A source whose most recent logged attempt
-# this run was a real "error" (not "empty") is a much stronger and cheaper
-# signal: the registered URL itself is broken (a dead ATS tenant, a DNS
-# failure, a migrated platform, an HTTP error perform_with_retry() couldn't
-# recover from), not just "no visible postings right now". scrape_log's
-# `source` strings aren't always an exact match for a flagged `name` (a
-# platform-prefixed source name, e.g. "Apptegy/chromote: <District>",
-# would still need this even though nothing in this project currently logs
-# that way), so match by substring containment rather than requiring
-# equality.
-attach_scrape_log_errors <- function(flagged, scrape_log) {
-  flagged$scrape_error <- rep(NA_character_, nrow(flagged))
-  if (nrow(flagged) == 0 || nrow(scrape_log) == 0) return(flagged)
-
-  # Keep only each source's single most recent logged attempt -- a source
-  # that errored earlier in the run but succeeded on a later retry/re-run
-  # must NOT be reported as currently broken, so status is checked on the
-  # latest attempt, not on "was there ever an error this run".
-  latest <- scrape_log[order(scrape_log$timestamp), ]
-  latest <- latest[!duplicated(latest$source, fromLast = TRUE), ]
-  errors <- latest[!is.na(latest$status) & latest$status == "error", ]
-  if (nrow(errors) == 0) return(flagged)
-
-  for (i in seq_len(nrow(flagged))) {
-    hits <- which(vapply(errors$source, function(s) grepl(flagged$name[i], s, fixed = TRUE), logical(1)))
-    if (length(hits) > 0) flagged$scrape_error[i] <- errors$error_message[hits[1]]
-  }
-  flagged
-}
-
-# Report section for this week's posted amounts that drop_implausible_pay()
-# blanked (rows of `bad`: source, title, Pay_Min, Pay_Max, Pay_Unit,
-# Pay_Text). A misread -- a fee, a benefit's value -- usually means the
-# extractor needs a new skip rule; a real but unusual figure means
-# PAY_PLAUSIBLE_RANGE needs widening.
-build_implausible_pay_report_markdown <- function(bad, date = Sys.Date(), max_rows = 25) {
-  if (nrow(bad) == 0) return(character(0))
-  shown <- utils::head(bad, max_rows)
-  amount <- ifelse(shown$Pay_Min == shown$Pay_Max | is.na(shown$Pay_Max),
-                   sprintf("$%s", format(shown$Pay_Min, big.mark = ",")),
-                   sprintf("$%s-$%s", format(shown$Pay_Min, big.mark = ","), format(shown$Pay_Max, big.mark = ",")))
-  c(
-    paste0("### Posted pay blanked as implausible (", date, ")"),
-    "",
-    paste("These amounts were read from the postings but fall outside PAY_PLAUSIBLE_RANGE",
-          "(k12_he_classification.R) for their unit, so the dashboard shows no posted pay for them.",
-          "The raw archive keeps them. A misread needs an extractor fix; a real figure needs the range widened."),
-    "",
-    sprintf("- **%s** (%s) \"%s\": %s per %s -- \"%s\"",
-            shown$source, shown$type, shown$title, amount, ifelse(is.na(shown$Pay_Unit), "unknown unit", shown$Pay_Unit),
-            substr(gsub("[\r\n]+", " ", shown$Pay_Text), 1, 120)),
-    if (nrow(bad) > max_rows) sprintf("- ...and %d more", nrow(bad) - max_rows),
-    ""
-  )
-}
 
 # --------------------------------------------------------------------------
 # Tier 0: salary-source structural/coverage checks
 # --------------------------------------------------------------------------
 
-# Salary data (WSBA for K-12, IPEDS for Higher Ed -- see salary_scrapers.R
-# and ipeds_salary_scraper.R) has a small, essentially fixed universe (48
-# WY school districts, 9 WY public HE institutions) and changes far less
-# often than job postings (once a year, not weekly), so a trailing
-# statistical baseline like flag_drift() doesn't fit. Instead this is a
-# hard assertion against that known universe size: a parser silently
-# extracting fewer matched records than the known-fixed count is the same
-# failure signature as the Applitrack encoding bug -- the scrape "succeeds"
-# (safe_scrape logs status "ok", n_rows > 0) while quietly returning much
-# less real data than before, because the source changed its page/PDF/API
-# layout out from under the parser.
-check_salary_coverage <- function(name, actual, expected, min_ok = expected) {
-  if (actual >= min_ok) return(NULL)
-  data.frame(name = name, expected = expected, actual = actual, stringsAsFactors = FALSE)
-}
 
 # --------------------------------------------------------------------------
 # Tier 0b: salary VALUE plausibility (as opposed to coverage/row-count)
@@ -264,62 +139,7 @@ check_salary_coverage <- function(name, actual, expected, min_ok = expected) {
 #      district moved 2-6% is far more likely a parser misalignment than a
 #      genuine outlier settlement.
 
-# actual: named numeric vector (name = district/institution, value = salary).
-check_salary_value_bounds <- function(name, actual, min_ok, max_ok) {
-  bad <- actual < min_ok | actual > max_ok
-  bad[is.na(bad)] <- FALSE
-  if (!any(bad)) return(NULL)
-  data.frame(
-    name = name, entity = names(actual)[bad], value = unname(actual[bad]),
-    min_ok = min_ok, max_ok = max_ok, stringsAsFactors = FALSE
-  )
-}
 
-# current/prior: named numeric vectors (name = district/institution),
-# compared pairwise by name. Flags an entity whose |% change| both (a)
-# exceeds hard_ceiling outright (a settlement essentially never moves this
-# much in one real year) and (b) is a real statistical outlier against
-# every OTHER entity's change this same run (median absolute deviation,
-# robust to one or two entities genuinely having an unusual year) --
-# requiring both avoids flagging a single district with a real large
-# settlement while every other district also moved a lot (a real
-# statewide event, not a parser bug), and avoids flagging a small
-# percentage move that's just normal variation.
-check_salary_yoy_plausibility <- function(current, prior, hard_ceiling = 0.25, mad_multiplier = 5) {
-  common <- intersect(names(current), names(prior))
-  cur <- current[common]
-  pri <- prior[common]
-  valid <- !is.na(cur) & !is.na(pri) & pri != 0
-  if (sum(valid) < 3) return(NULL)  # too few points for a cross-sectional outlier check to mean anything
-
-  pct_change <- (cur[valid] - pri[valid]) / pri[valid]
-  center <- stats::median(pct_change)
-  spread <- stats::mad(pct_change)
-
-  is_outlier <- if (spread > 0) {
-    abs(pct_change - center) > mad_multiplier * spread & abs(pct_change) > hard_ceiling
-  } else {
-    # A zero spread means every peer moved by (near) the exact same amount
-    # -- a MAD-based threshold would then be 0, and "greater than 0" would
-    # flag ordinary tiny floating-point variation between otherwise-equal
-    # changes. Fall back to the hard ceiling alone: still lets a genuine
-    # uniform statewide move of, say, 15% through untouched (below the
-    # ceiling), while still catching one district at 47% against five
-    # peers that didn't move at all (this function's whole reason to
-    # exist), which a spread-based threshold of 0 could never do since
-    # nothing can exceed a threshold of Inf.
-    abs(pct_change) > hard_ceiling
-  }
-  if (!any(is_outlier)) return(NULL)
-
-  data.frame(
-    name = names(pct_change)[is_outlier],
-    prior = unname(pri[valid][is_outlier]),
-    current = unname(cur[valid][is_outlier]),
-    pct_change = unname(pct_change[is_outlier]),
-    stringsAsFactors = FALSE
-  )
-}
 
 # --------------------------------------------------------------------------
 # Source name -> public URL lookup, for the chromote corroboration step
@@ -368,113 +188,14 @@ build_source_url_lookup <- function(
 # Tier 2: chromote corroboration scoring (pure function half)
 # --------------------------------------------------------------------------
 
-# page_text: visible rendered text of a live page (document.body.innerText
-# via chromote, same technique used for the 2026-08-03 manual spot-check).
-# Returns one of "likely_broken", "looks_genuinely_empty", or
-# "inconclusive" -- deliberately three-valued rather than a boolean, since
-# a page that's neither clearly job-signal-positive nor clearly says "no
-# openings" (e.g. a fetch error, a redirect to an unrelated page) shouldn't
-# be silently folded into either bucket.
-score_page_text_for_job_signal <- function(page_text) {
-  if (is.na(page_text) || nchar(trimws(page_text)) == 0) {
-    return("inconclusive")
-  }
-
-  negative_signal <- grepl(
-    "no (open |current )?(job|position|vacan)|no openings|not currently (hiring|accepting)|there are (currently )?no",
-    page_text, ignore.case = TRUE
-  )
-
-  positive_hits <- lengths(regmatches(
-    page_text,
-    gregexpr("apply now|view details|job title|posted:|closing date|date posted|JobID", page_text, ignore.case = TRUE)
-  ))
-
-  if (negative_signal && positive_hits < 3) {
-    "looks_genuinely_empty"
-  } else if (positive_hits >= 3) {
-    "likely_broken"
-  } else {
-    "inconclusive"
-  }
-}
 
 # --------------------------------------------------------------------------
 # Tier 2b: fold an LLM read of the page into the text-signal verdict
 # --------------------------------------------------------------------------
 
-# verdict: from score_page_text_for_job_signal() ("likely_broken" /
-#   "looks_genuinely_empty" / "inconclusive"), or "confirmed_broken" /
-#   "no_url_available" set upstream in corroborate_drift.R.
-# llm_titles: from llm_titles_from_page_text() -- character(0) when the LLM
-#   step was skipped (no key) or found nothing.
-#
-# Returns list(verdict, note):
-#   - LLM found real postings and we weren't already at confirmed_broken ->
-#     promote to "likely_broken" and say what it found (the scraper returned
-#     ~0 but these are demonstrably on the page).
-#   - LLM found nothing AND the text signal was only "inconclusive" ->
-#     downgrade to "looks_genuinely_empty" (conservative: both weak signals
-#     now agree there's nothing there).
-#   - otherwise: unchanged.
-# Standing substitute-recruiting lists ("We are always looking for
-# substitutes: bus driver substitutes, kitchen substitutes, ...") read like
-# postings to an LLM, but most boards that run them aren't posting jobs there.
-# Lone Rock (MT issue #13, 2026-11-10): its two real openings came down, the
-# scraper rightly returned 0, and the LLM's six substitute lines made it
-# "likely_broken". Whether a substitute line is a missed posting depends on
-# the source: 127 of 183 MT and 49 of 59 WY direct sources list substitute
-# postings themselves (last 8 weeks, 2026-11-10). So the lines are set aside
-# only when the source's own recent titles have none.
-STANDING_POOL_PATTERN <- "(?i)\\bsub(stitute)?s?\\b"
 
-# llm_titles minus substitute lines when history_titles (the source's own
-# recent titles) has no substitute title; NULL history keeps everything.
-drop_standing_pool_titles <- function(llm_titles, history_titles = NULL) {
-  if (is.null(history_titles) || !length(llm_titles)) return(llm_titles)
-  if (any(grepl(STANDING_POOL_PATTERN, history_titles, perl = TRUE))) return(llm_titles)
-  llm_titles[!grepl(STANDING_POOL_PATTERN, llm_titles, perl = TRUE)]
-}
 
-# The titles one source returned over its last `weeks` archived runs (K-12:
-# Archivek12_Data District/title; "Higher Ed": Archived_HE_Data Institution/Title), or
-# NULL when there are no archives to read.
-recent_source_titles <- function(name, type = "K-12", weeks = 8, k12_dir = "Archivek12_Data", he_dir = "Archived_HE_Data") {
-  he <- type %in% c("Higher Ed", "HE")   # check_drift.R labels HE sources "Higher Ed"
-  files <- utils::tail(sort(list.files(if (he) he_dir else k12_dir,
-                                       pattern = if (he) "^hedata_\\d{4}-\\d{2}-\\d{2}\\.xlsx$" else "^combined_\\d{4}-\\d{2}-\\d{2}\\.csv$",
-                                       full.names = TRUE)), weeks)
-  if (!length(files)) return(NULL)
-  unlist(lapply(files, function(f) tryCatch({
-    x <- if (he) as.data.frame(readxl::read_excel(f, col_types = "text")) else utils::read.csv(f, colClasses = "character")
-    if (he) x$Title[x$Institution %in% name] else x$title[x$District %in% name]
-  }, error = function(e) character(0))))
-}
 
-combine_verdict_with_llm <- function(verdict, llm_titles, history_titles = NULL) {
-  kept <- drop_standing_pool_titles(llm_titles, history_titles)
-  pooled <- length(llm_titles) - length(kept)
-  llm_titles <- kept
-  n <- length(llm_titles)
-
-  if (n > 0 && !identical(verdict, "confirmed_broken")) {
-    shown <- paste(utils::head(llm_titles, 8L), collapse = "; ")
-    return(list(
-      verdict = "likely_broken",
-      note = paste0("an LLM read ", n, " posting(s) off the live page: ",
-                    shown, if (n > 8L) ", ..." else "")
-    ))
-  }
-
-  if (n == 0 && identical(verdict, "inconclusive")) {
-    return(list(verdict = "looks_genuinely_empty",
-                note = if (pooled > 0) paste0("an LLM read only a standing substitute list (", pooled,
-                                              " line(s)) off the live page, and this source never posts substitute jobs")
-                       else "an LLM read no postings off the live page either"))
-  }
-
-  list(verdict = verdict, note = NA_character_)
-}
 
 # --------------------------------------------------------------------------
 # Tier 2c: Central Safety Net status summary & report formatting
@@ -710,70 +431,13 @@ build_drift_report_markdown <- function(
 # .github/scripts/live_check_autofix.R can find which scraper a PR claims
 # to fix (via the PR's linked issue) and re-run just that scraper live.
 
-AUTOFIX_LABEL <- "scraper-autofix"
-AUTOFIX_ELIGIBLE_VERDICTS <- "likely_broken"
-AUTOFIX_MARKER_RE <- "<!--\\s*autofix-source:\\s*(.+?)\\s*-->"
 
-autofix_issue_title <- function(name) paste0("Scraper auto-fix: ", name)
 
-# Who works a new auto-fix issue, from the AUTOFIX_ENGINE repo variable:
-# "claude" (default) dispatches .github/workflows/claude-autofix.yml,
-# "copilot" assigns the issue to the Copilot coding agent via COPILOT_TOKEN,
-# "none" just files it. Both agents on one issue would race to open
-# competing PRs, so it's one or the other. A typo fails the step loudly
-# rather than quietly filing issues nobody works.
-AUTOFIX_ENGINES <- c("claude", "copilot", "none")
-AUTOFIX_CLAUDE_WORKFLOW <- "claude-autofix.yml"
 
-autofix_engine <- function(value) {
-  v <- tolower(trimws(if (length(value) == 0 || is.na(value)) "" else value))
-  if (!nzchar(v)) return("claude")
-  if (!v %in% AUTOFIX_ENGINES) {
-    stop("AUTOFIX_ENGINE must be one of ", paste(AUTOFIX_ENGINES, collapse = ", "), ", not '", value, "'")
-  }
-  v
-}
 
-# Claude as the fallback engine (2026-11-11). With AUTOFIX_ENGINE = "copilot",
-# an issue Copilot hasn't fixed by a later weekly run goes to the Claude
-# workflow once: still flagged, at least AUTOFIX_ESCALATION_MIN_DAYS old, not
-# already handed over (the marker in a comment), no open PR with changes
-# waiting for review, and no merged fix (merged but still flagged is a human
-# problem). A week's wait lets Copilot finish, and lets a board that was
-# briefly empty recover on its own, before a second agent is paid for.
-# `prs` is every PR whose body says "Fixes #<issue>": columns state
-# ("OPEN"/"CLOSED"/"MERGED") and changed_files. Returns the decision as a
-# word, "escalate" or the reason not to.
-AUTOFIX_ESCALATION_MARKER <- "<!-- autofix-escalated: claude -->"
-AUTOFIX_ESCALATION_MIN_DAYS <- 5
 
-autofix_escalation_decision <- function(issue_created, today, comment_bodies, prs) {
-  age <- as.numeric(as.Date(today) - as.Date(substr(issue_created, 1, 10)))
-  if (is.na(age) || age < AUTOFIX_ESCALATION_MIN_DAYS) return("too_new")
-  if (any(grepl(AUTOFIX_ESCALATION_MARKER, comment_bodies, fixed = TRUE))) return("already_escalated")
-  if (NROW(prs) > 0) {
-    if (any(prs$state == "MERGED")) return("fix_merged")
-    if (any(prs$state == "OPEN" & prs$changed_files > 0)) return("pr_awaiting_review")
-  }
-  "escalate"
-}
 
-# PRs (from `gh pr list --json number,state,changedFiles,body`) that say
-# "Fixes/Closes/Resolves #<issue>", as autofix_escalation_decision() wants them.
-autofix_linked_prs <- function(prs, issue_number) {
-  empty <- data.frame(number = integer(0), state = character(0), changed_files = integer(0))
-  if (NROW(prs) == 0) return(empty)
-  pat <- sprintf("(?i)\\b(fix(es|ed)?|close[sd]?|resolve[sd]?)\\s+#%s\\b", issue_number)
-  hit <- grepl(pat, ifelse(is.na(prs$body), "", prs$body), perl = TRUE)
-  if (!any(hit)) return(empty)
-  data.frame(number = prs$number[hit], state = prs$state[hit], changed_files = prs$changedFiles[hit])
-}
 
-parse_autofix_marker <- function(body) {
-  if (length(body) == 0 || is.na(body)) return(NA_character_)
-  m <- regmatches(body, regexec(AUTOFIX_MARKER_RE, body, perl = TRUE))[[1]]
-  if (length(m) < 2) NA_character_ else m[2]
-}
 
 # Unlike Montana (two registries of the same shape), a Wyoming source name
 # can come from four places, each called differently in Wy_ED_Jobs.Rmd:
@@ -872,20 +536,8 @@ run_scraper_call <- function(call, session_factory = NULL) {
 # name; a diff is only offered against a fixture for this same district,
 # never another district's page on the same platform.
 
-AUTOFIX_PAGE_TEXT_MAX_CHARS <- 20000
-AUTOFIX_DIFF_MAX_LINES <- 200
 SCRAPER_FILES <- c("direct_api_scrapers.R", "misc_district_scrapers.R")
 
-# Whether fetch_fn's parser consumes document.body.innerText -- the form the
-# drift check captured, so the capture can be the new fixture verbatim.
-scraper_reads_inner_text <- function(fetch_fn, scraper_lines) {
-  if (is.na(fetch_fn)) return(FALSE)
-  start <- grep(sprintf("^%s <- function", fetch_fn), scraper_lines)
-  if (length(start) == 0) return(FALSE)
-  later <- grep("^[A-Za-z_.][A-Za-z0-9_.]* <- ", scraper_lines)
-  end <- c(later[later > start[1]], length(scraper_lines) + 1)[1] - 1
-  any(grepl("document.body.innerText", scraper_lines[start[1]:end], fixed = TRUE))
-}
 
 # "Niobrara County School District 1" -> c(place = "niobrara", number = "1").
 district_fixture_tokens <- function(name) {
@@ -914,20 +566,6 @@ source_fixtures <- function(call, source_name, fixture_files) {
   list(platform = platform, own = own[order(dates, decreasing = TRUE, method = "radix")])
 }
 
-# Unified diff of two texts after trimming lines and dropping blanks
-# (innerText and html_text2() disagree on blank lines, which is noise).
-# Uses the system `diff`; returns character(0) when identical or absent.
-text_diff <- function(old_text, new_text, old_label = "old", new_label = "new") {
-  norm <- function(x) { x <- trimws(unlist(strsplit(x, "\n", fixed = TRUE))); x[nzchar(x)] }
-  if (!nzchar(Sys.which("diff"))) return(character(0))
-  f_old <- tempfile(); f_new <- tempfile()
-  on.exit(unlink(c(f_old, f_new)))
-  writeLines(norm(old_text), f_old, useBytes = TRUE)
-  writeLines(norm(new_text), f_new, useBytes = TRUE)
-  out <- suppressWarnings(system2("diff", c("-u", "--label", shQuote(old_label), "--label", shQuote(new_label),
-                                            shQuote(f_old), shQuote(f_new)), stdout = TRUE, stderr = FALSE))
-  as.character(out)
-}
 
 # Everything build_autofix_issue_body() shows the agent beyond the drift
 # numbers. repo_root is a parameter only so tests can point it elsewhere.
@@ -1047,19 +685,6 @@ build_autofix_issue_body <- function(row, call = NULL, run_url = NULL,
   )
 }
 
-# The LLM-read titles build_autofix_issue_body() listed -- the live check's
-# (hint-quality) expectation for what the fixed scraper should now return.
-parse_autofix_expected_titles <- function(body) {
-  lines <- strsplit(body, "\n", fixed = TRUE)[[1]]
-  start <- grep("^An LLM read these postings", lines)
-  # First heading after the list -- "### What CI saw" (whose diff and page
-  # text can hold "- " lines) or "### Task".
-  end <- grep("^### ", lines)
-  end <- end[end > start[1]]
-  if (length(start) == 0 || length(end) == 0) return(character(0))
-  block <- lines[(start[1] + 1):(end[1] - 1)]
-  sub("^- ", "", block[startsWith(block, "- ")])
-}
 
 # Titles from a scraper's result. Wyoming's scrapers don't agree on case:
 # Applitrack/TedK12 return `title`, everything else `Title`.
@@ -1116,211 +741,15 @@ summarize_live_check <- function(source_name, result, expected_titles = characte
 # ("beginning the 2026-27 school year.") isn't flagged; "- Open Until
 # Filled." is (WY ledger: Fremont #21).
 
-# Abbreviations whose trailing period isn't the end of a sentence.
-TITLE_ABBREVIATION_PATTERN <- paste0(
-  "(?i)\\b(Jr|Sr|Asst|Assist|Assoc|Coord|Dept|Ed|Sp|St|Supt|Admin|Tech|Spec|Mgr|Dir|Fed|Govt|",
-  "Mr|Mrs|Ms|Dr|No|Vo|Ag|Phys|Res|Prof|Approx|Hrs|P\\.E|Ft)\\."
-)
 
-lint_title_shape <- function(title, max_chars = 200) {
-  t <- as.character(title)
-  t[is.na(t)] <- ""
-  t <- trimws(t)
-  no_abbrev <- gsub(TITLE_ABBREVIATION_PATTERN, "", t, perl = TRUE)
-  level_words <- "(?i)\\b(high school|middle school|junior high|jr\\.? high|elementary|hs|ms|head|assistant|asst\\.?|varsity|junior varsity|jv)\\b"
-  rules <- list(
-    "blank title" = !nzchar(t),
-    "no job named" = grepl("^(other|none|n/?a|tbd|tba|positions?|jobs?|vacanc(y|ies)|openings?|see (job )?description|untitled)$",
-                           t, ignore.case = TRUE),
-    "level and rank only, no role" = nzchar(t) &
-      grepl("(?i)\\b(head|assistant|asst)\\b", t, perl = TRUE) &
-      !grepl("[A-Za-z0-9]", gsub(level_words, "", t, perl = TRUE)),
-    "schedule or detail sentence" = grepl("\\.\\s*$", no_abbrev) &
-      (grepl("[A-Za-z]\\.\\s+[A-Za-z]", no_abbrev) |
-         grepl("\\b(must|required|requires|hiring|open until|hours?|hrs|per (day|hour|week)|full[- ]time|part[- ]time|year[- ]round|apply|mon|fri)\\b",
-               no_abbrev, ignore.case = TRUE)),
-    "field label" = grepl("^(summary|description|job description|job summary|position summary|position|job title|title|location|department|salary|pay|wage|posted|closing date|status|requirements|qualifications)\\s*:",
-                          t, ignore.case = TRUE),
-    "markup left in" = grepl("StartFragment|EndFragment|&[a-z]+;|&#[0-9]+;|<[a-z/][^>]*>|​", t, ignore.case = TRUE, perl = TRUE),
-    "file name" = grepl("[A-Za-z]{2,}_[A-Za-z]{2,}|\\s-\\sCopy$", t),
-    "too long" = nchar(t) > max_chars
-  )
-  reasons <- do.call(cbind, lapply(names(rules), function(r) ifelse(rules[[r]], r, NA_character_)))
-  if (length(t) == 0) return(character(0))
-  out <- apply(matrix(reasons, nrow = length(t)), 1, function(r) paste(r[!is.na(r)], collapse = "; "))
-  out[!nzchar(out)] <- NA_character_
-  out
-}
 
-# Titles that state pay ("Secretary - $14 per hour", "Substitute Teachers
-# $150/day") on postings whose Posted Pay is blank: no scraper reads pay from
-# the title, so the posting's own pay isn't shown. Uses extract_posted_pay()
-# (k12_he_classification.R), which ignores amounts that aren't pay ("$10,000
-# Hiring Incentive").
-title_pay_unrecorded <- function(title, pay_min) {
-  t <- as.character(title)
-  has_dollar <- !is.na(t) & grepl("\\$\\s*[0-9]", t)
-  out <- rep(FALSE, length(t))
-  if (!any(has_dollar & is.na(pay_min))) return(out)
-  idx <- which(has_dollar & is.na(pay_min))
-  out[idx] <- !is.na(extract_posted_pay(t[idx])$Pay_Min)
-  out
-}
 
-# hits: data.frame(source, type, title, reason). At most max_per_source
-# titles are listed per source.
-build_title_lint_report_markdown <- function(hits, date = Sys.Date(), max_per_source = 5) {
-  if (nrow(hits) == 0) return(character(0))
-  key <- paste(hits$type, hits$source, sep = "\r")
-  lines <- unlist(lapply(unique(key), function(k) {
-    h <- hits[key == k, , drop = FALSE]
-    n_postings <- nrow(h)
-    h <- h[!duplicated(h$title), , drop = FALSE]
-    shown <- utils::head(h, max_per_source)
-    c(sprintf("- **%s** (%s), %d posting(s):", h$source[1], h$type[1], n_postings),
-      sprintf("  - \"%s\" -- %s", substr(gsub("[\r\n]+", " ", shown$title), 1, 120), shown$reason),
-      if (nrow(h) > max_per_source) sprintf("  - ...and %d more", nrow(h) - max_per_source))
-  }))
-  c(
-    paste0("### Titles that don't look like job titles (", date, ")"),
-    "",
-    paste("This week's postings whose title looks like something other than a job title: page text, a",
-          "summary, a heading, or pay the Posted Pay column doesn't carry. Usually the scraper is reading",
-          "the wrong element. These titles are classified as they are, so they can land in the wrong bucket."),
-    "",
-    lines,
-    ""
-  )
-}
 
-# One row per source: postings (n) and how many the classifier puts in Other
-# (other).
-other_share_counts <- function(names, is_other) {
-  out <- pay_coverage_counts(names, is_other)
-  names(out)[names(out) == "with_pay"] <- "other"
-  out
-}
 
-# current: other_share_counts() for this run. history: a list of the same,
-# one per recent archived week (the caller picks the window). A source is
-# flagged when it has at least min_weeks weeks with min_postings or more
-# postings, and this run has min_postings or more postings, at least
-# min_other of them in Other, and an Other share at least `jump` above its
-# average and at least `ratio` times it. Replayed over every archived week
-# (8-week window, 2026-11-05) these defaults flag 2 MT and 2 WY source-weeks,
-# all real scraper problems (Florence-Carlton schedule lines, Albany section
-# headings); stricter settings flag none of them.
-flag_other_share_jump <- function(current, history, min_weeks = 2, min_postings = 3, min_other = 2,
-                                  jump = 0.15, ratio = 1.5) {
-  empty <- data.frame(name = character(0), mean_share = numeric(0), n_weeks = integer(0),
-                      n = integer(0), other = integer(0), stringsAsFactors = FALSE)
-  weeks <- do.call(rbind, history)
-  if (is.null(weeks) || nrow(weeks) == 0 || nrow(current) == 0) return(empty)
-  weeks <- weeks[weeks$n >= min_postings, , drop = FALSE]
-  if (nrow(weeks) == 0) return(empty)
-  weeks$share <- weeks$other / weeks$n
-  baseline <- data.frame(name = sort(unique(weeks$name)), stringsAsFactors = FALSE)
-  baseline$n_weeks <- as.integer(table(weeks$name)[baseline$name])
-  baseline$mean_share <- as.numeric(tapply(weeks$share, weeks$name, mean)[baseline$name])
-  merged <- merge(baseline, current, by = "name")
-  share <- merged$other / merged$n
-  flagged <- merged[merged$n_weeks >= min_weeks & merged$n >= min_postings & merged$other >= min_other &
-                      share >= merged$mean_share + jump & share >= ratio * merged$mean_share, , drop = FALSE]
-  if (nrow(flagged) == 0) return(empty)
-  flagged[order(-(flagged$other / flagged$n)), c("name", "mean_share", "n_weeks", "n", "other")]
-}
 
-# flagged: flag_other_share_jump() rows plus type and examples (a few of the
-# source's Other titles this run).
-build_other_share_report_markdown <- function(flagged, date = Sys.Date()) {
-  if (nrow(flagged) == 0) return(character(0))
-  c(
-    paste0("### More postings than usual land in Other (", date, ")"),
-    "",
-    paste("These sources' share of postings the classifier can't place jumped against their own recent",
-          "weeks. Usually the scraper started picking up page text instead of titles; otherwise the",
-          "classifier needs a rule for a new kind of title."),
-    "",
-    sprintf("- **%s** (%s): usually %.0f%% Other, now %d of %d -- e.g. %s",
-            flagged$name, flagged$type, 100 * flagged$mean_share, flagged$other, flagged$n, flagged$examples),
-    ""
-  )
-}
 
-# --------------------------------------------------------------------------
-# Keyword conflicts (classification safeguards item 9)
-# --------------------------------------------------------------------------
-# A title carrying a word that names one bucket while the classifier put it
-# in another: the hand audit of 2026-11-01, as rules. Each rule is a signal
-# (regex, case-insensitive), the buckets that are fine for it, and an
-# optional `unless` regex for titles where the word is legitimately
-# secondary (a nutrition-services secretary, a "Secretary/Para" dual role).
-# Non-blocking: listed in the drift issue so a person decides whether the
-# classifier needs a rule. Tuned 2026-11-08 against every archived title
-# since 2025-10-01 in both states, where only real misroutes remained.
-k12_keyword_conflict_rules <- list(
-  list(id = "coach aide outside Athletics",
-       signal = "\\bAides?\\b.*(Football|Basketball|Volleyball|Wrestling|Soccer|\\bSwim|\\bGolf\\b|\\bTrack\\b|Cross Country|Baseball|Softball|Tennis)|(Football|Basketball|Volleyball|Wrestling|Soccer|\\bSwim|\\bGolf\\b|\\bTrack\\b|Cross Country|Baseball|Softball|Tennis).*\\bAides?\\b",
-       ok = c("Athletics", "Substitute", "Activities/Extracurricular")),
-  list(id = "food-service word outside Food Services",
-       signal = "\\b(Kitchen|Cooks?|Nutrition|Cafeteria|Food Services?|Dishwasher)\\b",
-       ok = c("Food Services", "Substitute"),
-       unless = "Teacher|Instructor|Culinary|Director|Supervisor|Manager|Coordinator|Secretary|Bookkeeper|Clerk|Administrative Assistant|Driver|Warehouse|Transport|Custodian|Custodial|/"),
-  list(id = "bus aide or monitor outside Transportation",
-       signal = "\\bBus\\b.*\\b(Aides?|Monitors?|Para\\w*)\\b|\\b(Aides?|Monitors?)\\b.*\\bBus\\b",
-       ok = c("Transportation", "Substitute"), unless = "/|\\bor\\b|&|\\band\\b"),
-  list(id = "bus driver outside Transportation", signal = "\\bBus Drivers?\\b",
-       ok = c("Transportation", "Substitute"), unless = "/|\\bor\\b|&|\\band\\b|Driver'?s?\\s*Ed"),
-  list(id = "custodian outside Custodial/Maintenance", signal = "Custodian|Custodial|Janitor",
-       ok = c("Custodial/Maintenance", "Substitute"), unless = "/|\\bor\\b|&|\\band\\b|Secretary|Supervisor|Director|Manager"),
-  list(id = "teacher title in Paraprofessional", signal = "\\bTeacher\\b",
-       ok = setdiff(c("Substitute", "Paraprofessional", "Activities/Extracurricular", "Transportation", "Food Services",
-                      "Athletics", "Support Services", "Staff", "Custodial/Maintenance", "Administration",
-                      "Part-Time Teacher", "Teacher", "Child Care", "Other"), "Paraprofessional"),
-       unless = "Assistant|Aides?\\b|Associate|Para|Helper"),
-  list(id = "principal or superintendent outside Administration", signal = "\\b(Principal|Superintendent)\\b",
-       ok = c("Administration", "Substitute"), unless = "Secretary|Assistant to|Clerk|Administrative Assistant|Office|/"),
-  list(id = "secretary or clerk outside Staff", signal = "\\b(Secretary|Clerk)\\b",
-       ok = c("Staff", "Substitute"), unless = "/")
-)
-he_keyword_conflict_rules <- list(
-  list(id = "custodian outside Maintenance & Service", signal = "Custodian|Custodial|Janitor",
-       ok = c("Maintenance & Service", "Student Positions", "Temporary Position"),
-       unless = "Supervisor|Director|Manager|Dish|Cook|Kitchen"),
-  list(id = "postdoc outside Research & Science", signal = "Post-?doc", ok = "Research & Science"),
-  list(id = "adjunct outside Adjunct/Part-Time Faculty", signal = "\\bAdjunct\\b", ok = "Adjunct/Part-Time Faculty")
-)
 
-# The first rule each title trips, or NA.
-find_keyword_conflicts <- function(title, bucket, rules) {
-  title <- as.character(title)
-  out <- rep(NA_character_, length(title))
-  for (r in rules) {
-    hit <- grepl(r$signal, title, ignore.case = TRUE, perl = TRUE) & !(bucket %in% r$ok)
-    if (!is.null(r$unless)) hit <- hit & !grepl(r$unless, title, ignore.case = TRUE, perl = TRUE)
-    out[hit & is.na(out)] <- r$id
-  }
-  out
-}
 
-# hits: data.frame(source, type, title, bucket, rule).
-build_keyword_conflict_report_markdown <- function(hits, date = Sys.Date(), max_rows = 25) {
-  if (nrow(hits) == 0) return(character(0))
-  h <- hits[!duplicated(paste(hits$type, hits$title)), , drop = FALSE]
-  shown <- utils::head(h, max_rows)
-  c(
-    paste0("### Titles whose words point to a different bucket (", date, ")"),
-    "",
-    paste("This week's postings whose title names one kind of job while the classifier put it in another",
-          "(a custodian outside Custodial, a bus aide outside Transportation). Either the classifier needs",
-          "a rule, or the title is a real exception; add it to the golden set either way."),
-    "",
-    sprintf("- \"%s\" (%s, %s): %s -- %s", substr(gsub("[\r\n]+", " ", shown$title), 1, 120), shown$source,
-            shown$type, shown$bucket, shown$rule),
-    if (nrow(h) > max_rows) sprintf("- ...and %d more", nrow(h) - max_rows),
-    ""
-  )
-}
 
 # --------------------------------------------------------------------------
 # Frozen boards (WY spells trust audit 2026-11-05, finding 2)
