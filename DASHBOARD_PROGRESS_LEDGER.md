@@ -534,6 +534,11 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     committed 11-06 data, as of 11-13: 7 pass, 8 fail, 5 error, all of the failures being things the 11-09/10 pushes
     should change. A `guard` job skips a scheduled run when main already has that day's data commit; checked against
     history (skips 11-06, runs 11-13). WY gains the concurrency group. Live run of the step, suite 2,252 (0 failed).
+    Review fixes before push (jobs-dashboard reviewer): the committed-file test no longer requires a row's file to
+    exist (WY's posting_status.csv rows would have stopped the 11-13 pre-run suite); the guard fetches main's live tip
+    (a queued run's checkout is main as of its creation: MT 11-10 started at 6f52b4a, 9 s after c2dec92 landed);
+    .xlsx columns are typed like .csv; rows that passed on zero matched rows now count what must be there (21 rows).
+    Suite 2,258 (0 failed).
 
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from

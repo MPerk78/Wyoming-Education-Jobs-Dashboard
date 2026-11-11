@@ -85,14 +85,38 @@ test_that("validation catches the mistakes a hand-edited file makes", {
                exp_row(id = "d", filter = "District ==", min = "1"),
                exp_row(id = "e"),
                exp_row(id = "f", min = "5", max = "1"))
-  probs <- validate_run_expectations(exp, root = dir)
+  probs <- validate_run_expectations(exp, root = dir, check_files = TRUE)
   expect_true(any(grepl("duplicate id: a", probs)))
   expect_true(any(grepl("\\(b\\): applies_from", probs)))
   expect_true(any(grepl("\\(c\\): no such file", probs)))
   expect_true(any(grepl("\\(d\\): filter does not parse", probs)))
   expect_true(any(grepl("\\(e\\): neither min nor max", probs)))
   expect_true(any(grepl("\\(f\\): min is above max", probs)))
-  expect_length(validate_run_expectations(exp[1, ], root = dir), 0)
+  expect_length(validate_run_expectations(exp[1, ], root = dir, check_files = TRUE), 0)
+  # without check_files a missing file is not a problem (it is an error row at run time)
+  expect_false(any(grepl("no such file", validate_run_expectations(exp, root = dir))))
+})
+
+test_that("a row naming a file only the coming run writes doesn't fail validation on or after its date", {
+  # WY's posting_status.csv rows (2026-11-13): the pre-run suite validates the
+  # committed file, and failing here would stop the run that writes the file.
+  dir <- with_data_dir()
+  exp <- exp_row(id = "future_file", file = "written_by_the_run.csv", applies_from = "2026-11-13", min = "1")
+  expect_length(validate_run_expectations(exp, root = dir), 0)
+  res <- evaluate_run_expectations(exp, run_date = "2026-11-13", root = dir)
+  expect_equal(res$Status, "error"); expect_match(res$Detail, "could not read")
+})
+
+test_that("an .xlsx file's numbers compare as numbers, as a .csv's do", {
+  dir <- with_data_dir()
+  d <- read.csv(file.path(dir, "data.csv"))
+  writexl::write_xlsx(d, file.path(dir, "data.xlsx"))
+  exp <- rbind(exp_row(id = "csv", filter = "Pay_Min > 45000", min = "0"),
+               exp_row(id = "xlsx", file = "data.xlsx", filter = "Pay_Min > 45000", min = "0"))
+  res <- evaluate_run_expectations(exp, run_date = "2026-11-13", root = dir)
+  expect_equal(res$Value, c(1, 1))   # as text, "52000" > "45000" holds but so would "9000"
+  exp2 <- exp_row(id = "xlsx_small", file = "data.xlsx", filter = "Pay_Min > 9000", min = "0")
+  expect_equal(evaluate_run_expectations(exp2, run_date = "2026-11-13", root = dir)$Value, 2)
 })
 
 test_that("the committed run_expectations.csv is well formed", {

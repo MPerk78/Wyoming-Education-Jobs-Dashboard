@@ -31,14 +31,18 @@ jobs:
       skip: ${{ steps.check.outputs.skip }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 50
+      # The checkout above is main as it was when this run was *created*; a
+      # scheduled run created before the manual run pushed, then queued behind
+      # it (concurrency), would never see that push (MT 2026-11-10: created at
+      # 6f52b4a, started 9 s after c2dec92 landed). So read main's tip now.
+      # grep without -q reads all of git's output: no SIGPIPE under pipefail.
       - name: Skip a scheduled run when today's data refresh is already on main
         id: check
         run: |
           today=$(date -u +%Y-%m-%d)
           if [ "${{ github.event_name }}" = "schedule" ] && \
-             git log -n 50 --format=%s | grep -qxF "Automated weekly data refresh ($today)"; then
+             git fetch --depth=50 origin main && \
+             git log -n 50 --format=%s FETCH_HEAD | grep -xF "Automated weekly data refresh ($today)" > /dev/null; then
             echo "::notice::Today's data refresh ($today) is already on main (a manual run); skipping this scheduled run."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else

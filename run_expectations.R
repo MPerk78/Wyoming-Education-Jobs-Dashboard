@@ -33,8 +33,12 @@ read_run_expectations <- function(path = "run_expectations.csv") {
 
 # Problems with the file itself (the test suite runs this on the committed file,
 # so a typo fails before the weekly run rather than during it). Returns a
-# character vector, empty when the file is fine.
-validate_run_expectations <- function(exp, root = ".", today = Sys.Date()) {
+# character vector, empty when the file is fine. check_files = TRUE also
+# requires each named file to exist; the committed-file test leaves it off,
+# because a row may name a file only the coming run writes (posting_status.csv
+# before WY's 2026-11-13 run): failing on that would stop the pre-run suite,
+# and the run, that writes it. At run time a missing file is an `error` row.
+validate_run_expectations <- function(exp, root = ".", check_files = FALSE) {
   probs <- character(0)
   add <- function(i, msg) probs <<- c(probs, sprintf("row %d (%s): %s", i, exp$id[i], msg))
   dup <- unique(exp$id[duplicated(exp$id)])
@@ -45,9 +49,8 @@ validate_run_expectations <- function(exp, root = ".", today = Sys.Date()) {
     if (is.na(af)) add(i, "applies_from is not a YYYY-MM-DD date")
     if (is.na(ex)) add(i, "expires is not a YYYY-MM-DD date")
     if (!is.na(af) && !is.na(ex) && ex < af) add(i, "expires is before applies_from")
-    # a row not yet due may name a file the next run writes for the first time
-    due <- is.na(af) || af <= as.Date(today)
-    if (due && !file.exists(file.path(root, exp$file[i]))) add(i, paste("no such file:", exp$file[i]))
+    if (!nzchar(exp$file[i])) add(i, "blank file")
+    else if (check_files && !file.exists(file.path(root, exp$file[i]))) add(i, paste("no such file:", exp$file[i]))
     for (col in c("filter", "measure")) {
       if (nzchar(exp[[col]][i])) {
         ok <- tryCatch({ parse(text = exp[[col]][i]); TRUE }, error = function(e) FALSE)
@@ -65,7 +68,9 @@ validate_run_expectations <- function(exp, root = ".", today = Sys.Date()) {
 
 read_expectation_file <- function(path) {
   if (grepl("\\.xlsx$", path, ignore.case = TRUE)) {
-    as.data.frame(readxl::read_excel(path, col_types = "text"), stringsAsFactors = FALSE)
+    # read as text, then typed the way read.csv types a .csv, so a numeric
+    # comparison in a filter is numeric for both formats
+    utils::type.convert(as.data.frame(readxl::read_excel(path, col_types = "text"), stringsAsFactors = FALSE), as.is = TRUE)
   } else {
     utils::read.csv(path, stringsAsFactors = FALSE, check.names = FALSE, encoding = "UTF-8")
   }
