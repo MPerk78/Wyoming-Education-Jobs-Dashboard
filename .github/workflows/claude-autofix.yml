@@ -60,6 +60,12 @@ jobs:
       - id: setup
         uses: ./.github/actions/setup-r-env
 
+      # Claude Code's Bash sandbox needs socat and bubblewrap on Linux; without
+      # them every Bash call fails ("Sandbox dependencies not available: socat
+      # not installed", WY run 43086225793, 2026-11-11).
+      - name: Install Claude's sandbox dependencies
+        run: sudo apt-get install -y --no-install-recommends socat bubblewrap
+
       - name: Claude works the fix
         uses: anthropics/claude-code-action@v1
         env:

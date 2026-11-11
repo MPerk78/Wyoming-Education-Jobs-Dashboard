@@ -561,6 +561,9 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     First real Claude run (WY #7, run 43079089307, 2026-11-11): Claude signed in and finished (11 turns, $0.35), but
     the guard step's `git add -A -- . ':!.autofix'` exits 1 because `.autofix` is gitignored, so no run could ever
     reach its PR/report step. Now `git add -A` then `git reset -- .autofix`.
+    Merged 11-11 (PR #12 -> bb94853). Re-test from main (WY run 43086225793): ran end to end, the guard passed and
+    Claude posted a "needs a human" report on WY #7. But every Bash call failed ("Sandbox dependencies not available:
+    socat not installed"), so the workflow now apt-installs `socat` and `bubblewrap` before Claude runs.
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] **R package migration (current focus, Mike 2026-11-10):** shared code moves to `bostickmike/edjobs`, pinned in
   `EDJOBS_VERSION` (plan and status: `claude-notes/2026-11-10_r-package-migration-plan.md`). Phase 0 merged 11-11
