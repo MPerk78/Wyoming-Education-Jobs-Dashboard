@@ -103,8 +103,12 @@ test_that("fetch_all_misc_district_postings combines WSBA and district-own posti
   expect_equal(laramie_1$title, "Science Teacher")
   expect_equal(laramie_1$url, "https://example.com/4")
 
-  expect_equal(names(result), c("title", "date_posted", "position", "location", "url", "District"))
+  expect_equal(names(result), c("title", "date_posted", "position", "location", "url", "District", "Posting_Source"))
   expect_true(all(is.na(result$position)))
+  # Every row says where it was read: WSBA's rows the feed, the district's own page its platform.
+  expect_equal(niobrara$Posting_Source[niobrara$title == "SPED Paraprofessional"], "Apptegy district site (direct board)")
+  expect_equal(unique(niobrara$Posting_Source[niobrara$title != "SPED Paraprofessional"]), WSBA_POSTING_SOURCE)
+  expect_equal(c(snowy_range$Posting_Source, laramie_1$Posting_Source), rep(WSBA_POSTING_SOURCE, 2))
 })
 
 test_that("fetch_all_misc_district_postings returns the right empty schema when every source is empty", {
@@ -122,7 +126,7 @@ test_that("fetch_all_misc_district_postings returns the right empty schema when 
 
   result <- fetch_all_misc_district_postings()
   expect_equal(nrow(result), 0)
-  expect_equal(names(result), c("title", "date_posted", "position", "location", "url", "District"))
+  expect_equal(names(result), c("title", "date_posted", "position", "location", "url", "District", "Posting_Source"))
 })
 
 test_that("remove_wsba_direct_duplicates removes only exact district/title/date overlaps", {
@@ -168,6 +172,41 @@ test_that("a WSBA row linking a job ID the district board lists is a duplicate, 
   )
   result <- remove_wsba_direct_duplicates(wsba, direct)
   expect_equal(result$title, c("Elementary Rural Teacher", "Bus Driver"))
+})
+
+test_that("direct_also_on_wsba flags the direct postings WSBA also lists, by key or by job ID", {
+  wsba <- data.frame(
+    title = c("Middle School ASD Special Education Teacher", "Science Teacher", "Bus Driver"),
+    date_posted = c("2026-03-27", "2026-05-22", "2026-10-01"),
+    District = c("Park County School District 6", "Laramie County School District 1", "Park County School District 6"),
+    url = c("https://www.applitrack.com/park6/OnlineApp/JobPostings/View.asp?AppliTrackJobId=1026",
+            "https://www.wsba-wy.org/vacancies", "https://www.wsba-wy.org/vacancies"),
+    stringsAsFactors = FALSE)
+  direct <- data.frame(
+    title = c("ASD Special Education Teacher", "SCIENCE teacher", "Custodian"),
+    date_posted = c("2025-12-01", "2026-05-22", "2026-10-01"),
+    District = c("Park County School District 6", "Laramie County School District 1", "Park County School District 6"),
+    url = c("https://www.applitrack.com/park6/onlineapp/default.aspx?AppliTrackLayoutMode=detail&AppliTrackJobId=1026",
+            "https://laramie1.schoolspring.com/jobs/1", "https://www.applitrack.com/park6/onlineapp/default.aspx?AppliTrackLayoutMode=detail&AppliTrackJobId=2000"),
+    posting_id = c("applitrack:park6:1026", NA, "applitrack:park6:2000"), stringsAsFactors = FALSE)
+  # job ID match, district/title/date match, no match
+  expect_equal(direct_also_on_wsba(direct, wsba), c(TRUE, TRUE, FALSE))
+  # The same rows WSBA's own dedup drops: one WSBA row per flagged direct posting here.
+  expect_equal(nrow(wsba) - nrow(remove_wsba_direct_duplicates(wsba, direct)), sum(direct_also_on_wsba(direct, wsba)))
+  expect_equal(direct_also_on_wsba(direct, wsba[0, ]), c(FALSE, FALSE, FALSE))
+  expect_equal(direct_also_on_wsba(direct[0, ], wsba), logical(0))
+})
+
+test_that("every registry and misc platform has a Posting_Source label, and WSBA's is the feed label", {
+  k12 <- read.csv(here::here("k12_district_registry.csv"), stringsAsFactors = FALSE)
+  expect_false(anyNA(k12_posting_source_label(unique(k12$Platform))))
+  expect_false(anyNA(k12_posting_source_label(unique(misc_district_registry$platform))))
+  expect_error(k12_posting_source_label("NoSuchPlatform"), "No Posting_Source label")
+  expect_equal(WSBA_POSTING_SOURCE, edjobs::current_state_config()$feed$label)
+  expect_equal(WSBA_FEED_LABEL, WSBA_POSTING_SOURCE)
+  expect_equal(WSBA_FEED_URL, edjobs::current_state_config()$feed$url)
+  # The backfill writes the same wording the scrape does.
+  expect_true(all(c(K12_ID_PREFIX_SOURCES, K12_LINK_HOST_SOURCES) %in% K12_PLATFORM_SOURCE_LABELS))
 })
 
 test_that("remove_wsba_direct_duplicates provides full central safety net fallback when direct scraper is empty", {

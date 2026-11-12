@@ -24,7 +24,10 @@ One row per open K-12 posting, all position types (not just teachers). Powers th
 | `url` | text | Direct posting URL where the source exposes one (including SchoolSpring and RedRover); otherwise the district job-board URL. |
 | `Posting_ID` | text | Named `posting_id` in this file before 2026-11-12, and still in the raw weekly archives; the values did not change. Durable source posting ID when available (SchoolSpring, RedRover; AppliTrack's job ID from 2026-11-03, `applitrack:<tenant>:<job id>`, with `url` the posting's own AppliTrack page; the 2026-10-30 week was moved onto these by matching the live boards). Sources without one use a stable fallback fingerprint of their URL, district, title, location, and posted date; `Archive_Date` is intentionally excluded so the same posting retains its identity across weeks. |
 | `Posting_Identity_Method` | text | How `Posting_ID` was made: `Source posting ID` or `Source fallback: ...` (a fingerprint of district, link, title, location and posted date). |
-| `Posting_Source`, `Feed_District`, `Also_On_Feed`, `Role_Hint` | text | Not recorded for Wyoming yet (always NA). The columns are there so every state's file has the same columns (`edjobs::K12_POSTING_COLUMNS`; Montana fills them from its OPI feed). |
+| `Posting_Source` | text | The board a posting was read from: '<platform> (direct district board)' for a district's AppliTrack, SchoolSpring, TedK12 or Red Rover board, '<platform> district site (direct board)' for a district's own page, 'WSBA statewide vacancies' for a WSBA listing. Recorded at scrape time from 2026-11-12. Earlier runs are filled where the archived row settles it: from the posting's source id, from WSBA's own link, and for every run before 2026-08-02 (when WSBA was first read) from the link's host, with 'District site (direct board)' for a district's own site. NA where it cannot be told (some rows from 2026-08-03 to 2026-11-06). |
+| `Feed_District` | text | For a WSBA row, the organization WSBA names. NA for direct-board rows and where Posting_Source is NA. |
+| `Also_On_Feed` | logical | TRUE for a direct-board posting that WSBA also lists (same district, title and posted date, or a WSBA link naming the posting's job ID). It is counted once, from the district's board. Recorded from 2026-11-12; NA for earlier runs. |
+| `Role_Hint` | text | Always NA for Wyoming (WSBA gives no description); the column is there so every state's file has the same columns. |
 | `District` | text | Canonical district name (`canonicalize_k12_district()` applied). |
 | `Close_Date` | text | The posting's closing date as its board states it, unparsed (a date, or "When Filled", "Open Until Filled" and similar). AppliTrack rows (from 2026-11-03) as written, and SchoolSpring (from 2026-11-04: the deadline applicants see, as YYYY-MM-DD; "Posted until filled" is NA); NA where the board gives none and for other sources. |
 
@@ -75,7 +78,8 @@ Row-level history of every Teacher-position posting ever scraped, one row per po
 | `url` | text | |
 | `Posting_ID` | text | Durable posting identity, used for category counts so distinct same-title/location openings are not collapsed. |
 | `Posting_Identity_Method` | text | How `Posting_ID` was made: `Source posting ID` or `Source fallback: ...` (a fingerprint of district, link, title, location and posted date). |
-| `Posting_Source`, `Role_Hint` | text | Not recorded for Wyoming yet (always NA). The columns are there so every state's file has the same columns (`edjobs::K12_POSTING_COLUMNS`; Montana fills them from its OPI feed). |
+| `Posting_Source` | text | As in `combinedclean.csv`. 12,705 of 13,406 rows were filled when the column was added (2026-11-12). |
+| `Role_Hint` | text | Always NA for Wyoming. |
 | `District` | text | Canonical district name. |
 | `Category` | text | Fine-grained subject from `classify_k12_subject()` (e.g. "Elementary Education", "Special Education - General"). |
 | `Broad_Category` | text | Coarser grouping from `classify_k12_broad_category()`; this is what the app's category color palettes and pickers use. |

@@ -612,6 +612,16 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   WY 1,403 passed, 0 failed (1,401 after the rehearsal's run); full rehearsal passed every step, rebuild parity 9/9
   (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.10.0.log`). Design and open items:
   `claude-notes/2026-11-12_phase4-k12-output-schema.md`.
+  Slice 5 merged 11-12 (PR #20 -> 9659bf0). Then the source columns (Mike 11-12: backfill what is feasible, NA
+  for the rest, record it going forward): every K-12 row is tagged with `Posting_Source` at scrape time and
+  archived with it; `Also_On_Feed` flags a direct posting WSBA also lists (`direct_also_on_wsba()`);
+  `Feed_District` is the organization WSBA names. History is backfilled where the archived row settles the source
+  (`backfill_k12_posting_source()`: the source id, WSBA's own link, and the link's host for every run before
+  2026-08-02, when WSBA was first read): `k12jobanalysis.csv` 12,705 of 13,406 rows, `combinedclean.csv` 532 of
+  725; every other cell unchanged. `Role_Hint` stays NA: WSBA titles carry the role and WSBA has no description
+  (checked 11-12). Suite 1,430 passed, 0 failed (1,428 after the rehearsal's run); full rehearsal passed every
+  step, rebuild parity 9/9; the rehearsed run tagged all 699 rows, 39 of them also on WSBA
+  (`claude-notes/2026-11-12_rehearsal-wy-posting-source.log`).
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
   222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
   likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).

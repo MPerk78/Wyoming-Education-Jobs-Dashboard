@@ -1040,8 +1040,10 @@ fetch_all_misc_district_postings <- function(chromote_session_factory = NULL) {
     }
 
     combined <- dplyr::bind_rows(
-      if (nrow(wsba_here) > 0) data.frame(title = wsba_here$Title, date_posted = wsba_here$Posted_Date, url = wsba_urls, stringsAsFactors = FALSE),
-      if (nrow(own_postings) > 0) data.frame(title = own_postings$Title, date_posted = own_postings$Posted_Date, url = own_urls, stringsAsFactors = FALSE)
+      if (nrow(wsba_here) > 0) data.frame(title = wsba_here$Title, date_posted = wsba_here$Posted_Date, url = wsba_urls,
+                                          Posting_Source = WSBA_POSTING_SOURCE, stringsAsFactors = FALSE),
+      if (nrow(own_postings) > 0) data.frame(title = own_postings$Title, date_posted = own_postings$Posted_Date, url = own_urls,
+                                             Posting_Source = k12_posting_source_label(platform), stringsAsFactors = FALSE)
     )
 
     if (nrow(combined) > 0) {
@@ -1066,7 +1068,7 @@ fetch_all_misc_district_postings <- function(chromote_session_factory = NULL) {
       all_rows[[length(all_rows) + 1]] <- data.frame(
         title = wsba_here$Title, date_posted = wsba_here$Posted_Date,
         position = NA_character_, location = wsba_here$Location,
-        url = org_urls, District = org,
+        url = org_urls, District = org, Posting_Source = WSBA_POSTING_SOURCE,
         stringsAsFactors = FALSE
       )
     }
@@ -1090,6 +1092,7 @@ fetch_all_misc_district_postings <- function(chromote_session_factory = NULL) {
       location = wsba_remaining$Location,
       url = rem_urls,
       District = wsba_remaining$District,
+      Posting_Source = WSBA_POSTING_SOURCE,
       stringsAsFactors = FALSE
     )
   }
@@ -1101,11 +1104,11 @@ fetch_all_misc_district_postings <- function(chromote_session_factory = NULL) {
   if (length(all_rows) == 0) {
     return(data.frame(title = character(0), date_posted = character(0), position = character(0),
                        location = character(0), url = character(0), District = character(0),
-                       stringsAsFactors = FALSE))
+                       Posting_Source = character(0), stringsAsFactors = FALSE))
   }
 
   result <- dplyr::bind_rows(all_rows)
-  result[, c("title", "date_posted", "position", "location", "url", "District")]
+  result[, c("title", "date_posted", "position", "location", "url", "District", "Posting_Source")]
 }
 
 # WSBA identifies a posting by district, title, and usually a posted date.
@@ -1199,6 +1202,24 @@ generate_wsba_discrepancy_report <- function(wsba_postings, direct_postings) {
     Detected_Date = as.character(Sys.Date()),
     stringsAsFactors = FALSE
   )
+}
+
+# The other side of wsba_duplicates_direct(): TRUE for each direct posting
+# that a WSBA row duplicates (same district, title and posted date, or a WSBA
+# link naming the posting's own job ID). The WSBA row is dropped and the
+# posting counts once, from the district's board; this flag keeps the fact
+# that WSBA lists it too (Also_On_Feed).
+direct_also_on_wsba <- function(direct_postings, wsba_postings) {
+  if (nrow(direct_postings) == 0) return(logical(0))
+  if (nrow(wsba_postings) == 0) return(rep(FALSE, nrow(direct_postings)))
+  wsba_keys <- stats::na.omit(wsba_posting_key(wsba_postings))
+  direct_keys <- wsba_posting_key(direct_postings)
+  by_key <- !is.na(direct_keys) & direct_keys %in% wsba_keys
+  wsba_ids <- if ("url" %in% names(wsba_postings)) stats::na.omit(unique(k12_link_posting_id(wsba_postings$url))) else character(0)
+  link_id <- k12_link_posting_id(direct_postings$url)
+  source_id <- if ("posting_id" %in% names(direct_postings)) k12_source_posting_id(direct_postings$posting_id) else rep(NA_character_, nrow(direct_postings))
+  by_id <- (!is.na(link_id) & link_id %in% wsba_ids) | (!is.na(source_id) & source_id %in% wsba_ids)
+  by_key | by_id
 }
 
 remove_wsba_direct_duplicates <- function(wsba_postings, direct_postings, report_path = NULL) {

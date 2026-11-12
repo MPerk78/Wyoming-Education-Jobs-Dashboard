@@ -505,6 +505,29 @@ parse_redrover_json <- function(json_text, org_slug) {
 
 # Converts platforms that expose a source posting ID into the K-12 pipeline's
 # lowercase schema without discarding their deep links or identities.
+# The board a K-12 row was read from, written into Posting_Source at scrape
+# time (Wy_ED_Jobs.Rmd, fetch_all_misc_district_postings()) and archived, so
+# a rebuild reads it back. Same wording as Montana's, so the states' files
+# stack: "<platform> (direct district board)" for a registry platform,
+# "<platform> district site (direct board)" for a district's own page, and
+# the statewide feed's label (state_config.R) for a WSBA row.
+K12_PLATFORM_SOURCE_LABELS <- c(
+  Applitrack = "AppliTrack (direct district board)", TedK12 = "TedK12 (direct district board)",
+  SchoolSpring = "SchoolSpring (direct district board)", RedRoverK12 = "Red Rover (direct district board)",
+  paylocity = "Paylocity (direct board)",
+  wordpress = "WordPress district site (direct board)", smartsites = "SmartSites district site (direct board)",
+  schoolblocks = "SchoolBlocks district site (direct board)", edlio = "Edlio district site (direct board)",
+  googlesites = "Google Sites district site (direct board)",
+  educational_networks = "Educational Networks district site (direct board)",
+  apptegy = "Apptegy district site (direct board)", prairieview = "Prairie View district site (direct board)"
+)
+WSBA_POSTING_SOURCE <- "WSBA statewide vacancies"
+k12_posting_source_label <- function(platform) {
+  label <- unname(K12_PLATFORM_SOURCE_LABELS[as.character(platform)])
+  if (anyNA(label)) stop("No Posting_Source label for platform: ", paste(unique(platform[is.na(label)]), collapse = ", "))
+  label
+}
+
 normalize_id_backed_k12_postings <- function(postings) {
   required <- c("Title", "Location", "Posted_Date", "Posting_ID", "Link", "District")
   missing <- setdiff(required, names(postings))

@@ -31,13 +31,55 @@ k12_posting_identity_method <- function(posting_id) {
   ifelse(is.na(posting_id), NA_character_, ifelse(startsWith(as.character(posting_id), "fallback"), WY_ID_FROM_FIELDS, WY_ID_FROM_SOURCE))
 }
 
+# The board a row came from, for runs archived before Posting_Source was
+# recorded (2026-11-12): filled only where the archived row settles it, NA
+# otherwise.
+#   - A source posting id names its platform.
+#   - A row whose link is WSBA's vacancies page itself is a WSBA listing
+#     with no link of its own.
+#   - Before 2026-08-02 the pipeline read no WSBA rows (the WSBA scraper was
+#     wired in that day), so every archived row came from a district's own
+#     board and its link's host tells the platform; a link anywhere else is
+#     the district's own site (hand-collected then, from otherjobs.xlsx).
+#   - From 2026-08-02 on, a fingerprint id with any other link stays NA: a
+#     WSBA row linking a district's posting and a direct row look the same.
+K12_ID_PREFIX_SOURCES <- c(applitrack = "AppliTrack (direct district board)", schoolspring = "SchoolSpring (direct district board)",
+                           redrover = "Red Rover (direct district board)")
+K12_LINK_HOST_SOURCES <- c("applitrack[.]com" = "AppliTrack (direct district board)", "schoolspring[.]com" = "SchoolSpring (direct district board)",
+                           "tedk12[.]com" = "TedK12 (direct district board)", "redroverk12[.]com" = "Red Rover (direct district board)")
+K12_DISTRICT_SITE_SOURCE <- "District site (direct board)"
+WSBA_FIRST_READ <- as.Date("2026-08-02")
+WSBA_FEED_LABEL <- "WSBA statewide vacancies"   # state_config.R's feed label; test-history-accumulator.R holds the two together
+WSBA_FEED_URL <- "https://www.wsba-wy.org/vacancies"
+backfill_k12_posting_source <- function(posting_id, url, archive_date) {
+  prefix <- sub(":.*$", "", tolower(as.character(posting_id)))
+  out <- unname(K12_ID_PREFIX_SOURCES[prefix])
+  out[is.na(out) & !is.na(url) & url == WSBA_FEED_URL] <- WSBA_FEED_LABEL
+  before_wsba <- !is.na(archive_date) & as.Date(as.character(archive_date)) < WSBA_FIRST_READ
+  host <- sub("^https?://([^/?#]+).*$", "\\1", tolower(as.character(url)))
+  linked <- !is.na(url) & grepl("^https?://", url, ignore.case = TRUE)
+  by_host <- rep(NA_character_, length(out))
+  by_host[linked] <- K12_DISTRICT_SITE_SOURCE
+  for (pattern in names(K12_LINK_HOST_SOURCES)) by_host[linked & grepl(pattern, host)] <- K12_LINK_HOST_SOURCES[[pattern]]
+  fill <- is.na(out) & before_wsba
+  out[fill] <- by_host[fill]
+  out
+}
+
 # combinedclean.csv's rows from one run's K-12 postings, for the weekly
 # pipeline (Wy_ED_Jobs.Rmd) and the from-archive rebuild alike. Callers
 # dedupe first (distinct(), then collapse_duplicate_posting_ids() where the
-# rows carry posting_id). Wyoming does not yet record Posting_Source,
-# Feed_District, Also_On_Feed or Role_Hint; those columns are NA.
+# rows carry posting_id). Posting_Source and Also_On_Feed are recorded at
+# scrape time from 2026-11-12; earlier runs get Posting_Source where
+# backfill_k12_posting_source() can settle it and NA for Also_On_Feed.
+# Feed_District is the organization WSBA names, for WSBA rows. Role_Hint is
+# NA: WSBA gives no description to read one from.
 wy_k12_combinedclean <- function(rows, oews_wages, district_county) {
   rows$Posting_Identity_Method <- k12_posting_identity_method(rows$posting_id)
+  if (!"Posting_Source" %in% names(rows)) rows$Posting_Source <- NA_character_
+  rows$Posting_Source <- dplyr::coalesce(as.character(rows$Posting_Source), backfill_k12_posting_source(rows$posting_id, rows$url, rows$Archive_Date))
+  rows$Feed_District <- ifelse(rows$Posting_Source %in% WSBA_FEED_LABEL, as.character(rows$District), NA_character_)
+  if ("Also_On_Feed" %in% names(rows)) rows$Also_On_Feed <- as.logical(rows$Also_On_Feed)
   build_k12_combinedclean(rows, oews_wages, district_county, "WY", columns = WY_K12_COLUMNS,
                           canonicalize_district = canonicalize_k12_district)
 }

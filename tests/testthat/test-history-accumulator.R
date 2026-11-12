@@ -204,3 +204,42 @@ test_that("incrementally appending the latest week reproduces a full rebuild thr
   expect_equal(norm(incremental_allsum_he), norm(as.data.frame(full_state$allsum_he)), ignore_attr = TRUE)
   expect_equal(norm(incremental_weekly_totals), norm(as.data.frame(full_state$he_institution_weekly_totals)), ignore_attr = TRUE)
 })
+
+
+# ---- Posting_Source for runs archived before it was recorded -----------------
+
+test_that("backfill_k12_posting_source fills only what the archived row settles", {
+  src <- function(id, url, date) backfill_k12_posting_source(id, url, date)
+  # A source posting id names its platform, in any run.
+  expect_equal(src("applitrack:bighorn1:1534", "https://www.applitrack.com/bighorn1/x", "2026-11-06"), "AppliTrack (direct district board)")
+  expect_equal(src("schoolspring:laramie1.schoolspring.com:5857967", "https://x", "2026-10-01"), "SchoolSpring (direct district board)")
+  expect_equal(src("redrover:1:2", "https://x", "2026-10-01"), "Red Rover (direct district board)")
+  # WSBA's own page as the link is a WSBA listing.
+  expect_equal(src("fallback | a | b", "https://www.wsba-wy.org/vacancies", "2026-09-01"), "WSBA statewide vacancies")
+  # Before WSBA was read, the link's host tells the platform; any other link is the district's site.
+  expect_equal(src(c(NA, NA, NA, NA), c("https://www.applitrack.com/tcsd/onlineapp/", "https://albany1.tedk12.com/hire/index.aspx",
+                                        "https://www.lcsd2.org/jobs", NA), "2025-03-07"),
+               c("AppliTrack (direct district board)", "TedK12 (direct district board)", "District site (direct board)", NA))
+  expect_equal(src(NA, "https://www.applitrack.com/tcsd/onlineapp/", "2026-07-31"), "AppliTrack (direct district board)")
+  # From 2026-08-02 a fingerprint id with a board link could be a WSBA row linking it: left NA.
+  expect_true(is.na(src("fallback | a | b", "https://www.applitrack.com/tcsd/onlineapp/", "2026-08-03")))
+  expect_true(is.na(src(NA, "https://www.lcsd2.org/jobs", "2026-08-02")))
+})
+
+test_that("wy_k12_combinedclean keeps a recorded Posting_Source and names WSBA rows' Feed_District", {
+  rows <- data.frame(title = c("Math Teacher", "English Teacher", "Custodian"), Archive_Date = "2026-11-13", date_posted = "2026-11-01",
+                     location = "HS", url = c("https://www.applitrack.com/tcsd/onlineapp/x", "https://example.org/a", "https://www.lcsd2.org/jobs"),
+                     District = c("Teton County School District 1", "Snowy Range Academy", "Lincoln County School District 2"),
+                     posting_id = c("applitrack:tcsd:1", "fallback | 1", "fallback | 2"),
+                     Posting_Source = c("AppliTrack (direct district board)", WSBA_POSTING_SOURCE, NA),
+                     Also_On_Feed = c(TRUE, FALSE, NA), stringsAsFactors = FALSE)
+  oews <- read.csv(here::here("Wy_Ed_Jobs", "oews_role_wages.csv"), stringsAsFactors = FALSE,
+                   colClasses = c(Area_Code = "character", SOC = "character", Year = "character"))
+  county <- read.csv(here::here("Wy_Ed_Jobs", "salarymap2.csv"), stringsAsFactors = FALSE)[, c("District", "County")]
+  out <- wy_k12_combinedclean(rows, oews, county)
+  expect_equal(names(out), edjobs::K12_POSTING_COLUMNS)
+  expect_equal(out$Posting_Source, c("AppliTrack (direct district board)", WSBA_POSTING_SOURCE, NA))
+  expect_equal(out$Feed_District, c(NA, "Snowy Range Academy", NA))
+  expect_equal(out$Also_On_Feed, c(TRUE, FALSE, NA))
+  expect_equal(out$Posting_ID, rows$posting_id)
+})

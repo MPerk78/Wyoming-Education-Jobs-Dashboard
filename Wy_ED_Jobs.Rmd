@@ -149,6 +149,9 @@ for (i in seq_len(nrow(registry))) {
   )
 
   if (!is.null(district_jobs) && nrow(district_jobs) > 0) {
+    # The board each row was read from (k12_posting_source_label(),
+    # direct_api_scrapers.R); archived with the row.
+    district_jobs$Posting_Source <- k12_posting_source_label(row$Platform)
     all_direct_data[[length(all_direct_data) + 1]] <- district_jobs
   }
 }
@@ -244,6 +247,7 @@ if (nrow(laramie_montessori) > 0) {
     location = laramie_montessori$Location,
     url = laramie_montessori$Link,
     District = "Laramie Montessori Charter School",
+    Posting_Source = k12_posting_source_label("paylocity"),
     stringsAsFactors = FALSE
   )
   other <- dplyr::bind_rows(other, laramie_montessori)
@@ -281,6 +285,11 @@ if (!is.null(wsba_checks) && nrow(wsba_checks) > 0) {
   wsba_checks$Last_Listed <- format(Sys.Date())
 }
 other_rows <- other[!is_wsba, , drop = FALSE]
+# A direct posting WSBA also lists counts once, from the district's board
+# (its WSBA row was dropped above); Also_On_Feed keeps that WSBA lists it.
+direct$Also_On_Feed <- direct_also_on_wsba(direct, other[is_wsba, , drop = FALSE])
+if (nrow(other_rows) > 0) other_rows$Also_On_Feed <- FALSE
+if (nrow(wsba_rows) > 0) wsba_rows$Also_On_Feed <- FALSE
 
 combined <- dplyr::bind_rows(direct, other_rows, wsba_rows) %>%
   mutate(Archive_Date = Sys.Date())
