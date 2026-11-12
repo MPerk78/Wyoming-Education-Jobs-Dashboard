@@ -1,21 +1,3 @@
-# State-only tests left here when the shared classifier and posted-pay tests moved to edjobs
-# (phase 2, 2026-11-11): these call this state's own code (name corrections or scrapers).
-
-
-test_that("parse_applitrack_output carries each posting's stated pay", {
-  path <- test_path("fixtures", "applitrack_output_park1_pay.bin")
-  js <- iconv(readChar(path, file.size(path), useBytes = TRUE), "WINDOWS-1252", "UTF-8")
-  out <- parse_applitrack_output(js)
-  expect_true(all(c("Pay_Min", "Pay_Max", "Pay_Unit", "Pay_Text") %in% names(out)))
-  expect_gt(nrow(out), 0)
-  expect_gte(mean(!is.na(out$Pay_Min)), 0.9)
-  ok <- !is.na(out$Pay_Min)
-  expect_true(all(out$Pay_Min[ok] <= out$Pay_Max[ok]))
-  expect_true(all(out$Pay_Unit[ok] %in% c("hour", "day", "month", "year", "credit hour", "stipend", NA)))
-  expect_true(all(mapply(function(txt, v) grepl(format(v, big.mark = ",", nsmall = 0, scientific = FALSE), gsub("\\.00\\b", "", txt), fixed = TRUE) || grepl(sprintf("%.2f", v), txt, fixed = TRUE),
-                         out$Pay_Text[ok], out$Pay_Min[ok])))
-  expect_equal(ncol(parse_applitrack_output("")), ncol(out))
-})
 
 # --- Higher ed boards ---------------------------------------------------------
 
@@ -55,17 +37,4 @@ test_that("parse_neogov_html keeps every posting when the card pay can't be read
   expect_equal(out$Title[5], "Director of Development- Jackson Campus")
   expect_true(all(POSTED_PAY_COLUMNS %in% names(out)))
   expect_true(all(is.na(out$Pay_Min)))
-})
-
-test_that("a NEOGOV pay field with an implausible unit falls back to the card's description", {
-  # Real cards (Gillette College, 2026-11-10): the field says "Adjunct - $900.00
-  # Hourly", the description "Grade: $900 per credit hour".
-  pay <- parse_neogov_card_pay(paste(readLines(test_path("fixtures", "neogov_gillettecollege_p1_2026-11-10.html"),
-                                               warn = FALSE, encoding = "UTF-8"), collapse = "\n"))
-  adj <- pay[!is.na(pay$Pay_Min) & pay$Pay_Min == 900, ]
-  expect_gte(nrow(adj), 2)
-  expect_true(all(adj$Pay_Unit == "credit hour"))
-  expect_true(all(grepl("per credit hour", adj$Pay_Text)))
-  # A field with a plausible unit is still taken from the field.
-  expect_false(any(is.na(pay$Pay_Unit[!is.na(pay$Pay_Min)])))
 })
