@@ -80,8 +80,11 @@ test_that("every EXTRA_SCRAPER_CALLS entry appears verbatim in Wy_ED_Jobs.Rmd", 
   for (name in names(EXTRA_SCRAPER_CALLS)) {
     spec <- EXTRA_SCRAPER_CALLS[[name]]
     expect_true(exists(spec$fn, mode = "function"), info = spec$fn)
+    # Named arguments are written as the pipeline writes them (location_from_author = FALSE).
+    shown <- vapply(spec$args, deparse, "")
+    nm <- names(spec$args); if (!is.null(nm)) shown <- ifelse(nzchar(nm), paste0(nm, " = ", shown), shown)
     needle <- if (length(spec$args) == 0) spec$fn else
-      sprintf("%s(%s)", spec$fn, paste(vapply(spec$args, deparse, ""), collapse = ", "))
+      sprintf("%s(%s)", spec$fn, paste(shown, collapse = ", "))
     expect_true(grepl(needle, rmd, fixed = TRUE), info = needle)
   }
 })
