@@ -3,6 +3,7 @@
 # classification/canonicalization functions under test.
 suppressMessages(library(here))
 suppressMessages(library(dplyr))
+source(here::here("state_config.R"))
 source(here::here("k12_he_classification.R"))
 library(edjobs)
 source(here::here("eastern_wyoming_scraper.R"))

@@ -585,6 +585,11 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   and its rules (`WY_SPELL_RULES` in `posting_spells.R`, a `spell_rules()` object). Rebuilt from the archives, every
   pre-existing column of the committed spells is unchanged (11,834 K-12 + 3,621 HE postings); the files gain the shared
   36-column schema (`POSTING_SPELL_COLUMNS`). Suite on 0.6.0: WY 1,435 passed, 0 failed.
+  Phase 4 slice 1 merged 11-11 (WY PR #16 -> 0c67509). Slice 2 on branch `edjobs-phase4-state-config` (edjobs
+  v0.7.0): `state_config.R` sets `edjobs::state_config()` (name, FIPS, app folder, this state's own reference
+  tables, which left the package's `REFERENCE_TABLE_RULES`); OEWS areas are a FIPS-keyed CSV in the package.
+  Suite on 0.7.0: WY 1,439 passed, 0 failed; full rehearsal passed every step, rebuild parity 9/9
+  (`claude-notes/2026-11-11_rehearsal-wy-edjobs-phase4.log`).
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
   222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
   likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).

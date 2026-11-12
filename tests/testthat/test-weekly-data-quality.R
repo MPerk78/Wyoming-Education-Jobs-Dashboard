@@ -457,10 +457,11 @@ test_that("pay estimates are hourly or annual, in range, and say what they estim
 })
 
 test_that("every reference table the estimates come from passes its own rules", {
-  for (name in names(REFERENCE_TABLE_RULES)) {
+  rules <- reference_table_rules()
+  for (name in names(rules)) {
     p <- here::here("Wy_Ed_Jobs", paste0(name, ".csv"))
     if (!file.exists(p)) next
-    expect_null(reference_table_problem(read.csv(p, stringsAsFactors = FALSE), REFERENCE_TABLE_RULES[[name]]),
+    expect_null(reference_table_problem(read.csv(p, stringsAsFactors = FALSE), rules[[name]]),
                 info = name)
   }
 })
