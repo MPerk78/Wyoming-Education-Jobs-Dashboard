@@ -8,12 +8,12 @@ Pipeline `Mt_ED_Jobs.Rmd` → dashboard `Mt_Ed_Jobs/app.R`. Weekly CI runs on Tu
 - `llm_extract_targets.csv`: the quarantined LLM shadow pilot for prose-only pages (`LLM_EXTRACT.md`). Not in the registry and not on the dashboard.
 
 ## How a registry row reaches its scraper
-`drift_check.R` → `SCRAPER_CALL_SPECS` + `resolve_scraper_call()`:
+`state_config.R` → `MT_SCRAPER_SPECS` and `scraper_sources`, read by `edjobs::resolve_scraper_call(name)`:
 - Shared platforms map to one `fetch_*` with registry columns as arguments (e.g. `AppliTrack` → `fetch_applitrack_postings(Slug)`).
 - A K-12 `<Name>Heuristic` platform resolves **by convention** to `fetch_<lowercase name>_postings(Job_Link)`, so a new heuristic needs a function of exactly that name. (`CutBankHeuristic` → `fetch_cutbank_postings`.)
 - K-12 `Apptegy` / `RedRoverK12` dispatch through `APPTEGY_DISTRICT_SCRAPERS` in `misc_district_scrapers.R`, keyed by the exact `District` name, so a new Apptegy district needs an entry there.
-- HE heuristics are listed explicitly in `SCRAPER_CALL_SPECS`, so add one there.
-- `test-drift-check.R` asserts every function named in the specs exists.
+- HE heuristics are listed explicitly in `MT_SCRAPER_SPECS`, so add one there.
+- `test-drift-check.R` asserts every function named in the specs exists and every registered row resolves.
 
 Scraper files: `direct_api_scrapers.R` (real ATS APIs, K-12 + HE), `misc_district_scrapers.R`, `misc_college_scrapers.R`. Also check how `Mt_ED_Jobs.Rmd` calls a platform (some heuristics are called individually in their own chunk, and chromote districts share one session).
 

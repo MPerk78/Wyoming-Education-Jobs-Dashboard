@@ -32,11 +32,10 @@ source_name <- args[1]
 save_at <- which(args == "--save-text")
 save_path <- if (length(save_at) == 1 && length(args) > save_at) args[save_at + 1] else NULL
 
-k12 <- read.csv("k12_district_registry.csv", stringsAsFactors = FALSE)
-call <- resolve_scraper_call(source_name, k12, misc_district_registry)
-if (is.null(call)) stop("No single-source scraper for '", source_name, "' (see resolve_scraper_call() in drift_check.R)")
+call <- resolve_scraper_call(source_name)
+if (is.null(call)) stop("No single-source scraper for '", source_name, "' (see scraper_sources in state_config.R)")
 evidence <- gather_autofix_evidence(call, source_name, NA_character_)
-live_url <- unname(build_source_url_lookup(misc_registry = misc_district_registry)[source_name])
+live_url <- unname(build_source_url_lookup()[source_name])
 
 cat("== ", source_name, " ==\n", sep = "")
 cat("Platform:     ", call$platform, "(from", call$where, ")\n")

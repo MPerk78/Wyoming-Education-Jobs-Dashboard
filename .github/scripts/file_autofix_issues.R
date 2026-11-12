@@ -194,7 +194,7 @@ for (i in seq_len(nrow(eligible))) {
     next
   }
 
-  call <- resolve_scraper_call(row$name, k12, misc_district_registry)
+  call <- resolve_scraper_call(row$name)
   page_text <- if ("page_text" %in% names(row)) row$page_text else NA_character_
   evidence <- tryCatch(gather_autofix_evidence(call, row$name, page_text),
                        error = function(e) { cat("  Couldn't gather evidence:", conditionMessage(e), "\n"); NULL })

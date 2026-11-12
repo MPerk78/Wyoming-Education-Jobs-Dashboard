@@ -7,7 +7,7 @@ Pipeline `Wy_ED_Jobs.Rmd` → dashboard `Wy_Ed_Jobs/app.R`. Weekly CI runs on Fr
 - `misc_district_registry`: an R `data.frame` **inside `misc_district_scrapers.R`** (`District`, `platform`, `url`). It holds districts and charters scraped from their own sites, keyed by a lowercase **platform-level** parser: `wordpress`, `apptegy`, `smartsites`, `schoolblocks`, `edlio`, `googlesites`, `educational_networks`, `prairieview`. `fetch_misc_district_postings(platform, url, session)` dispatches. Wyoming prefers reusable per-CMS parsers over per-district heuristics. Follow that: a new district on Edlio is a one-line registry addition.
 - HE scrapers are called directly from the `.Rmd` (UW, PeopleAdmin atom feeds, NEOGOV/schooljobs.com, Paylocity, simplehire, Oracle Cloud, Dawson-style heuristics). There's no HE registry CSV.
 
-`drift_check.R`'s `resolve_scraper_call(name, k12_registry, misc_registry)` resolves a source name across both registries and the hardcoded `.Rmd` calls. `scripts/repro_scraper.R "<name>"` uses it.
+`edjobs::resolve_scraper_call(name)`, reading `state_config.R`'s `scraper_sources`, resolves a source name across both registries and the hardcoded `.Rmd` calls. `scripts/repro_scraper.R "<name>"` uses it.
 
 ## Statewide feed
 **WSBA vacancies** (`wsba-wy.org/vacancies`, `fetch_wsba_vacancies()` in `misc_district_scrapers.R`) covers districts without their own structured board, and is de-duplicated against direct postings (`dedupe_against_wsba`, `remove_wsba_direct_duplicates`). Districts that appear on WSBA but have no direct scraper are the natural discovery list.

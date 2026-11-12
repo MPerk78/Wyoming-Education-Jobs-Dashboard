@@ -52,7 +52,7 @@ safety_net_summary <- summarize_central_safety_net(
   discrepancy_path = "wy_discrepancy_report.csv"
 )
 
-url_lookup <- build_source_url_lookup(misc_registry = misc_district_registry)
+url_lookup <- build_source_url_lookup()
 # check_drift.R canonicalizes district names before flagging, so a flagged
 # K-12 name is the corrected spelling ("Converse County School District 2")
 # while these lookup keys come straight from the link CSVs, which still

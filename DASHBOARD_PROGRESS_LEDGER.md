@@ -596,6 +596,14 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   labels and the drift baseline date. `check_drift.R` output on committed data is identical. Suite on 0.8.0:
   WY 1,425 passed, 0 failed (1,423 after the rehearsal's run); full rehearsal passed every step, rebuild parity 9/9
   (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.8.0.log`).
+  Slice 3 merged 11-12. Slice 4 (edjobs v0.9.0): scraper dispatch and the auto-fix issue body come from the
+  package (`resolve_scraper_call(name)`, `run_scraper_call()`, `gather_autofix_evidence()`,
+  `build_autofix_issue_body()`, `build_source_url_lookup()`); this state's sources and how each is scraped are
+  data in `state_config.R` (`scraper_sources`, `autofix`). On all 67 source names the resolved call, its description and
+  the evidence are identical to the local code's; the issue body changes only in wording. The URL lookup gains the WSBA feed's page.
+  Suite on 0.9.0: WY 1,415 passed, 0 failed (1,413 after the rehearsal's run); full rehearsal passed every step,
+  rebuild parity 9/9 (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.9.0.log`). Not exercised by a rehearsal:
+  `file_autofix_issues.R` and `live_check_autofix.R` (GitHub-only steps); `scripts/repro_scraper.R` was run live.
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
   222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
   likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).

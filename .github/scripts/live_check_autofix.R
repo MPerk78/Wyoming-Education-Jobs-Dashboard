@@ -45,12 +45,11 @@ if (is.na(source_name)) {
   quit(status = 0)
 }
 
-k12 <- read.csv("k12_district_registry.csv", stringsAsFactors = FALSE)
-call <- resolve_scraper_call(source_name, k12, misc_district_registry)
+call <- resolve_scraper_call(source_name)
 
 if (is.null(call)) {
   writeLines(c(sprintf("### Live scraper check: %s", source_name), "",
-               ":grey_question: No single-source live check exists for this source (see resolve_scraper_call() in drift_check.R) -- verify the fix against the live page by hand."),
+               ":grey_question: No single-source live check exists for this source (see scraper_sources in state_config.R) -- verify the fix against the live page by hand."),
              "/tmp/live_check.md")
   quit(status = 0)
 }
