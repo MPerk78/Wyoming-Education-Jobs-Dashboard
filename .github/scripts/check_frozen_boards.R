@@ -1,5 +1,5 @@
 # Frozen-board check (WY spells trust audit 2026-11-05, finding 2; functions in
-# posting_spells.R and drift_check.R). Non-blocking and informational only,
+# edjobs since phase 4). Non-blocking and informational only,
 # like check_drift.R: a board (K-12 district + its board host, or an HE
 # institution) whose whole posting set has been identical for
 # FROZEN_MIN_RUNS+ runs, still frozen this run. check_drift.R can't see it:

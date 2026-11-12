@@ -751,29 +751,5 @@ summarize_live_check <- function(source_name, result, expected_titles = characte
 
 
 
-# --------------------------------------------------------------------------
-# Frozen boards (WY spells trust audit 2026-11-05, finding 2)
-# --------------------------------------------------------------------------
-# A board whose whole posting set has stayed identical for weeks is a stale
-# page or cache, not a district that stopped hiring: Fremont #38 returned the
-# same 14 postings every week from 2024-10 to 2025-11, all counted as live.
-# `frozen` is frozen_board_runs() (posting_spells.R) over recent archives;
-# only stretches still running this week are reported.
-build_frozen_board_report_markdown <- function(frozen, date = Sys.Date()) {
-  if (is.null(frozen) || nrow(frozen) == 0) return(character(0))
-  frozen <- frozen[frozen$Ongoing, , drop = FALSE]
-  if (nrow(frozen) == 0) return(character(0))
-  board <- ifelse(is.na(frozen$Posting_Source) | !nzchar(frozen$Posting_Source) | frozen$Posting_Source == frozen$District,
-                  "", paste0(" (", frozen$Posting_Source, ")"))
-  c(
-    paste0("### Boards that haven't changed in weeks (", date, ")"),
-    "",
-    paste("Each board below has listed exactly the same postings every week for the number of weeks shown.",
-          "Real boards change; this is usually a stale page, a cache, or a scraper reading an old copy, and",
-          "its postings keep counting as live in the weekly totals. Open the board and compare."),
-    "",
-    sprintf("- **%s**%s (%s): the same %d posting(s) for %d weeks, since %s",
-            frozen$District, board, frozen$Segment, frozen$Postings, frozen$Runs, frozen$From),
-    ""
-  )
-}
+# Frozen boards (WY spells trust audit 2026-11-05, finding 2): frozen_board_runs()
+# and build_frozen_board_report_markdown() are in edjobs since phase 4.
