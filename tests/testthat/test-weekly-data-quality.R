@@ -153,7 +153,7 @@ test_that("Latitude / Longitude put every mapped entity inside Wyoming's boundin
 # ---------------------------------------------------------------------------
 # 3. Referential integrity -- the joins app.R and the pipeline rely on.
 # ---------------------------------------------------------------------------
-test_that("combinedclean.csv has no byte-identical duplicate rows and posting_id is unique", {
+test_that("combinedclean.csv has no byte-identical duplicate rows and Posting_ID is unique", {
   # Regression guard for the within-run duplicate-row inflation fixed in
   # Wy_ED_Jobs.Rmd (`combined %>% distinct()`) + scripts/
   # repair_combinedclean_row_duplicates.R: a modern direct-platform page
@@ -162,17 +162,17 @@ test_that("combinedclean.csv has no byte-identical duplicate rows and posting_id
   # vacancy-rate numerator both over-counted.
   cc <- read_wy("combinedclean.csv")
   expect_equal(sum(duplicated(cc)), 0, info = "byte-identical duplicate rows in combinedclean.csv")
-  dup_ids <- unique(cc$posting_id[duplicated(cc$posting_id)])
+  dup_ids <- unique(cc$Posting_ID[duplicated(cc$Posting_ID)])
   expect_equal(length(dup_ids), 0, info = paste0(
-    "duplicate posting_id in combinedclean.csv: ",
+    "duplicate Posting_ID in combinedclean.csv: ",
     paste(utils::head(dup_ids, 5), collapse = " | ")))
 })
 
-test_that("posting_id holds no control characters", {
+test_that("Posting_ID holds no control characters", {
   # A "\r" separator in fallback IDs (until 2026-11) put line breaks inside
   # the posting_id field of the research downloads.
   for (f in c("combinedclean.csv", "k12jobanalysis.csv")) {
-    ids <- read_wy(f)$posting_id
+    ids <- read_wy(f)$Posting_ID
     expect_equal(sum(grepl("[[:cntrl:]]", ids)), 0, info = f)
   }
 })

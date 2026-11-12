@@ -46,7 +46,12 @@ To support seamless merges with federal, state, and academic datasets, the follo
 | `position` | Categorical | Classification Model | Broad staff position group (Teacher, Administrator, Support Services, etc.). |
 | `location` | String | District Job Board | Specific school building, school campus, facility, or district administrative office. |
 | `url` | URL | District Job Board | Direct link to the job posting or district applicant tracking portal. |
-| `posting_id` | String | Project Pipeline | Durable unique posting identifier used to track openings longitudinally across weekly snapshots. |
+| `Posting_ID` | String | Project Pipeline | Durable unique posting identifier used to track openings longitudinally across weekly snapshots. |
+| `Posting_Source` | String | Project Pipeline | The board a posting was read from. Not recorded for Wyoming yet (always NA); kept so the file has the same columns in every state (edjobs::K12_POSTING_COLUMNS). |
+| `Posting_Identity_Method` | String | Project Pipeline | How Posting_ID was made: 'Source posting ID' (the board's own id for the posting) or 'Source fallback: district + link + title + location + posted date (no source posting ID)' (a fingerprint of those fields). |
+| `Feed_District` | String | Project Pipeline | For a statewide-feed posting, the district the feed names. Not recorded for Wyoming yet (always NA); kept so the file has the same columns in every state (edjobs::K12_POSTING_COLUMNS). |
+| `Also_On_Feed` | Logical | Project Pipeline | TRUE for a direct-board posting the statewide feed also lists. Not recorded for Wyoming yet (always NA); kept so the file has the same columns in every state (edjobs::K12_POSTING_COLUMNS). |
+| `Role_Hint` | Categorical | Classification Model | The role a statewide-feed posting's description names, used to refine its position bucket. Not recorded for Wyoming yet (always NA); kept so the file has the same columns in every state (edjobs::K12_POSTING_COLUMNS). |
 | `District` | String | Canonical Registry | Canonical public school district or charter school name. |
 | `Close_Date` | String | District ATS | The posting's closing date as its board states it, unparsed (a date, or "When Filled", "Open Until Filled" and similar). AppliTrack rows (from 2026-11-03) as written, and SchoolSpring (from 2026-11-04: the deadline applicants see, as YYYY-MM-DD; "Posted until filled" is NA); NA where the board gives none and for other sources. |
 | `Pay_Min` | Numeric | Job posting | Lowest pay amount stated in the posting itself, in `Pay_Unit` (NA when no dollar figure is stated). Never converted between units. |
@@ -70,7 +75,10 @@ To support seamless merges with federal, state, and academic datasets, the follo
 | `position` | Categorical | Classification Model | Broad staff position group (Teacher, Administrator, Support Services, etc.). |
 | `location` | String | District Job Board | Specific school building, facility, or district administrative office location. |
 | `url` | URL | District Job Board | Direct URL link to the official job vacancy listing or district portal. |
-| `posting_id` | String | Project Pipeline | Durable unique posting identifier tracking vacancies across multi-year weekly snapshots. The source's own posting ID where it has one (e.g. `schoolspring:laramie1.schoolspring.com:5857967`, `applitrack:tcsd:836` from 2026-11-03); otherwise a fallback fingerprint, `fallback \| <district> \| <url> \| <title> \| <location> \| <posted date>`, lower-cased. |
+| `Posting_ID` | String | Project Pipeline | Durable unique posting identifier tracking vacancies across multi-year weekly snapshots. The source's own posting ID where it has one (e.g. `schoolspring:laramie1.schoolspring.com:5857967`, `applitrack:tcsd:836` from 2026-11-03); otherwise a fallback fingerprint, `fallback \| <district> \| <url> \| <title> \| <location> \| <posted date>`, lower-cased. |
+| `Posting_Source` | String | Project Pipeline | The board a posting was read from. Not recorded for Wyoming yet (always NA); kept so the file has the same columns in every state (edjobs::K12_POSTING_COLUMNS). |
+| `Posting_Identity_Method` | String | Project Pipeline | How Posting_ID was made: 'Source posting ID' (the board's own id for the posting) or 'Source fallback: district + link + title + location + posted date (no source posting ID)' (a fingerprint of those fields). |
+| `Role_Hint` | Categorical | Classification Model | The role a statewide-feed posting's description names, used to refine its position bucket. Not recorded for Wyoming yet (always NA); kept so the file has the same columns in every state (edjobs::K12_POSTING_COLUMNS). |
 | `District` | String | Canonical Registry | Canonical public school district or charter school Local Education Agency (LEA) name. |
 | `Category` | String | Classification Model | Fine-grained subject specialization or departmental role assignment. |
 | `Broad_Category` | Categorical | Classification Model | Clustered high-level category grouping (Elementary, STEM, Special Education, Humanities, etc.). |

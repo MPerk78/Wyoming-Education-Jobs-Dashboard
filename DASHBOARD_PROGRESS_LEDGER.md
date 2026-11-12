@@ -604,6 +604,14 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   Suite on 0.9.0: WY 1,415 passed, 0 failed (1,413 after the rehearsal's run); full rehearsal passed every step,
   rebuild parity 9/9 (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.9.0.log`). Not exercised by a rehearsal:
   `file_autofix_issues.R` and `live_check_autofix.R` (GitHub-only steps); `scripts/repro_scraper.R` was run live.
+  Slice 4 merged 11-12. Slice 5 (edjobs v0.10.0): the accumulated K-12 history comes from the package
+  (`build_k12_combinedclean()`, `build_k12_teacher_rows()`, `append_weekly_rows()`,
+  `summarize_k12_posting_counts()`), with one output schema for every state (`edjobs::K12_POSTING_COLUMNS`).
+  `combinedclean.csv` and `k12jobanalysis.csv` were rewritten from the archives in the shared columns, same row order, every existing cell unchanged (725 and 13,406 rows): `posting_id` is now `Posting_ID`, `Posting_Identity_Method` is derived from the id, and `Posting_Source`, `Feed_District`, `Also_On_Feed`, `Role_Hint` are NA until Wyoming records them (open: define WY's `Posting_Source`). Outside readers of the downloads must use `Posting_ID`.
+  Raw rows and the weekly archives keep their column names; posting id values are untouched. Suite on 0.10.0:
+  WY 1,403 passed, 0 failed (1,401 after the rehearsal's run); full rehearsal passed every step, rebuild parity 9/9
+  (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.10.0.log`). Design and open items:
+  `claude-notes/2026-11-12_phase4-k12-output-schema.md`.
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
   222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
   likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).

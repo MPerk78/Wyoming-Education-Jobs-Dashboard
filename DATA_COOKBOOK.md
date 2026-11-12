@@ -22,7 +22,9 @@ One row per open K-12 posting, all position types (not just teachers). Powers th
 | `position` | text | Coarse bucket from `classify_k12_position()` (Teacher, Support Services, Administration, etc. — see `R/k12_he_classification.R` in the edjobs package for the full list). |
 | `location` | text | School/site name or district office, as scraped — format varies a lot by source platform. |
 | `url` | text | Direct posting URL where the source exposes one (including SchoolSpring and RedRover); otherwise the district job-board URL. |
-| `posting_id` | text | Durable source posting ID when available (SchoolSpring, RedRover; AppliTrack's job ID from 2026-11-03, `applitrack:<tenant>:<job id>`, with `url` the posting's own AppliTrack page; the 2026-10-30 week was moved onto these by matching the live boards). Sources without one use a stable fallback fingerprint of their URL, district, title, location, and posted date; `Archive_Date` is intentionally excluded so the same posting retains its identity across weeks. |
+| `Posting_ID` | text | Named `posting_id` in this file before 2026-11-12, and still in the raw weekly archives; the values did not change. Durable source posting ID when available (SchoolSpring, RedRover; AppliTrack's job ID from 2026-11-03, `applitrack:<tenant>:<job id>`, with `url` the posting's own AppliTrack page; the 2026-10-30 week was moved onto these by matching the live boards). Sources without one use a stable fallback fingerprint of their URL, district, title, location, and posted date; `Archive_Date` is intentionally excluded so the same posting retains its identity across weeks. |
+| `Posting_Identity_Method` | text | How `Posting_ID` was made: `Source posting ID` or `Source fallback: ...` (a fingerprint of district, link, title, location and posted date). |
+| `Posting_Source`, `Feed_District`, `Also_On_Feed`, `Role_Hint` | text | Not recorded for Wyoming yet (always NA). The columns are there so every state's file has the same columns (`edjobs::K12_POSTING_COLUMNS`; Montana fills them from its OPI feed). |
 | `District` | text | Canonical district name (`canonicalize_k12_district()` applied). |
 | `Close_Date` | text | The posting's closing date as its board states it, unparsed (a date, or "When Filled", "Open Until Filled" and similar). AppliTrack rows (from 2026-11-03) as written, and SchoolSpring (from 2026-11-04: the deadline applicants see, as YYYY-MM-DD; "Posted until filled" is NA); NA where the board gives none and for other sources. |
 
@@ -71,7 +73,9 @@ Row-level history of every Teacher-position posting ever scraped, one row per po
 | `position` | text | Always `"Teacher"` in this file (pre-filtered). |
 | `location` | text | |
 | `url` | text | |
-| `posting_id` | text | Durable posting identity, used for category counts so distinct same-title/location openings are not collapsed. |
+| `Posting_ID` | text | Durable posting identity, used for category counts so distinct same-title/location openings are not collapsed. |
+| `Posting_Identity_Method` | text | How `Posting_ID` was made: `Source posting ID` or `Source fallback: ...` (a fingerprint of district, link, title, location and posted date). |
+| `Posting_Source`, `Role_Hint` | text | Not recorded for Wyoming yet (always NA). The columns are there so every state's file has the same columns (`edjobs::K12_POSTING_COLUMNS`; Montana fills them from its OPI feed). |
 | `District` | text | Canonical district name. |
 | `Category` | text | Fine-grained subject from `classify_k12_subject()` (e.g. "Elementary Education", "Special Education - General"). |
 | `Broad_Category` | text | Coarser grouping from `classify_k12_broad_category()`; this is what the app's category color palettes and pickers use. |
@@ -85,7 +89,7 @@ One row per (`Broad_Category`, `Archive_Date`, `District`) combination, **plus**
 | `Broad_Category` | text | |
 | `Archive_Date` | date | |
 | `District` | text | A real district name, or `"Total"`. |
-| `sum` | integer | Distinct `posting_id` values that week. This preserves separate openings with identical title/location text when the source exposes distinct IDs. |
+| `sum` | integer | Distinct `Posting_ID` values that week. This preserves separate openings with identical title/location text when the source exposes distinct IDs. |
 
 ### `allnow.csv` — current-week category counts
 

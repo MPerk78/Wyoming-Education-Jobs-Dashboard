@@ -90,7 +90,7 @@ rebuild_k12_history_from_archive <- function(archive_dir = "Archivek12_Data",
       }
       for (col in intersect(c("Pay_Min", "Pay_Max"), names(df))) df[[col]] <- suppressWarnings(as.numeric(df[[col]]))
       for (col in intersect(c("Pay_Unit", "Pay_Text", "Close_Date"), names(df))) df[[col]] <- as.character(df[[col]])
-      build_k12_combinedclean(df, oews_wages, district_county, "WY")
+      wy_k12_combinedclean(df, oews_wages, district_county)
     }) %>%
     bind_rows() %>%
     filter(!is_placeholder_posting(title))
@@ -100,9 +100,7 @@ rebuild_k12_history_from_archive <- function(archive_dir = "Archivek12_Data",
   k12_district_weekly_totals <- combinedclean %>%
     count(District, Archive_Date, name = "n")
 
-  k12sumdistrict <- k12jobs %>%
-    group_by(Broad_Category, Archive_Date, District) %>%
-    summarize(sum = n_distinct(posting_id), .groups = "drop")
+  k12sumdistrict <- summarize_k12_posting_counts(k12jobs)
 
   k12sum <- k12sumdistrict %>%
     group_by(Broad_Category, Archive_Date) %>%

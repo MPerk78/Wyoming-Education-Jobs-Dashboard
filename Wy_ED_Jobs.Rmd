@@ -363,7 +363,7 @@ district_county <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), stringsAs
 # may be a real re-posting, which the WSBA dedup step deliberately keeps too.
 # rebuild_k12_history_from_archive() dedupes at the identical point so the
 # from-archive rebuild stays equivalent (test-history-accumulator.R).
-# Then (build_k12_combinedclean(), history_accumulator.R, shared with the
+# Then (wy_k12_combinedclean(), history_accumulator.R, shared with the
 # from-archive rebuild): placeholder board entries ("Sample Certified
 # Position", account-creation templates) are kept in the raw archive above but
 # never counted as jobs; Pay_* is the pay the posting itself states
@@ -375,7 +375,7 @@ source("history_accumulator.R")
 combinedclean <- combined %>%
   dplyr::distinct() %>%
   collapse_duplicate_posting_ids("combinedclean") %>%
-  build_k12_combinedclean(oews_wages, district_county, "WY")
+  wy_k12_combinedclean(oews_wages, district_county)
 
 write.csv(combinedclean, file=file.path('Wy_Ed_Jobs','combinedclean.csv'), row.names = FALSE)
 

@@ -130,14 +130,14 @@ moves <- function(label, old, new, key_cols, cols) {
   }
 }
 cat("\nWhat moved:\n")
-moves("combinedclean.csv", committed[["combinedclean.csv"]], rebuilt[["combinedclean.csv"]], c("posting_id", "Archive_Date"), "position")
-moves("k12jobanalysis.csv", committed[["k12jobanalysis.csv"]], rebuilt[["k12jobanalysis.csv"]], c("posting_id", "Archive_Date"),
+moves("combinedclean.csv", committed[["combinedclean.csv"]], rebuilt[["combinedclean.csv"]], c("Posting_ID", "Archive_Date"), "position")
+moves("k12jobanalysis.csv", committed[["k12jobanalysis.csv"]], rebuilt[["k12jobanalysis.csv"]], c("Posting_ID", "Archive_Date"),
       c("Category", "Broad_Category"))
 moves("facultydata.csv", committed[["facultydata.csv"]], rebuilt[["facultydata.csv"]], c("Link", "Title", "Archive_Date", "Institution"),
       c("Job_Type", "Category"))
 key <- function(d, cols) do.call(paste, c(lapply(as.data.frame(d)[cols], as.character), sep = "\u001f"))
 for (f in c("k12jobanalysis.csv", "facultydata.csv")) {
-  cols <- if (f == "k12jobanalysis.csv") c("posting_id", "Archive_Date") else c("Link", "Title", "Archive_Date", "Institution")
+  cols <- if (f == "k12jobanalysis.csv") c("Posting_ID", "Archive_Date") else c("Link", "Title", "Archive_Date", "Institution")
   a <- key(committed[[f]], cols); b <- key(rebuilt[[f]], cols)
   cat(sprintf("  %s: %d rows leave, %d rows enter (%d -> %d)\n", f, sum(!a %in% b), sum(!b %in% a), length(a), length(b)))
 }
@@ -164,7 +164,7 @@ if (!any(differs(p))) {
 # a row keeps its committed position when its identity matches; a new row goes
 # after the last committed row of its week.
 ROW_IDENTITY <- list(
-  "combinedclean.csv" = c("posting_id", "Archive_Date"), "k12jobanalysis.csv" = c("posting_id", "Archive_Date"),
+  "combinedclean.csv" = c("Posting_ID", "Archive_Date"), "k12jobanalysis.csv" = c("Posting_ID", "Archive_Date"),
   "allsum.csv" = c("Broad_Category", "Archive_Date", "District"), "allnow.csv" = c("Broad_Category", "District"),
   "k12_district_weekly_totals.csv" = c("District", "Archive_Date"),
   "facultydata.csv" = c("Title", "Link", "Archive_Date", "Institution"),

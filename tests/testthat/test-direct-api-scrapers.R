@@ -257,7 +257,7 @@ test_that("SchoolSpring source IDs and deep links survive K-12 aggregation", {
       Archive_Date = as.Date("2026-08-11"),
       Broad_Category = "Elementary"
     )
-  summary <- summarize_k12_posting_counts(counted)
+  summary <- summarize_k12_posting_counts(counted, id_col = "posting_id")
   expect_equal(summary$sum, 2)
 })
 

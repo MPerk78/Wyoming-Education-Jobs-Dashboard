@@ -30,10 +30,10 @@ REQUIRED_SCHEMAS <- list(
   # "Posted / listed" fallback (scripts/build_posting_spells.R); optional in
   # app.R, which shows the column as before without it.
   "posting_first_seen.csv" = c("Segment", "Key", "First_Seen", "Left_Censored"),
-  "combinedclean.csv" = c("title", "date_posted", "position", "location", "url", "posting_id", "District", "Close_Date",
+  "combinedclean.csv" = c("title", "date_posted", "position", "location", "url", "Posting_ID", "District", "Close_Date",
                           "Pay_Min", "Pay_Max", "Pay_Unit", "Pay_Text",
                           "Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year"),
-  "k12jobanalysis.csv" = c("title", "Archive_Date", "location", "posting_id", "District"),
+  "k12jobanalysis.csv" = c("title", "Archive_Date", "location", "Posting_ID", "District"),
   "allsum.csv" = c("Broad_Category", "Archive_Date", "District", "sum"),
   "allnow.csv" = c("Broad_Category", "Sum", "District"),
   "k12_district_weekly_totals.csv" = c("District", "Archive_Date", "n"),

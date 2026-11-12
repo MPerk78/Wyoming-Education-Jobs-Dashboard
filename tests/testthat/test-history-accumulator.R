@@ -7,65 +7,7 @@
 # logic silently drifting the growing historical database out of sync
 # with what the raw archive actually says happened.
 
-test_that("append_weekly_rows bootstraps from a missing file", {
-  new_rows <- data.frame(District = c("A", "B"), Archive_Date = "2026-08-06", n = c(1, 2))
-  tmp <- withr::local_tempfile()
-  expect_false(file.exists(tmp))
-
-  result <- append_weekly_rows(tmp, new_rows)
-  expect_equal(nrow(result), 2)
-  expect_equal(result$Archive_Date, c("2026-08-06", "2026-08-06"))
-})
-
-test_that("append_weekly_rows appends onto an existing file without disturbing prior weeks", {
-  tmp <- withr::local_tempfile()
-  existing <- data.frame(District = c("A", "B"), Archive_Date = "2026-07-30", n = c(5, 6))
-  write.csv(existing, tmp, row.names = FALSE)
-
-  new_rows <- data.frame(District = c("A", "B"), Archive_Date = "2026-08-06", n = c(1, 2))
-  result <- append_weekly_rows(tmp, new_rows)
-
-  expect_equal(nrow(result), 4)
-  expect_setequal(unique(result$Archive_Date), c("2026-07-30", "2026-08-06"))
-  expect_equal(result$n[result$Archive_Date == "2026-07-30" & result$District == "A"], 5)
-})
-
-test_that("append_weekly_rows is idempotent -- a same-day re-run replaces, not duplicates, that day", {
-  tmp <- withr::local_tempfile()
-  existing <- data.frame(District = c("A", "B"), Archive_Date = c("2026-07-30", "2026-08-06"), n = c(5, 1))
-  write.csv(existing, tmp, row.names = FALSE)
-
-  # Same date re-run, with a DIFFERENT count than the first pass (like a
-  # workflow_dispatch re-run after fixing a bug earlier the same day).
-  rerun_rows <- data.frame(District = "A", Archive_Date = "2026-08-06", n = 99)
-  result <- append_weekly_rows(tmp, rerun_rows)
-
-  expect_equal(nrow(result), 2)
-  expect_equal(result$n[result$Archive_Date == "2026-08-06"], 99)
-  expect_equal(result$n[result$Archive_Date == "2026-07-30"], 5)
-})
-
-test_that("append_weekly_rows refuses to append rows with more than one Archive_Date", {
-  new_rows <- data.frame(District = c("A", "B"), Archive_Date = c("2026-08-06", "2026-08-07"), n = c(1, 2))
-  expect_error(append_weekly_rows(withr::local_tempfile(), new_rows), "exactly one")
-})
-
-test_that("append_weekly_rows fails loudly on a column mismatch instead of writing a jagged file", {
-  tmp <- withr::local_tempfile()
-  write.csv(data.frame(District = "A", Archive_Date = "2026-07-30", n = 5), tmp, row.names = FALSE)
-
-  new_rows <- data.frame(District = "A", Archive_Date = "2026-08-06", Category = "Math", n = 1)
-  expect_error(append_weekly_rows(tmp, new_rows), "column mismatch")
-})
-
-test_that("append_weekly_rows handles a genuinely empty new-rows data frame without erroring", {
-  tmp <- withr::local_tempfile()
-  write.csv(data.frame(District = "A", Archive_Date = "2026-07-30", n = 5), tmp, row.names = FALSE)
-
-  empty <- data.frame(District = character(0), Archive_Date = character(0), n = numeric(0))
-  result <- append_weekly_rows(tmp, empty)
-  expect_equal(nrow(result), 1)
-})
+# append_weekly_rows()'s own tests run in edjobs (test-history-accumulator.R) since 0.10.0.
 
 # ---------------------------------------------------------------------------
 # Equivalence: incremental append vs. from-scratch rebuild, on real archives
@@ -145,7 +87,7 @@ test_that("incrementally appending the latest week reproduces a full rebuild thr
   oews <- read.csv(here::here("Wy_Ed_Jobs", "oews_role_wages.csv"), stringsAsFactors = FALSE,
                    colClasses = c(Area_Code = "character", SOC = "character", Year = "character"))
   district_county <- read.csv(here::here("Wy_Ed_Jobs", "salarymap2.csv"), stringsAsFactors = FALSE)[, c("District", "County")]
-  this_week_combinedclean <- build_k12_combinedclean(this_week_raw, oews, district_county, "WY")
+  this_week_combinedclean <- wy_k12_combinedclean(this_week_raw, oews, district_county)
   this_week_k12jobs <- build_k12_teacher_rows(this_week_combinedclean)
 
   this_week_weekly_totals <- this_week_combinedclean %>%
