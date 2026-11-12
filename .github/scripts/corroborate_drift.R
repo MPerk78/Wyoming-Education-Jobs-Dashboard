@@ -155,7 +155,9 @@ lines <- build_drift_report_markdown(
   actionable = actionable,
   safety_net_summary = safety_net_summary,
   date = Sys.Date(),
-  feed_short_name = "WSBA"
+  feed_short_name = "WSBA",
+  intro_explanation = paste("A source is flagged when it has at least 2 weeks of history averaging real postings, and this week's count dropped to 20% or less of that average.",
+                            "This is the same failure signature that hid ~200 real postings across 10 Applitrack districts on 2026-08-03 (a Windows-1252 encoding bug, not real absence of jobs) -- these entries are corroborated against the actual live page but still need a human look.")
 )
 
 writeLines(lines, "/tmp/drift_report.md")

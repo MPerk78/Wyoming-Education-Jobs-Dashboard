@@ -590,6 +590,12 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   tables, which left the package's `REFERENCE_TABLE_RULES`); OEWS areas are a FIPS-keyed CSV in the package.
   Suite on 0.7.0: WY 1,439 passed, 0 failed; full rehearsal passed every step, rebuild parity 9/9
   (`claude-notes/2026-11-11_rehearsal-wy-edjobs-phase4.log`).
+  Slice 2 merged 11-11 (WY PR #17 -> a59accd). Slice 3 (edjobs v0.8.0): the drift-check functions MT and WY held
+  differently, except dispatch and the auto-fix issue body, come from the package (`flag_drift`,
+  `build_historical_counts`, the drift report, the live-check summary); `state_config.R` gains the WSBA feed's
+  labels and the drift baseline date. `check_drift.R` output on committed data is identical. Suite on 0.8.0:
+  WY 1,425 passed, 0 failed (1,423 after the rehearsal's run); full rehearsal passed every step, rebuild parity 9/9
+  (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.8.0.log`).
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
   222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
   likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).

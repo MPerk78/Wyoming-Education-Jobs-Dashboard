@@ -1,73 +1,23 @@
 
-test_that("build_historical_counts excludes pre-fix snapshots and computes correct means", {
-  snapshots <- list(
-    "2026-08-03" = data.frame(District = c("A", "A", "A", "B")),
-    "2026-08-10" = data.frame(District = c("A", "A", "B", "B")),
-    "2026-08-17" = data.frame(District = c("A", "A", "A")),
-    # Predates the Applitrack encoding fix -- must be excluded, or the fix
-    # itself would register as suspicious drift on every affected district.
-    "2026-02-27" = data.frame(District = c("A", "A", "A", "A", "A", "A", "A", "A", "A", "A"))
-  )
+# ---- auto-fix evidence (the CI capture handed to the agent) ----------------
+# Montana's first auto-fix (its issue #7) failed because the agent's own
+# render of an Apptegy page came up empty behind its firewall. The issue now
+# carries the text the drift check rendered in CI. autofix_niobrara_
+# innertext_2026-09-30.txt is that text for Niobrara 1, captured live with
+# scripts/repro_scraper.R; against apptegy_niobrara_rendered.txt it shows
+# the real posting churn in ~20 lines.
 
-  baseline <- build_historical_counts(snapshots, "District")
-
-  expect_equal(baseline$n_weeks[baseline$name == "A"], 3)
-  expect_equal(baseline$mean_count[baseline$name == "A"], (3 + 2 + 3) / 3)
-  expect_equal(baseline$n_weeks[baseline$name == "B"], 2)
-})
-
-test_that("build_historical_counts returns an empty frame when no snapshots are post-fix", {
-  snapshots <- list("2026-02-27" = data.frame(District = c("A", "A")))
-  baseline <- build_historical_counts(snapshots, "District")
-  expect_equal(nrow(baseline), 0)
-})
-
-test_that("flag_drift flags a real drop and leaves a stable source alone", {
-  baseline <- data.frame(
-    name = c("BigDistrict", "StableDistrict"),
-    n_weeks = c(5, 5),
-    mean_count = c(50, 10)
-  )
-  current <- data.frame(name = c("BigDistrict", "StableDistrict"), count = c(0, 9))
-
-  flagged <- flag_drift(current, baseline)
-
-  expect_equal(flagged$name, "BigDistrict")
-})
-
-test_that("flag_drift exempts sources whose historical average is below the noise floor", {
-  baseline <- data.frame(
-    name = c("TinySource", "RealSource"),
-    n_weeks = c(6, 6),
-    mean_count = c(2, 12)
-  )
-  current <- data.frame(name = c("TinySource", "RealSource"), count = c(0, 0))
-
-  flagged <- flag_drift(current, baseline)
-
-  # TinySource averaged 2/week -- dropping to 0 is churn, not a parser
-  # failure. RealSource averaged 12 and is still flagged.
-  expect_equal(flagged$name, "RealSource")
-})
-
-test_that("flag_drift requires a minimum number of historical weeks before flagging", {
-  baseline <- data.frame(name = "BrandNewDistrict", n_weeks = 1, mean_count = 10)
-  current <- data.frame(name = "BrandNewDistrict", count = 0)
-
-  flagged <- flag_drift(current, baseline, min_weeks = 2)
-
-  expect_equal(nrow(flagged), 0)
-})
-
-test_that("flag_drift treats a source missing from current data as a count of zero", {
-  baseline <- data.frame(name = "VanishedDistrict", n_weeks = 3, mean_count = 20)
-  current <- data.frame(name = character(0), count = numeric(0))
-
-  flagged <- flag_drift(current, baseline)
-
-  expect_equal(flagged$name, "VanishedDistrict")
-  expect_equal(flagged$count, 0)
-})
+niobrara_capture <- function() {
+  paste(readLines(test_path("fixtures", "drift_check", "autofix_niobrara_innertext_2026-09-30.txt"),
+                  warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+}
+niobrara_row <- function() {
+  data.frame(name = "Niobrara County School District 1", type = "K-12", mean_count = 5, count = 0,
+             url = "https://www.growingluskleaders.org/page/human-resources",
+             llm_titles = "Music/Band Teacher | SPED Paraprofessional", stringsAsFactors = FALSE)
+}
+wy_fixture_files <- function() list.files(test_path("fixtures"), recursive = TRUE)
+resolve_wy <- function(name) resolve_scraper_call(name, wy_k12_registry(), misc_district_registry)
 
 test_that("build_source_url_lookup reads the unified k12 registry and later sources win on collision", {
   k12_registry <- withr::local_tempfile(fileext = ".csv")
@@ -211,45 +161,6 @@ test_that("parse_autofix_expected_titles recovers the titles build_autofix_issue
   expect_equal(parse_autofix_expected_titles("no titles here"), character(0))
 })
 
-test_that("summarize_live_check fails on an error or zero rows and passes otherwise", {
-  expect_false(summarize_live_check("X", simpleError("HTTP 520."))$pass)
-  expect_false(summarize_live_check("X", data.frame(Title = character(0)))$pass)
-
-  ok <- summarize_live_check("X", data.frame(Title = c("Route Bus Drivers", "Cook")),
-                             expected_titles = c("route bus drivers", "Daycare Manager"))
-  expect_true(ok$pass)
-  md <- paste(ok$markdown, collapse = "\n")
-  expect_match(md, "Matched 1 of 2", fixed = TRUE)
-  expect_match(md, "- Daycare Manager", fixed = TRUE)
-})
-
-test_that("summarize_live_check reads Applitrack/TedK12's lowercase title column", {
-  # Before scraper_titles(), a fixed Applitrack scraper read as "0 postings".
-  ok <- summarize_live_check("X", data.frame(title = c("Custodian", "Para")))
-  expect_true(ok$pass)
-  expect_match(paste(ok$markdown, collapse = "\n"), "2 posting(s)", fixed = TRUE)
-})
-
-# ---- auto-fix evidence (the CI capture handed to the agent) ----------------
-# Montana's first auto-fix (its issue #7) failed because the agent's own
-# render of an Apptegy page came up empty behind its firewall. The issue now
-# carries the text the drift check rendered in CI. autofix_niobrara_
-# innertext_2026-09-30.txt is that text for Niobrara 1, captured live with
-# scripts/repro_scraper.R; against apptegy_niobrara_rendered.txt it shows
-# the real posting churn in ~20 lines.
-
-niobrara_capture <- function() {
-  paste(readLines(test_path("fixtures", "drift_check", "autofix_niobrara_innertext_2026-09-30.txt"),
-                  warn = FALSE, encoding = "UTF-8"), collapse = "\n")
-}
-niobrara_row <- function() {
-  data.frame(name = "Niobrara County School District 1", type = "K-12", mean_count = 5, count = 0,
-             url = "https://www.growingluskleaders.org/page/human-resources",
-             llm_titles = "Music/Band Teacher | SPED Paraprofessional", stringsAsFactors = FALSE)
-}
-wy_fixture_files <- function() list.files(test_path("fixtures"), recursive = TRUE)
-resolve_wy <- function(name) resolve_scraper_call(name, wy_k12_registry(), misc_district_registry)
-
 test_that("scraper_reads_inner_text tells innerText chromote scrapers from HTTP/JSON ones", {
   lines <- unlist(lapply(here::here(SCRAPER_FILES), readLines, warn = FALSE))
   expect_true(scraper_reads_inner_text("fetch_apptegy_postings", lines))
@@ -351,121 +262,10 @@ test_that("a long capture is truncated to fit an issue body", {
   expect_true(any(grepl("diff truncated", md, fixed = TRUE)))
 })
 
-test_that("summarize_central_safety_net handles empty or NULL inputs gracefully", {
-  summary <- summarize_central_safety_net()
-  expect_equal(summary$total_feed_vacancies, 0L)
-  expect_equal(summary$total_fallback_vacancies, 0L)
-  expect_equal(length(summary$fallback_districts), 0)
-  expect_equal(nrow(summary$discrepancies), 0)
-  expect_true(any(grepl("Counted from WSBA at directly scraped districts**: none", summary$markdown, fixed = TRUE)))
-})
 
-test_that("summarize_central_safety_net identifies active fallback districts and counts", {
-  registry <- data.frame(
-    District = c("Fremont County School District 24", "Park County School District 1", "Natrona School District 1"),
-    stringsAsFactors = FALSE
-  )
-  combined <- data.frame(
-    District = c("Fremont County School District 24", "Fremont County School District 24", "Park County School District 1", "Unregistered Town", "Natrona School District 1"),
-    url = c(
-      WSBA_VACANCIES_URL,
-      WSBA_VACANCIES_URL,
-      WSBA_VACANCIES_URL,
-      WSBA_VACANCIES_URL,
-      "https://natrona.schoolspring.com"
-    ),
-    posting_id = c("wsba1", "wsba2", "wsba3", "wsba4", "direct1"),
-    stringsAsFactors = FALSE
-  )
-
-  summary <- summarize_central_safety_net(
-    combined_df = combined,
-    registry = registry,
-    feed_label = WSBA_STATEWIDE_SOURCE,
-    feed_short_name = "WSBA"
-  )
-
-  expect_equal(summary$total_feed_vacancies, 4L)
-  expect_equal(summary$total_fallback_vacancies, 3L)
-  expect_equal(summary$fallback_districts[["Fremont County School District 24"]], 2L)
-  expect_equal(summary$fallback_districts[["Park County School District 1"]], 1L)
-  expect_null(summary$fallback_districts[["Natrona School District 1"]])
-
-  md <- paste(summary$markdown, collapse = "\n")
-  expect_match(md, "3 posting(s) at 2 district(s), not on the district's own board", fixed = TRUE)
-  expect_match(md, "Fremont County School District 24**: 2", fixed = TRUE)
-  expect_match(md, "Park County School District 1**: 1", fixed = TRUE)
-})
-
-test_that("summarize_central_safety_net reads discrepancy report for unmatched postings", {
-  disc <- data.frame(
-    District = c("Laramie County School District 1", "Natrona School District 1"),
-    Source = c("WSBA", "WSBA"),
-    Title = c("Math Teacher", "Custodian (stale)"),
-    Date_Posted = c("2026-10-25", "2026-05-01"),
-    Discrepancy_Type = c("Unmatched on direct scraper (investigate ATS drift)", "Potential ghost posting on WSBA"),
-    stringsAsFactors = FALSE
-  )
-
-  summary <- summarize_central_safety_net(
-    discrepancy_report = disc,
-    feed_short_name = "WSBA"
-  )
-
-  expect_equal(nrow(summary$discrepancies), 1)
-  expect_equal(summary$discrepancies$District, "Laramie County School District 1")
-  md <- paste(summary$markdown, collapse = "\n")
-  expect_match(md, "1 unmatched vacancy/vacancies detected on central feed", fixed = TRUE)
-  expect_match(md, "Laramie County School District 1**: \"Math Teacher\" (posted 2026-10-25)", fixed = TRUE)
-})
-
-test_that("build_drift_report_markdown includes Central Safety Net status annotations and summary", {
-  actionable <- data.frame(
-    name = c("Fremont County School District 24", "Park County School District 1", "University of Wyoming"),
-    type = c("K-12", "K-12", "Higher Ed"),
-    mean_count = c(5.0, 10.0, 30.0),
-    count = c(0, 0, 2),
-    url = c("https://fremont24.com", "https://park1.net", "https://uwyo.edu"),
-    verdict = c("confirmed_broken", "likely_broken", "likely_broken"),
-    error_message = c("500 Server Error", NA, NA),
-    llm_note = c(NA, "an LLM read 4 postings", NA),
-    safety_net_vacancies = c(2L, 0L, NA_integer_),
-    stringsAsFactors = FALSE
-  )
-
-  safety_net_summary <- list(
-    total_feed_vacancies = 50L,
-    fallback_districts = list("Fremont County School District 24" = 2L),
-    total_fallback_vacancies = 2L,
-    markdown = c(
-      "### WSBA postings at districts we scrape directly",
-      "",
-      "- **Statewide Feed (WSBA)**: 50 active vacancies captured.",
-      "- **Counted from WSBA at directly scraped districts**: 2 posting(s) at 1 district(s), not on the district's own board:",
-      "  - **Fremont County School District 24**: 2",
-      "- **Central Feed Discrepancies**: 0 unmatched vacancies detected for active direct scrapers.",
-      ""
-    )
-  )
-
-  lines <- build_drift_report_markdown(
-    actionable = actionable,
-    safety_net_summary = safety_net_summary,
-    date = as.Date("2026-10-29"),
-    feed_short_name = "WSBA"
-  )
-
-  report <- paste(lines, collapse = "\n")
-  # Fremont 24: active fallback
-  expect_match(report, "Fremont County School District 24", fixed = TRUE)
-  expect_match(report, "On WSBA**: 2 postings for this district that its own board doesn't list (counted from WSBA)", fixed = TRUE)
-  # Park 1: inactive fallback
-  expect_match(report, "Park County School District 1", fixed = TRUE)
-  expect_match(report, "On WSBA**: nothing for this district beyond what its own board lists", fixed = TRUE)
-  # Higher Ed: no Central Safety Net bullet under its entry
-  expect_match(report, "University of Wyoming", fixed = TRUE)
-  expect_false(grepl("University of Wyoming.*\\n\\s+- \\*\\*On WSBA", report))
-  # Bottom summary block included
-  expect_match(report, "### WSBA postings at districts we scrape directly", fixed = TRUE)
-  expect_match(report, "Statewide Feed (WSBA)**: 50 active vacancies captured", fixed = TRUE)
+test_that("the drift report's feed (state_config.R) is the WSBA feed the rest of the pipeline labels", {
+  feed <- edjobs::current_state_config()$feed
+  expect_equal(feed$label, WSBA_STATEWIDE_SOURCE)
+  expect_equal(feed$url, WSBA_VACANCIES_URL)
+  expect_equal(edjobs::current_state_config()$drift_baseline_from, as.Date("2026-08-03"))
 })

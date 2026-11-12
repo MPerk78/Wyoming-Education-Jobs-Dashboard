@@ -7,6 +7,11 @@ library(edjobs)
 
 set_state_config(state_config(
   state = "Wyoming", fips = "56", app_dir = "Wy_Ed_Jobs",
+  feed = list(short_name = "WSBA", label = "WSBA statewide vacancies", url = "https://www.wsba-wy.org/vacancies",
+              discrepancy_file = "wy_discrepancy_report.csv"),
+  # The first archive that counts toward the drift check's per-source
+  # baselines: earlier runs predate fixes that changed the counts.
+  drift_baseline_from = "2026-08-03",
   # WY's own reference tables (the shared ones are edjobs::REFERENCE_TABLE_RULES).
   reference_tables = list(
     uw_salary_book = list(name = "UW salary book", required = "Salary",
