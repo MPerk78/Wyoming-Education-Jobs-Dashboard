@@ -742,20 +742,20 @@ library(dplyr)
 library(edjobs)
 source("direct_api_scrapers.R")
 
-# LCCC is on the same NEOGOV platform as Casper/Central/Gillette/Western,
-# just under the governmentjobs.com domain instead of schooljobs.com --
-# fetch_neogov_postings() takes the domain as a parameter for exactly this
-# reason. Replaces the old RSelenium scraper (manual scroll + wait-for-
-# element polling) with a single direct HTTP call.
+# LCCC is on the same NEOGOV platform as Casper/Central/Gillette (edjobs
+# fetch_neogov_postings(), the classic careers page; NEOGOV redirects the
+# agency slug to its own domain, governmentjobs.com here). Each posting's
+# page gives its exact posted date and closing date (Close_Date). Replaces
+# the old RSelenium scraper with direct HTTP calls.
 lccc_raw <- safe_scrape(
   "Laramie County Community College",
-  scrape_fn = function() fetch_neogov_postings("https://www.governmentjobs.com", "lcccwy"),
+  scrape_fn = function() fetch_neogov_postings("lcccwy"),
   expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
 lccc <- lccc_raw %>%
   mutate(Institution = "Laramie County Community College") %>%
-  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(lccc)
 
@@ -769,13 +769,13 @@ source("direct_api_scrapers.R")
 
 casper_raw <- safe_scrape(
   "Casper College",
-  scrape_fn = function() fetch_neogov_postings("https://www.schooljobs.com", "caspercollege"),
+  scrape_fn = function() fetch_neogov_postings("caspercollege"),
   expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
 casper <- casper_raw %>%
   mutate(Institution = "Casper College") %>%
-  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(casper)
 
@@ -798,7 +798,7 @@ source("direct_api_scrapers.R")
 # postings, silently missed by the NEOGOV version for an unknown period.
 western_raw <- safe_scrape(
   "Western Wyoming Community College",
-  scrape_fn = function() fetch_peopleadmin_atom("https://wwcwy.peopleadmin.com/postings/all_jobs", "Western Wyoming Campus"),
+  scrape_fn = function() fetch_peopleadmin_atom("https://wwcwy.peopleadmin.com/postings/all_jobs", "Western Wyoming Campus", location_from_author = FALSE),
   expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
@@ -819,13 +819,13 @@ source("direct_api_scrapers.R")
 
 central_raw <- safe_scrape(
   "Central Wyoming College",
-  scrape_fn = function() fetch_neogov_postings("https://www.schooljobs.com", "cwc"),
+  scrape_fn = function() fetch_neogov_postings("cwc"),
   expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
 central <- central_raw %>%
   mutate(Institution = "Central Wyoming College") %>%
-  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(central)
 
@@ -842,7 +842,7 @@ source("direct_api_scrapers.R")
 # browser, no pagination, no CSS selectors to drift.
 eastern_raw <- safe_scrape(
   "Eastern Wyoming Community College",
-  scrape_fn = function() fetch_peopleadmin_atom("https://ewc.peopleadmin.com/postings/all_jobs", "Eastern Wyoming Campus"),
+  scrape_fn = function() fetch_peopleadmin_atom("https://ewc.peopleadmin.com/postings/all_jobs", "Eastern Wyoming Campus", location_from_author = FALSE),
   expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
@@ -862,13 +862,13 @@ source("direct_api_scrapers.R")
 
 gillette_raw <- safe_scrape(
   "Gillette College",
-  scrape_fn = function() fetch_neogov_postings("https://www.schooljobs.com", "gillettecollege"),
+  scrape_fn = function() fetch_neogov_postings("gillettecollege"),
   expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
 gillette <- gillette_raw %>%
   mutate(Institution = "Gillette College") %>%
-  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(gillette)
 
@@ -885,7 +885,7 @@ source("direct_api_scrapers.R")
 # every individual job's detail page just to read its posting date).
 sheridan_raw <- safe_scrape(
   "Sheridan College",
-  scrape_fn = function() fetch_peopleadmin_atom("https://jobs.sheridan.edu/postings/all_jobs", "Sheridan College Campus"),
+  scrape_fn = function() fetch_peopleadmin_atom("https://jobs.sheridan.edu/postings/all_jobs", "Sheridan College Campus", location_from_author = FALSE),
   expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
@@ -909,7 +909,7 @@ source("direct_api_scrapers.R")
 # selectors. Same Atom feed approach as Eastern/Sheridan.
 northwest_raw <- safe_scrape(
   "Northwest College",
-  scrape_fn = function() fetch_peopleadmin_atom("https://northwestcollege.simplehire.com/postings/all_jobs", "Northwest College Campus"),
+  scrape_fn = function() fetch_peopleadmin_atom("https://northwestcollege.simplehire.com/postings/all_jobs", "Northwest College Campus", location_from_author = FALSE),
   expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
@@ -941,7 +941,7 @@ UW_raw <- safe_scrape(
 
 UW <- UW_raw %>%
   mutate(Institution = "University of Wyoming") %>%
-  select(Title, Location, Posted_Date, Institution, Link, any_of(POSTED_PAY_COLUMNS))
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(UW)
 

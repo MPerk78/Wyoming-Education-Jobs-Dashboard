@@ -622,6 +622,23 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   (checked 11-12). Suite 1,430 passed, 0 failed (1,428 after the rehearsal's run); full rehearsal passed every
   step, rebuild parity 9/9; the rehearsed run tagged all 699 rows, 39 of them also on WSBA
   (`claude-notes/2026-11-12_rehearsal-wy-posting-source.log`).
+  Slice 6 (edjobs 0.11.0, PR #9 there; WY PR #22, branch `edjobs-platform-fetchers`, 11-12): the platform fetchers
+  come from the package (`fetch_neogov_postings()`, `fetch_peopleadmin_atom()`, `fetch_schoolspring_postings()`,
+  `fetch_tedk12_postings()`, `schoolspring_domain()`); local copies, tests and fixtures deleted (three NEOGOV
+  card-pay tests moved). NEOGOV is one platform keyed by the agency slug (Mike's decision after the 11-12
+  measurement: every posting only an Attract site listed had expired; `claude-notes/2026-11-12_neogov-decision-research.md`),
+  and each posting's page gives its exact posted date and closing date: the four NEOGOV colleges' `Posted_Date`
+  is a date, not "Posted 2 weeks ago", and `Close_Date` reaches `hedata.xlsx` (Casper states closing dates; the
+  others are continuous). PeopleAdmin keeps the campus name as Location (`location_from_author = FALSE`; all
+  four feeds carry departments as authors, a one-argument switch if wanted). Suite on 0.11.0: 1,351 passed,
+  4 failed (one test whose needle dropped argument names; fixed, reran green); full rehearsal passed every step,
+  rebuild parity 9/9 (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.11.0.log`): 97 NEOGOV rows, 97 exact posted
+  dates, 0 relative, 5 closing dates, posted pay on 74. Three `run_expectations.csv` rows for the 11-13 run.
+  Review fixes before release (edjobs 579d632, `claude-notes/2026-11-12_review-edjobs-0.11.0.md`): NEOGOV cards'
+  Location and date read per card, a warning when a board returns no Locations, and a JSON-LD reader that takes
+  schema.org's text forms and catches errors per page. Re-rehearsed: every step passed, parity 9/9, suite
+  1,379/0 (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.11.0-fixes.log`); NEOGOV rows Casper 6, CWC 12,
+  Gillette 20, LCCC 59. PR checks pass once edjobs v0.11.0 is tagged.
 - [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
   222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
   likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).
