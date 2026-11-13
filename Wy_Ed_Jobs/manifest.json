@@ -2069,26 +2069,25 @@
       "description": {
         "Package": "otel",
         "Title": "OpenTelemetry R API",
-        "Version": "0.2.0",
+        "Version": "0.3.0",
         "Authors@R": "\n    person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\"))",
         "Description": "High-quality, ubiquitous, and portable telemetry to enable\n    effective observability. OpenTelemetry is a collection of tools,\n    APIs, and SDKs used to instrument, generate, collect, and export\n    telemetry data (metrics, logs, and traces) for analysis in order to\n    understand your software's performance and behavior.\n    This package implements the OpenTelemetry API:\n    <https://opentelemetry.io/docs/specs/otel/>.\n    Use this package as a dependency if you want to instrument your R\n    package for OpenTelemetry.",
         "License": "MIT + file LICENSE",
         "Encoding": "UTF-8",
-        "RoxygenNote": "7.3.2.9000",
         "Depends": "R (>= 3.6.0)",
-        "Suggests": "callr, cli, glue, jsonlite, otelsdk, processx, shiny,\nspelling, testthat (>= 3.0.0), utils, withr",
+        "Suggests": "callr, cli, glue, jsonlite, otelsdk (>= 0.2.4), processx,\nshiny, spelling, testthat (>= 3.0.0), utils, withr",
         "Config/Needs/website": "tidyverse/tidytemplate",
         "Config/testthat/edition": "3",
         "URL": "https://otel.r-lib.org, https://github.com/r-lib/otel",
-        "Additional_repositories": "https://github.com/r-lib/otelsdk/releases/download/devel",
         "BugReports": "https://github.com/r-lib/otel/issues",
+        "Config/roxygen2/version": "8.1.1",
         "NeedsCompilation": "no",
-        "Packaged": "2025-08-29 12:46:28 UTC; gaborcsardi",
+        "Packaged": "2026-11-07 14:37:49 UTC; gaborcsardi",
         "Author": "Gábor Csárdi [aut, cre]",
         "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
         "Repository": "RSPM",
-        "Date/Publication": "2025-08-29 13:30:07 UTC",
-        "Built": "R 4.6.0; ; 2026-08-12 20:24:37 UTC; unix"
+        "Date/Publication": "2026-11-07 15:20:02 UTC",
+        "Built": "R 4.6.0; ; 2026-11-08 04:13:43 UTC; unix"
       }
     },
     "pillar": {
@@ -3781,58 +3780,58 @@
   },
   "files": {
     "allnow_he.csv": {
-      "checksum": "df601675d3b0adc88e82da1ee573401d"
+      "checksum": "30c864849795ab4f652534f0fd575ad3"
     },
     "allnow.csv": {
-      "checksum": "51b73f47fad01928ba198e875becaddd"
+      "checksum": "3bf7191afae9f4692078280dd368d634"
     },
     "allsum_he.csv": {
-      "checksum": "ebe32f9db6a5ae49e08896ada68f4918"
+      "checksum": "49b443a871d3319c8cb358f9d03c18c6"
     },
     "allsum.csv": {
-      "checksum": "3677be6935dda8848d25a958416ac90a"
+      "checksum": "66718f7898d71b8af6374d0441b2c553"
     },
     "app.R": {
-      "checksum": "443181a42e2ff6e62a6864cdfd23435d"
-    },
-    "posting_first_seen.csv": {
-      "checksum": "d380a689d50fe26ee3cbed1ecfa03ef6"
+      "checksum": "d6eb92817432f9da3c27191817e448f4"
     },
     "combinedclean.csv": {
-      "checksum": "338f47a64b90855f1fa33d2e9c518c57"
+      "checksum": "d1c9cc226a54b41dad0ab45e5b8219ad"
     },
     "data_dictionary.csv": {
-      "checksum": "9a95ca128830afeab954c0966199a929"
+      "checksum": "60aaec9f7042c00944934cde17cba123"
     },
     "facultydata.csv": {
-      "checksum": "32823751250ce4b59bfefefd620f7209"
+      "checksum": "e2c590388afe055a96a6a0a36209f35e"
     },
     "he_institution_weekly_totals.csv": {
-      "checksum": "a889acc4fd66504c6a7864cc7ff024e5"
+      "checksum": "84ae44c960edc8960b274f614f1d5a50"
     },
     "he_job_duration_spells.csv": {
-      "checksum": "522a94c4437736f04f425590175d353f"
+      "checksum": "8f9e7e432533b0e83c20fd2f2fc7f33f"
     },
     "hedata.xlsx": {
-      "checksum": "9c3cf56de77155cb182d5594cede6a4d"
+      "checksum": "b830ad80b4ea20b8d9a568a90ebee682"
     },
     "ipeds_staff_salaries.csv": {
       "checksum": "b5a8e82b453c6862ca3cea904094a171"
     },
     "job_duration_spells.csv": {
-      "checksum": "c3d8d1a87eae5575a7e091dad57052a2"
+      "checksum": "0d4a18bc40246ee8d6b3095288d949a4"
     },
     "k12_district_weekly_totals.csv": {
-      "checksum": "9feb573c7a6265b4189d4c16189bf898"
+      "checksum": "47dbe55f1b2ad5068d22b956c70d4ca2"
     },
     "k12_salary_history.csv": {
       "checksum": "9e49d9d39ad05d745044d4a2cbea6e9b"
     },
     "k12jobanalysis.csv": {
-      "checksum": "3babcc3ec73f08cdba217a67fc9372fc"
+      "checksum": "eef991f61d3fc413885015119d854073"
     },
     "oews_role_wages.csv": {
       "checksum": "e76d522f393eef5f4b3d04f6b08c35da"
+    },
+    "posting_first_seen.csv": {
+      "checksum": "cc594dc76416bc9262c693dc74e911d1"
     },
     "qcew_county_school_pay.csv": {
       "checksum": "878f496a43d7d58b3cad681aa38ea910"
@@ -3841,7 +3840,7 @@
       "checksum": "f8dafcb3746df7346c4174d84ef76dc5"
     },
     "salarymap2.csv": {
-      "checksum": "bc3aad1b2756d60569214bcca3232258"
+      "checksum": "d2cb6a68e3472eaa90bb3fd12390dd47"
     },
     "uw_salary_book.csv": {
       "checksum": "56027ba3824b3367afc2b83495196c86"
