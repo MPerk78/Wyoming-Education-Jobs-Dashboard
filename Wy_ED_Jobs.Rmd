@@ -984,6 +984,12 @@ write_xlsx(hedata, path = file_name)
 
 write_xlsx(hedata, path = file.path("Archived_HE_Data", file_name))
 
+# Timestamps straight to the run log (this chunk hides its messages): the
+# 2026-11-13 run sat 16+ minutes in this chunk and hit the job time limit,
+# with nothing in the log to say which step.
+log_step <- function(what) cat(format(Sys.time(), "%H:%M:%S"), "[munge he data]", what, "\n", file = stderr())
+log_step("posting status: start")
+
 # Posting status (posting_status.R): every posting with a checkable page that
 # dropped off its board since the last run (K-12 and higher ed), plus this
 # run's WSBA checks, recorded in posting_status.csv: whether the platform says
@@ -992,6 +998,7 @@ tryCatch(refresh_posting_status("Archivek12_Data", "Archived_HE_Data", "posting_
                                 extra_checks = wsba_checks,
                                 session_factory = function() chromote::ChromoteSession$new()),
          error = function(e) message("Posting status not updated: ", conditionMessage(e)))
+log_step("posting status: done; coverage calendar: start")
 
 # Coverage calendar (posting-dates plan step 2): every source's outcome this
 # run (ok / empty / error / not_logged), so a posting that stops appearing is
@@ -1006,6 +1013,7 @@ tryCatch(refresh_coverage_calendar(
   feeds = c("WSBA statewide feed" = "^WSBA statewide vacancies$",
             "WSBA + own-page districts (group)" = "^Miscellaneous K-12 districts")),
   error = function(e) message("Coverage calendar not updated: ", conditionMessage(e)))
+log_step("coverage calendar: done; pay estimates: start")
 # Non-postings (a scraped "Job Title" header, "No Jobs" notices) stay in the
 # raw archive above but are dropped from everything shown or counted.
 # Implausible posted pay is blanked the same way (drop_implausible_pay()).
@@ -1030,6 +1038,7 @@ if (file.exists(uw_book_path) && "Est_Pay" %in% names(hedata)) {
   hedata <- attach_uw_salary_book_estimates(hedata, read.csv(uw_book_path, stringsAsFactors = FALSE))
 }
 write_xlsx(hedata, path = file.path("Wy_Ed_Jobs", "hedata.xlsx"))
+log_step("pay estimates: done")
 
 # Fix historical institution-name typos before anything downstream keys off
 # Institution, so a college's history doesn't silently split across two
