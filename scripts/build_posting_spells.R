@@ -18,6 +18,7 @@
 # Rerunnable from scratch any time.
 
 suppressPackageStartupMessages({ library(dplyr); library(readxl) })
+source("state_config.R")   # WSBA's archived Posting_Source label (k12_posting_panel())
 source("k12_he_classification.R")
 source("posting_spells.R")
 

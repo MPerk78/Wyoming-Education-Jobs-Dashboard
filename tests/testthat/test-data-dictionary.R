@@ -26,12 +26,10 @@ test_that("every column in every public research CSV is documented in data_dicti
   app_dir <- here::here("Wy_Ed_Jobs")
 
   # Columns documented ahead of the weekly run that first writes them
-  # (2026-11-09): absent from the committed file until then, so this suite (the
+  # (e.g. salarymap2's FRL columns, 2026-11-09 to the 11-13 run): absent from the committed file until then, so this suite (the
   # weekly run's first, blocking step) would stop that very run. Remove each
   # entry once a weekly run has written the column.
-  pending <- list(
-    "salarymap2.csv" = c("Child_Poverty_Basis", "Free_Reduced_Lunch_Share", "FRL_Schools_Reporting", "FRL_Year")
-  )
+  pending <- list()
 
   for (f in documented_files) {
     file_path <- file.path(app_dir, f)

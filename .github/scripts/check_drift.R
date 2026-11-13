@@ -44,8 +44,12 @@ date_regex <- "[0-9]{4}-[0-9]{2}-[0-9]{2}"
 k12_snapshots <- load_snapshots("Archivek12_Data", "^combined_.*\\.csv$", date_regex, read_k12_archive, today)
 he_snapshots <- load_snapshots("Archived_HE_Data", "^hedata_.*\\.xlsx$", date_regex, read_he_archive, today)
 
-k12_baseline <- build_historical_counts(k12_snapshots, "name")
-he_baseline <- build_historical_counts(he_snapshots, "name")
+# Weeks a source's scrape errored or wasn't logged (coverage calendar) say
+# nothing about its posting count: left out of its baseline, not counted as 0
+# (edjobs 0.12.0; Mike, 2026-11-13).
+failed_weeks <- failed_source_weeks(if (file.exists("coverage_calendar.csv")) read.csv("coverage_calendar.csv", stringsAsFactors = FALSE))
+k12_baseline <- build_historical_counts(k12_snapshots, "name", failed = failed_weeks)
+he_baseline <- build_historical_counts(he_snapshots, "name", failed = failed_weeks)
 
 # combinedclean.csv is already canonicalized; canonicalize again anyway so
 # the two sides of the comparison can never fall out of sync if that ever

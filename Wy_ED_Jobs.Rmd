@@ -8,6 +8,12 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+# Every message and warning goes to the run log, even in chunks marked
+# message=FALSE/warning=FALSE (those settings only kept them out of the HTML,
+# which nobody reads). GitHub timestamps each log line, so the log shows how
+# long each step took (2026-11-13: a WY run stalled with nothing to go on).
+knitr::opts_hooks$set(message = function(o) { o$message <- NA; o },
+                      warning = function(o) { o$warning <- NA; o })
 source("state_config.R")   # edjobs::state_config(): this state, as data
 source("k12_he_classification.R")
 ```
@@ -1175,8 +1181,13 @@ tryCatch(refresh_uw_salary_book(uw_book_path),
 # IPEDS_UNITID is carried through every select() in this chunk: it isn't
 # re-fetched each run, and dropping it here once broke the weekly run (the HE
 # spells generator joins on it).
-salarymap <- read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"), fileEncoding = "UTF-8") %>%
-  select(Name, any_of("IPEDS_UNITID"), Longitude, Latitude, Link, County)
+# Every other column is kept too (as MT): this chunk replaces only its own
+# salary columns. Keeping just the static fields here dropped the enrollment
+# trend and Pell columns whenever their own fetches failed later in the run
+# (rehearsal 2026-11-13: both got HTTP 524; the schema check stopped the run).
+HE_SALARY_COLUMNS <- c("Faculty_Avg_Salary", "Faculty_Avg_Salary_Professor", "Faculty_Count",
+                       "Salary_Year", "Salary_Note", "Salary_Source")
+salarymap <- read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"), fileEncoding = "UTF-8")
 
 if (nrow(he_salary) > 0) {
   # No "last updated" timestamp -- same reasoning as the WSBA chunk above.
@@ -1184,6 +1195,7 @@ if (nrow(he_salary) > 0) {
   # so stamping today's date every weekly run would misrepresent how often
   # the actual dollar figures change.
   salarymap <- salarymap %>%
+    select(-any_of(HE_SALARY_COLUMNS)) %>%
     left_join(he_salary, by = "Name") %>%
     mutate(Salary_Source = "IPEDS via Urban Institute Education Data Portal (educationdata.urban.org)")
 
@@ -1206,13 +1218,15 @@ if (nrow(he_salary) > 0) {
       select(Name, YearsAgo, Faculty_Avg_Salary) %>%
       tidyr::pivot_wider(names_from = YearsAgo, values_from = Faculty_Avg_Salary,
                           names_glue = "Faculty_Avg_Salary_Y{YearsAgo}Ago")
-    salarymap <- salarymap %>% left_join(salary_trend_wide, by = "Name")
+    salarymap <- salarymap %>%
+      select(-starts_with("Faculty_Avg_Salary_Y")) %>%
+      left_join(salary_trend_wide, by = "Name")
   }
 
   salarymap <- salarymap %>%
     select(Name, any_of("IPEDS_UNITID"), Longitude, Latitude, Link, County, Faculty_Avg_Salary, Faculty_Avg_Salary_Professor,
            Faculty_Count, Salary_Year, Salary_Note, Salary_Source,
-           starts_with("Faculty_Avg_Salary_Y"))
+           starts_with("Faculty_Avg_Salary_Y"), everything())
 
   write.csv(salarymap, file.path("Wy_Ed_Jobs", "salarymap.csv"), row.names = FALSE)
 } else {

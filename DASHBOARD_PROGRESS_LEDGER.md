@@ -564,6 +564,20 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     Merged 11-11 (PR #12 -> bb94853). Re-test from main (WY run 43086225793): ran end to end, the guard passed and
     Claude posted a "needs a human" report on WY #7. But every Bash call failed ("Sandbox dependencies not available:
     socat not installed"), so the workflow now apt-installs `socat` and `bubblewrap` before Claude runs.
+  * [x] Phase 4 close-out review and its fixes (2026-11-13; `claude-notes/2026-11-13_phase4-full-review.md`, outcome
+    at its end). `/full-review` of edjobs v0.5.0..v0.11.0 and both states' phase 4: nothing blocking. edjobs 0.12.0
+    (PR bostickmike/edjobs#10, branch `phase4-review-fixes`; 1,386 tests, check clean): two latent spells/history bugs,
+    ISO-only date parsing, page caps, JSON-LD dates in Mountain time, per-page posting-status log lines, tests for six
+    untested exports. Drift baselines (Mike): zero weeks count between a source's first and last weeks with rows;
+    trailing zero weeks and calendar-failed weeks (`failed_source_weeks()`) are left out (replayed since 09-01: WY 9
+    flags either way, MT 20 -> 19). Run logging in both states: every message/warning to the run log, render
+    interrupted at 40 min with R's call stack (`.github/scripts/render_with_stack.R`), partial-outputs artifact on
+    failure. EDJOBS_VERSION 0.12.0. Decided by Mike: keep the TedK12 board-URL rule (0 rows affected since 08-11).
+    WY: `k12_posting_source_label()` warns and labels instead of stopping; spells source (Mike, measured): rows
+    archived as read from WSBA are the WSBA feed (all 47 on 11-13 linked district sites/files, so none had been a feed
+    row), direct rows keep host + tenant. Rebuilt spells: endings in durations 7,731 and median 28.5 days unchanged,
+    29 spells fixed, ~18 WSBA postings split once at 11-06/11-13 (no bridge, Mike). Suite 1,358 passed; `check_drift.R`
+    run live on 11-13's data. Not yet rehearsed on 0.12.0. To land: edjobs #10 merged and tagged, rehearse, PR.
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] **R package migration (current focus, Mike 2026-11-10):** shared code moves to `bostickmike/edjobs`, pinned in
   `EDJOBS_VERSION` (plan and status: `claude-notes/2026-11-10_r-package-migration-plan.md`). Phase 0 merged 11-11
@@ -643,10 +657,24 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
   222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
   likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).
   Options: a footnote on its row/popup, hide its students-per-teacher figure, or leave it.
-- [ ] After the 2026-11-13 run writes them: remove `pending`'s salarymap2.csv entries in
+- [x] After the 2026-11-13 run writes them: remove `pending`'s salarymap2.csv entries in
   `tests/testthat/test-data-dictionary.R` (Child_Poverty_Basis, Free_Reduced_Lunch_Share, FRL_Schools_Reporting,
   FRL_Year). They were documented before any run wrote them, and the blocking pre-run suite would have stopped that
-  run (found by the MT rehearsal, 2026-11-09).
+  run (found by the MT rehearsal, 2026-11-09). Done 2026-11-13: run 43462550744 (a4801fa) wrote all four;
+  `pending` is now empty; test file passes (56).
+- [x] `posting_status_checked` run expectation widened 15-60 -> 20-120 (2026-11-13). The 11-13 run checked 75 pages
+  (64 postings dropped since 11-06 + 11 WSBA rows; 71 closed, 4 unknown: Gillette 3, LCCC 1, NEOGOV pages with no
+  closing date). Not a bug: same NEOGOV link format in both archives, and only 2 of the 64 have a same-titled listing
+  still up (both pages closed: relistings). The 15-60 guess predates K-12 archives carrying AppliTrack per-posting
+  links (from 10-30: checkable K-12 links ~45 -> ~370); dropped checkable postings per week were 16-48 before, 48 and
+  75 since. Evaluated on the 11-13 file: passes.
+- [x] HE salarymap.csv keeps its enrollment-trend and Pell columns when their fetches fail (2026-11-13). The IPEDS
+  salary chunk rewrote salarymap.csv with only its static columns, and the later chunks add theirs back only on a
+  successful fetch: in the first 0.12.0 rehearsal both got HTTP 524 from Urban Institute, so Enrollment_Change_Pct,
+  Pell_Recipient_Share and Pell_Year were lost and the schema check stopped the run. Now the chunk keeps every
+  column and replaces only its own (as MT). Simulated on the committed file (salary fetch ok, the rest failing):
+  25 columns, values identical. Re-rehearsal on 0.12.0: all steps passed
+  (`claude-notes/2026-11-13_rehearsal-wy-edjobs-0.12.0.log`; the failed one is `...-run1.log`).
 - [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): optional daily presence check
   for day-precision ends (spells, coverage calendar and page-confirmed closings are done): plan written 2026-11-09
   (`claude-notes/2026-11-09_daily-presence-check-plan.md`; all 38 districts, 85% of postings; WSBA left out), waiting

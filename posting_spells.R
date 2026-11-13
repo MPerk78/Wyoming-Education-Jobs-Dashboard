@@ -12,9 +12,12 @@
 #   most same-title postings), with an occurrence suffix within a run. Earlier
 #   title-identified rows are bridged to the link-ID the same posting carries
 #   later (WY's boards moved to per-posting links from 2026-08-11 on).
-# - Source: WY archives have no Posting_Source column, so the source is the
-#   board's host (www.applitrack.com/<tenant>, laramie1.schoolspring.com, ...),
-#   or "WSBA statewide feed" for rows linking WSBA's vacancies page. A posting
+# - Source: the board's host (www.applitrack.com/<tenant>,
+#   laramie1.schoolspring.com, ...), or "WSBA statewide feed" for rows linking
+#   WSBA's vacancies page or, from 2026-11-12 on, archived with WSBA as their
+#   Posting_Source: WSBA's rows link the district's own site or files (all 47
+#   on 11-13), so their host said nothing about where they were read (Mike,
+#   2026-11-13: host for direct rows, the archived label for WSBA's). A posting
 #   whose district stops using that board is censored, not ended.
 # - Start: the board's own posted date when plausible (on or before the first
 #   sighting, at most 365 days before it); otherwise the first sighting, which
@@ -91,18 +94,23 @@ k12_posting_panel <- function(archive_dir = "Archivek12_Data", from = as.Date("2
   files <- files[run_of >= from]
   d <- dplyr::bind_rows(lapply(files, function(f) {
     x <- utils::read.csv(f, colClasses = "character")
-    keep <- intersect(c("title", "date_posted", "url", "District", "posting_id", "Close_Date"), names(x))
+    keep <- intersect(c("title", "date_posted", "url", "District", "posting_id", "Close_Date", "Posting_Source"), names(x))
     x <- x[, keep, drop = FALSE]
     x$Run_Date <- as.Date(sub("^combined_(.*)\\.csv$", "\\1", basename(f)))
     x
   }))
   if (!"posting_id" %in% names(d)) d$posting_id <- NA_character_
   if (!"Close_Date" %in% names(d)) d$Close_Date <- NA_character_
+  if (!"Posting_Source" %in% names(d)) d$Posting_Source <- NA_character_
   d$Close_Date <- parse_stated_close_date(d$Close_Date)
   d$title <- spell_text(d$title)
   d$District <- canonicalize_k12_district(spell_text(d$District))
   d <- d[!is.na(d$title) & nzchar(d$title) & !is_placeholder_posting(d$title), , drop = FALSE]
+  wsba_label <- current_state_config()$feed$label
+  if (is.null(wsba_label)) stop("k12_posting_panel(): source state_config.R first (WSBA's archived label)")
+  read_from_wsba <- !is.na(d$Posting_Source) & d$Posting_Source == wsba_label
   d$Posting_Source <- k12_posting_source(d$url)
+  d$Posting_Source[read_from_wsba] <- WSBA_FEED_SOURCE
   pd <- parse_board_posted_date(d$date_posted, d$Run_Date)
   d$date_posted <- pd$date
   d$Posted_Approx <- pd$approx

@@ -10,7 +10,7 @@
 "fremont25_ok","2026-11-13","2026-11-27","coverage_calendar.csv","Run_Date == max(Run_Date) & Entity == ""Fremont County School District 25""","sum(Status == ""ok"")","1","1","Fremont #25 ok (not empty) in this run's coverage_calendar.csv row"
 "sheridan3_ok","2026-11-13","2026-11-27","coverage_calendar.csv","Run_Date == max(Run_Date) & Entity == ""Sheridan County School District 3""","sum(Status == ""ok"")","1","1","Sheridan #3 ok (not empty) in this run's coverage_calendar.csv row"
 "k12_total","2026-11-13","2026-11-27","Wy_Ed_Jobs/combinedclean.csv","","","640","780","K-12 total around 700 once closed WSBA rows and job-ID duplicates drop (was 730)"
-"posting_status_checked","2026-11-13","2026-11-27","posting_status.csv","Last_Checked == max(Last_Checked)","","15","60","first posting-status run: roughly 15-60 pages checked"
+"posting_status_checked","2026-11-13","2026-11-27","posting_status.csv","Last_Checked == max(Last_Checked)","","20","120","pages checked per run: 11-13 checked 75 (64 dropped + 11 WSBA); dropped postings 16-48/week before K-12 archives carried AppliTrack links (from 10-30), 48 and 75 since"
 "posting_status_mostly_closed","2026-11-13","2026-11-27","posting_status.csv","Last_Checked == max(Last_Checked)","mean(Status == ""closed"")","0.5","","most of the pages checked are closed; a few unknown is fine"
 "no_hex_entities_k12","2026-11-13","2027-01-15","Wy_Ed_Jobs/combinedclean.csv","","sum(grepl(""&#x"", title, fixed = TRUE))","","0","no hex HTML entities in K-12 titles (d0de23d)"
 "no_hex_entities_he","2026-11-13","2027-01-15","Wy_Ed_Jobs/hedata.xlsx","","sum(grepl(""&#x"", Title, fixed = TRUE))","","0","no hex HTML entities in HE titles (d0de23d)"

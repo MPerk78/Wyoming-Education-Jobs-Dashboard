@@ -68,3 +68,17 @@ test_that("the committed spells give no advertised window to a posting that outl
     expect_true(all(as.Date(s$Last_Seen[w]) <= as.Date(s$Stated_Close_Date[w]) + 7), info = basename(p))
   }
 })
+
+test_that("k12_posting_panel: rows archived as read from WSBA are the WSBA feed, whatever their link's host (2026-11-13)", {
+  dir <- withr::local_tempdir()
+  write.csv(data.frame(title = c("K-12 Band Teacher", "Custodian"), date_posted = "2026-11-01",
+                       url = c("https://platte1.org/89574_1", "https://www.applitrack.com/platte1/onlineapp/default.aspx?AppliTrackJobId=7"),
+                       District = "Platte County School District 1", posting_id = NA,
+                       Posting_Source = c(edjobs::current_state_config()$feed$label, "AppliTrack (direct district board)")),
+            file.path(dir, "combined_2026-11-13.csv"), row.names = FALSE)
+  p <- k12_posting_panel(dir, from = as.Date("2026-11-01"))
+  expect_equal(p$Posting_Source[p$title == "K-12 Band Teacher"], WSBA_FEED_SOURCE)
+  expect_true(p$Is_Feed[p$title == "K-12 Band Teacher"])
+  expect_equal(p$Posting_Source[p$title == "Custodian"], "applitrack.com/platte1")   # direct rows keep host + tenant
+  expect_false(p$Is_Feed[p$title == "Custodian"])
+})

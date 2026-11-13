@@ -278,9 +278,18 @@ K12_PLATFORM_SOURCE_LABELS <- c(
   apptegy = "Apptegy district site (direct board)", prairieview = "Prairie View district site (direct board)"
 )
 WSBA_POSTING_SOURCE <- "WSBA statewide vacancies"
+# A platform with no label yet gets "<platform> (direct board)" and a warning,
+# not an error: inside the misc loop's safe_scrape() an error lost every misc
+# and WSBA row (2026-11-13 review). The test below still requires a label for
+# every registry platform.
 k12_posting_source_label <- function(platform) {
   label <- unname(K12_PLATFORM_SOURCE_LABELS[as.character(platform)])
-  if (anyNA(label)) stop("No Posting_Source label for platform: ", paste(unique(platform[is.na(label)]), collapse = ", "))
+  missing <- is.na(label) & !is.na(platform)
+  if (any(missing)) {
+    warning("No Posting_Source label for platform: ", paste(unique(platform[missing]), collapse = ", "),
+            "; add it to K12_PLATFORM_SOURCE_LABELS", call. = FALSE)
+    label[missing] <- paste0(platform[missing], " (direct board)")
+  }
   label
 }
 
