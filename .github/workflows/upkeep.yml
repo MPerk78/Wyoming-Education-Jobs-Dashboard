@@ -1,0 +1,28 @@
+name: Upkeep (keepalive, token expiry)
+
+# Keeps the weekly schedule from being disabled by GitHub's 60-day inactivity
+# rule and opens an issue 30 days before a secret in .github/token-expiry.csv
+# expires. The logic lives in edjobs (.github/workflows/upkeep.yml).
+on:
+  schedule:
+    # Wednesdays 15:00 UTC: no weekly run that day, now or on the planned
+    # twice-weekly days (WY Tue + Fri, MT Mon + Thu).
+    - cron: '0 15 * * 3'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Report only (enable nothing, open no issue)
+        type: boolean
+        default: true
+
+jobs:
+  upkeep:
+    permissions:
+      actions: write
+      issues: write
+      contents: read
+    uses: bostickmike/edjobs/.github/workflows/upkeep.yml@v0.12.1
+    with:
+      dry_run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+    secrets:
+      pat: ${{ secrets.COPILOT_TOKEN }}
