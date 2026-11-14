@@ -622,6 +622,10 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     main (branch test dispatches had been handing issues to Copilot). A new issue Copilot can't be assigned, or
     opens no PR for within 5 minutes, is unassigned and dispatched to `claude-autofix.yml` at once. MT's ruleset no
     longer requests Copilot reviews on every push (15 "insufficient remaining quota" reviews on MT PRs since 11-12).
+  * [x] edjobs 0.17.0 (2026-11-14; pin bump only): the package adds the CyberSchool family routine
+    (`fetch_cyberschool_postings()`), the first CMS-family routine; MT's Highwood, Power and Vaughn moved to it. No
+    WY district runs on CyberSchool, and nothing WY calls changes. Suite on 0.17.0: 1,374 passed, 0 failed
+    (`claude-notes/2026-11-14_wy-suite-edjobs-0.17.0.log`). Notes: `claude-notes/2026-11-14_cyberschool-family/README.md`.
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] **R package migration (current focus, Mike 2026-11-10):** shared code moves to `bostickmike/edjobs`, pinned in
   `EDJOBS_VERSION` (plan and status: `claude-notes/2026-11-10_r-package-migration-plan.md`). Phase 0 merged 11-11
