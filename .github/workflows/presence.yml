@@ -1,0 +1,29 @@
+name: Daily presence check
+
+# Reads every AppliTrack, SchoolSpring, TedK12 and Red Rover board once a day
+# (list pages only; all 38 districts), plus WSBA's statewide vacancies
+# (presence_feeds.R), and commits presence_checks.csv /
+# presence_sightings.csv to the `presence` branch, never main. Phase 0
+# (shadow): nothing reads them yet. The logic lives in
+# edjobs (.github/workflows/presence.yml, edjobs::refresh_presence()).
+on:
+  schedule:
+    # 13:17 UTC = 6:17 MST; GitHub often starts hours late, still the same
+    # Mountain-time day.
+    - cron: '17 13 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Run the check but commit nothing
+        type: boolean
+        default: false
+
+jobs:
+  presence:
+    permissions:
+      contents: write
+    uses: bostickmike/edjobs/.github/workflows/presence.yml@v0.15.0
+    with:
+      platforms: Applitrack,SchoolSpring,TedK12,RedRoverK12
+      setup_files: state_config.R direct_api_scrapers.R k12_he_classification.R misc_district_scrapers.R presence_feeds.R
+      dry_run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}

@@ -133,33 +133,8 @@ test_that("SchoolSpring source IDs and deep links survive K-12 aggregation", {
   expect_equal(summary$sum, 2)
 })
 
-test_that("parse_redrover_json extracts fields and builds a per-job link from the GraphQL response shape", {
-  fixture <- '{"data":{"jobSeekerSiteUnauthenticated":{"jobPostingSearch":{"results":[
-    {"id":"190114","name":"Part-time Custodian","organizationName":"Johnson County School District #1","location":{"name":"Kaycee K-12 School"},"activePublicOnDateUtc":"2026-07-27T15:02:24.7935011Z"},
-    {"id":"191643","name":"Assistant Girls Basketball Coach","organizationName":"Johnson County School District #1","location":{"name":"Buffalo High School"},"activePublicOnDateUtc":"2026-07-27T15:01:36.1969706Z"}
-  ]}}}}'
-
-  result <- parse_redrover_json(fixture, "jcsd1")
-
-  expect_equal(nrow(result), 2)
-  expect_equal(result$Title, c("Part-time Custodian", "Assistant Girls Basketball Coach"))
-  expect_equal(result$Location, c("Kaycee K-12 School", "Buffalo High School"))
-  expect_equal(result$Posted_Date, c("2026-07-27", "2026-07-27"))
-  expect_equal(result$Posting_ID, c("redrover:jcsd1:190114", "redrover:jcsd1:191643"))
-  expect_equal(result$Link, c(
-    "https://jobs.redroverk12.com/org/jcsd1/opening/190114",
-    "https://jobs.redroverk12.com/org/jcsd1/opening/191643"
-  ))
-})
-
-test_that("parse_redrover_json returns zero rows (not an error) for an empty results list", {
-  fixture <- '{"data":{"jobSeekerSiteUnauthenticated":{"jobPostingSearch":{"results":[]}}}}'
-  result <- parse_redrover_json(fixture, "jcsd1")
-  expect_equal(nrow(result), 0)
-  expect_equal(names(result), c("Title", "Location", "Posted_Date", "Posting_ID", "Link",
-                                 "Pay_Min", "Pay_Max", "Pay_Unit", "Pay_Text"))
-})
-
+# parse_redrover_json()'s field and empty-board tests moved to edjobs with it (0.14.0); the pay test stays here
+# because it also covers this state's normalize_id_backed_k12_postings().
 test_that("parse_redrover_json reads the posting's own pay and keeps hidden pay as NA", {
   # Shapes from the live Johnson County SD1 response (2026-10-30): a pay
   # range, a single figure (min == max), a daily rate, a STIPEND with no

@@ -168,96 +168,11 @@ parse_uw_requisitions <- function(reqs_df, ui_base) {
 }
 
 # ---------------------------------------------------------------------------
-# RedRoverK12 (Johnson County School District 1) -- unauthenticated GraphQL
-# endpoint the site's own Next.js app calls
+# RedRoverK12: fetch_redrover_postings(org_id, org_slug), parse_redrover_json()
+# and redrover_org_slug() are in edjobs since 0.14.0 (Montana reads its Red
+# Rover boards through the same API). The registry's Org_ID is the numeric
+# organization ID the API takes.
 # ---------------------------------------------------------------------------
-
-# org_id is the numeric organization ID RedRoverK12 assigns per district
-# (found by tracing the real GraphQL request body with chromote --
-# Johnson County SD1's is "3146" for org slug "jcsd1"). Not derivable from
-# the org slug alone; a new district on this platform would need its own
-# ID looked up the same way.
-# Registry Job_Link -> the org_slug fetch_redrover_postings() takes (shared
-# with drift_check.R, like schoolspring_domain()).
-redrover_org_slug <- function(job_link) sub(".*/org/([^/?]+).*", "\\1", job_link, ignore.case = TRUE)
-
-fetch_redrover_postings <- function(org_id, org_slug) {
-  query <- 'query GetJobPostings($search: JobPostingSearchInput!) {
-  jobSeekerSiteUnauthenticated {
-    jobPostingSearch(search: $search) {
-      results {
-        id
-        name
-        organizationName
-        location { name }
-        activePublicOnDateUtc
-        payTypeId
-        minPay
-        maxPay
-      }
-    }
-  }
-}'
-  resp <- request("https://api.redroverk12.com/graphql") %>%
-    req_headers(`Content-Type` = "application/json") %>%
-    req_body_json(list(
-      operationName = "GetJobPostings",
-      variables = list(search = list(orgId = org_id, searchTerm = "", locationIds = list(), jobPostingCategoryIds = list())),
-      query = query
-    )) %>%
-    perform_with_retry()
-  parse_redrover_json(resp_body_string(resp), org_slug)
-}
-
-# RedRover's own pay types, mapped to Pay_Unit. The labels are the ones the
-# job board itself prints ("per unit" is how it shows a STIPEND, e.g. a
-# coaching season). The board hides pay when minPay is empty or the type is
-# UNKNOWN ("per period"), so those stay NA here too.
-REDROVER_PAY_UNITS <- c(HOURLY = "hour", DAILY = "day", SALARIED = "year", STIPEND = "stipend")
-REDROVER_PAY_LABELS <- c(HOURLY = "per hour", DAILY = "per day", SALARIED = "per year", STIPEND = "per unit")
-
-redrover_pay_columns <- function(n, pay_type, min_pay, max_pay) {
-  lo <- suppressWarnings(as.numeric(if (is.null(min_pay)) rep(NA, n) else min_pay))
-  hi <- suppressWarnings(as.numeric(if (is.null(max_pay)) rep(NA, n) else max_pay))
-  type <- if (is.null(pay_type)) rep(NA_character_, n) else as.character(pay_type)
-  stated <- !is.na(lo) & lo > 0 & !is.na(type) & type %in% names(REDROVER_PAY_UNITS)
-  hi <- ifelse(stated & (is.na(hi) | hi < lo), lo, hi)
-  money <- function(x) paste0("$", formatC(x, format = "f", digits = 2, big.mark = ","))
-  data.frame(
-    Pay_Min = ifelse(stated, lo, NA_real_),
-    Pay_Max = ifelse(stated, hi, NA_real_),
-    Pay_Unit = ifelse(stated, unname(REDROVER_PAY_UNITS[type]), NA_character_),
-    Pay_Text = ifelse(stated, paste(ifelse(hi > lo, paste(money(lo), "-", money(hi)), money(lo)),
-                                    unname(REDROVER_PAY_LABELS[type])), NA_character_),
-    stringsAsFactors = FALSE
-  )
-}
-
-parse_redrover_json <- function(json_text, org_slug) {
-  parsed <- jsonlite::fromJSON(json_text, simplifyVector = TRUE)
-  results <- parsed$data$jobSeekerSiteUnauthenticated$jobPostingSearch$results
-
-  if (is.null(results) || length(results) == 0 || nrow(results) == 0) {
-    return(data.frame(Title = character(0), Location = character(0),
-                       Posted_Date = character(0), Posting_ID = character(0),
-                       Link = character(0),
-                       Pay_Min = numeric(0), Pay_Max = numeric(0), Pay_Unit = character(0),
-                       Pay_Text = character(0),
-                       stringsAsFactors = FALSE))
-  }
-
-  cbind(
-    data.frame(
-      Title = results$name,
-      Location = results$location$name,
-      Posted_Date = substr(results$activePublicOnDateUtc, 1, 10),
-      Posting_ID = paste0("redrover:", tolower(org_slug), ":", results$id),
-      Link = paste0("https://jobs.redroverk12.com/org/", org_slug, "/opening/", results$id),
-      stringsAsFactors = FALSE
-    ),
-    redrover_pay_columns(nrow(results), results$payTypeId, results$minPay, results$maxPay)
-  )
-}
 
 # Converts platforms that expose a source posting ID into the K-12 pipeline's
 # lowercase schema without discarding their deep links or identities.

@@ -123,21 +123,8 @@ canonicalize_he_institution <- function(institution) {
 # ---------------------------------------------------------------------------
 # Per-posting job IDs (posting_spells.R; remove_wsba_direct_duplicates()).
 # ---------------------------------------------------------------------------
-# A per-posting ID from the link, keyed by platform and number, or NA.
-k12_link_posting_id <- function(url) {
-  if (is.null(url)) return(character(0))
-  u <- tolower(trimws(fix_title_encoding(as.character(url)))); u[is.na(u)] <- ""
-  out <- rep(NA_character_, length(u))
-  pick <- function(pattern, fmt) {
-    hit <- is.na(out) & grepl(pattern, u, perl = TRUE)
-    out[hit] <<- sub(paste0("^.*?", pattern, ".*$"), fmt, u[hit], perl = TRUE)
-  }
-  pick("applitrack\\.com/([^/]+)/.*applitrackjobid=(\\d+)", "applitrack:\\1:\\2")
-  pick("([a-z0-9-]+)\\.schoolspring\\.com/jobs/(\\d+)", "schoolspring:\\2")
-  pick("redroverk12\\.com/org/([^/]+)/opening/(\\d+)", "redrover:\\1:\\2")
-  pick("([a-z0-9-]+)\\.tedk12\\.com/hire/viewjob\\.aspx\\?jobid=(\\d+)", "tedk12:\\1:\\2")
-  out
-}
+# k12_link_posting_id() (a per-posting ID from the link, keyed by platform and number) is in edjobs since
+# 0.13.0, shared with MT and the daily presence check.
 
 # A source posting_id the archive stored ("applitrack:bighorn1:1534",
 # "schoolspring:5569023"), normalized to the same form as the link ID.
