@@ -42,6 +42,21 @@ if (!"safety_net_vacancies" %in% names(flagged)) flagged$safety_net_vacancies <-
 combined_raw <- if (file.exists("Wy_Ed_Jobs/combinedclean.csv")) read.csv("Wy_Ed_Jobs/combinedclean.csv", stringsAsFactors = FALSE) else NULL
 registry <- if (file.exists("k12_district_registry.csv")) read.csv("k12_district_registry.csv", stringsAsFactors = FALSE) else NULL
 scrape_log <- if (file.exists("scrape_log.csv")) read.csv("scrape_log.csv", stringsAsFactors = FALSE) else NULL
+# This run's titles per source, so the LLM step counts only titles the scraper
+# missed (edjobs 0.16.0; WY's Sublette 1 read "Substitutes", which the scraper
+# had returned, and was filed as likely_broken).
+he_current <- if (file.exists("Wy_Ed_Jobs/hedata.xlsx")) as.data.frame(readxl::read_xlsx("Wy_Ed_Jobs/hedata.xlsx")) else NULL
+# Each row's source name as check_drift.R counts it.
+k12_source_names <- if (is.null(combined_raw)) character(0) else canonicalize_k12_district(combined_raw$District)
+current_titles_for <- function(name, type) {
+  if (identical(type, "K-12")) {
+    if (is.null(combined_raw)) return(NULL)
+    combined_raw$title[k12_source_names == name]
+  } else {
+    if (is.null(he_current)) return(NULL)
+    he_current$Title[he_current$Institution == name]
+  }
+}
 
 safety_net_summary <- summarize_central_safety_net(
   combined_df = combined_raw,
@@ -110,7 +125,9 @@ for (i in seq_len(nrow(flagged))) {
     llm_titles <- tryCatch(llm_titles_from_page_text(text, url = url),
                            error = function(e) character(0))
     combined <- combine_verdict_with_llm(verdict, llm_titles,
-                                         tryCatch(recent_source_titles(row$name, row$type), error = function(e) NULL))
+                                         tryCatch(recent_source_titles(row$name, row$type), error = function(e) NULL),
+                                         current_titles = tryCatch(current_titles_for(row$name, row$type),
+                                                                   error = function(e) NULL))
     verdict <- combined$verdict
     llm_note <- combined$note
   }

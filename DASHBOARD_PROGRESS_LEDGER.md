@@ -611,6 +611,12 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     `fetch_wsba_vacancies()`. Workflow pins v0.15.0 and sources `state_config.R direct_api_scrapers.R
     k12_he_classification.R misc_district_scrapers.R presence_feeds.R`. Tested on GitHub from a throwaway branch (run
     43538209249): 39 boards, all ok; WSBA 95 vacancies, all keyed. Not pipeline code: suite only.
+  * [x] Drift check: the LLM reading counts only titles the scraper missed (2026-11-13; edjobs 0.16.0, same change in
+    MT; Mike: "I do like the change"). `corroborate_drift.R` passes this run's titles for each flagged source to
+    `combine_verdict_with_llm(current_titles =)`. WY's Sublette 1 had been filed as likely_broken on 11-11 and 11-13
+    because the LLM read "Substitutes", the one item the scraper returned (WY issue 7, closed 11-13 as genuinely
+    quiet). Replayed on all 8 past flags with an LLM reading: the 6 MT ones unchanged (scraper returned 0), the 2
+    Sublette ones no longer filed.
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] **R package migration (current focus, Mike 2026-11-10):** shared code moves to `bostickmike/edjobs`, pinned in
   `EDJOBS_VERSION` (plan and status: `claude-notes/2026-11-10_r-package-migration-plan.md`). Phase 0 merged 11-11
