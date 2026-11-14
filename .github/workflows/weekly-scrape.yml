@@ -337,6 +337,10 @@ jobs:
       # even when nothing was flagged, since that's the recovery signal.
       # Non-blocking like the rest of the monitoring.
       - name: File per-source auto-fix issues for the auto-fix agent
+        # main only: a test dispatch from a branch still runs the drift check
+        # and its report, but files no issue and starts no agent (Mike,
+        # 2026-11-13: branch tests had been handing issues to Copilot).
+        if: github.ref == 'refs/heads/main'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}

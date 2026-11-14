@@ -617,6 +617,11 @@ Unlike ephemeral conversation logs or local scratch handoffs, this document live
     because the LLM read "Substitutes", the one item the scraper returned (WY issue 7, closed 11-13 as genuinely
     quiet). Replayed on all 8 past flags with an LLM reading: the 6 MT ones unchanged (scraper returned 0), the 2
     Sublette ones no longer filed.
+  * [x] Auto-fix only from main; Claude when Copilot refuses (2026-11-13; same change in MT; Mike: "limit auto fix to
+    main", "if copilot is refused then claude kicks in"). The weekly workflow's auto-fix filing step runs only on
+    main (branch test dispatches had been handing issues to Copilot). A new issue Copilot can't be assigned, or
+    opens no PR for within 5 minutes, is unassigned and dispatched to `claude-autofix.yml` at once. MT's ruleset no
+    longer requests Copilot reviews on every push (15 "insufficient remaining quota" reviews on MT PRs since 11-12).
 **Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
 - [ ] **R package migration (current focus, Mike 2026-11-10):** shared code moves to `bostickmike/edjobs`, pinned in
   `EDJOBS_VERSION` (plan and status: `claude-notes/2026-11-10_r-package-migration-plan.md`). Phase 0 merged 11-11

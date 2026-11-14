@@ -15,6 +15,8 @@
 #   - likely_broken, issue open      -> comment "still flagged"; with engine
 #     copilot and a Claude credential, hand it to Claude once if Copilot
 #     hasn't fixed it within a week (autofix_escalation_decision())
+#   - Copilot refuses a new issue (assignment fails, or no Copilot PR within
+#     5 minutes) -> unassign it and hand it to Claude at once
 #   - open issue, source not flagged -> close (recovered)
 #   - open issue, genuinely empty    -> close (nothing left to parse)
 #   - open issue, confirmed_broken / inconclusive -> comment, leave open
@@ -122,6 +124,36 @@ dispatch_claude <- function(number) {
   sent$ok
 }
 
+# Did Copilot take the issue? Its coding agent opens a draft PR within
+# seconds of being assigned (8 s in the 2026-11-13 test, WY issue 28), and the
+# PR shows on the issue's timeline as a cross-reference. None within `wait`
+# seconds means it refused (quota, licence, agent disabled) or never started.
+copilot_picked_up <- function(number, wait = 300, every = 15) {
+  t0 <- Sys.time()
+  repeat {
+    out <- suppressWarnings(system2("gh", shQuote(c("api", sprintf("repos/%s/issues/%s/timeline", repo, number), "--paginate",
+                                                    "--jq", '.[] | select(.event == "cross-referenced" and .source.issue.pull_request != null) | .source.issue.number')),
+                                    stdout = TRUE, stderr = TRUE))
+    if (is.null(attr(out, "status")) && any(grepl("^[0-9]+$", out))) return(TRUE)
+    if (as.numeric(difftime(Sys.time(), t0, units = "secs")) >= wait) return(FALSE)
+    Sys.sleep(every)
+  }
+}
+
+# Copilot refused or couldn't be assigned: unassign it and hand the issue to
+# Claude now, rather than at next week's escalation (which the marker skips).
+copilot_refused_to_claude <- function(number, why) {
+  if (!claude_fallback) {
+    gh_comment(number, paste0(why, " No Claude credential is set, so it stays unassigned: assign it by hand."))
+    return(invisible(FALSE))
+  }
+  gh(c("issue", "edit", number, "--remove-assignee", "@copilot"), token = copilot_token)
+  if (dispatch_claude(number)) {
+    gh_comment(number, paste0(why, " Handed to Claude (", AUTOFIX_CLAUDE_WORKFLOW, ") instead. ", AUTOFIX_ESCALATION_MARKER))
+  }
+  invisible(TRUE)
+}
+
 results <- if (file.exists("/tmp/drift_results.csv")) {
   read.csv("/tmp/drift_results.csv", stringsAsFactors = FALSE)
 } else {
@@ -225,12 +257,15 @@ for (i in seq_len(nrow(eligible))) {
     next
   }
   assigned <- gh(c("issue", "edit", number, "--add-assignee", "@copilot"), token = copilot_token)
-  if (assigned$ok) {
-    cat("  Assigned to Copilot\n")
-  } else {
+  if (!assigned$ok) {
     cat("  Copilot assignment failed:", assigned$out, "\n")
-    gh_comment(number, paste0("Couldn't assign this to Copilot automatically (`", paste(assigned$out, collapse = " "),
-                              "`). Assign it by hand, or check that COPILOT_TOKEN is valid and the Copilot coding agent is enabled for this repo."))
+    copilot_refused_to_claude(number, paste0("Couldn't assign this to Copilot (`", paste(assigned$out, collapse = " "),
+                                             "`): check that COPILOT_TOKEN is valid and the coding agent is enabled."))
+  } else if (copilot_picked_up(number)) {
+    cat("  Assigned to Copilot; it opened a PR\n")
+  } else {
+    cat("  Assigned to Copilot, but no Copilot PR after 5 minutes\n")
+    copilot_refused_to_claude(number, "Copilot was assigned but opened no PR within 5 minutes (out of quota, or the agent refused).")
   }
 }
 
