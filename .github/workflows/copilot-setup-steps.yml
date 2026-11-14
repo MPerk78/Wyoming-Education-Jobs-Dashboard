@@ -1,0 +1,29 @@
+name: Copilot setup steps
+
+# Read by the Copilot coding agent before it starts work on an assigned
+# issue: gives its sandbox the same R + Chrome environment CI uses, so it
+# can actually run testthat and fetch live pages with chromote. The job
+# MUST be named copilot-setup-steps. Runs on its own when this file
+# changes, as a smoke test of the setup itself.
+
+on:
+  workflow_dispatch:
+  push:
+    paths: [.github/workflows/copilot-setup-steps.yml, .github/actions/setup-r-env/action.yml]
+  pull_request:
+    paths: [.github/workflows/copilot-setup-steps.yml, .github/actions/setup-r-env/action.yml]
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: setup
+        uses: ./.github/actions/setup-r-env
+
+      - name: Expose Chrome to chromote
+        run: echo "CHROMOTE_CHROME=${{ steps.setup.outputs.chrome-path }}" >> "$GITHUB_ENV"

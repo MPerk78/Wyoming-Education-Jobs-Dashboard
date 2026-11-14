@@ -1,0 +1,43 @@
+name: Report Incorrect Data or Mistake
+description: Report an expired job, broken link, misclassified subject, or missing district
+title: "[Data Issue]: "
+labels: ["data-quality", "user-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping keep the Wyoming Education Jobs Dashboard accurate! Please fill out the details below so we can investigate and correct the discrepancy.
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of problem are you reporting?
+      options:
+        - "Expired / Closed Job (still listed as open)"
+        - "Broken Application Link / 404"
+        - "Incorrect Subject, Category, or Title"
+        - "Missing School District or Institution"
+        - "Salary or Staffing Discrepancy"
+        - "Other Data Mistake"
+    validations:
+      required: true
+  - type: input
+    id: district
+    attributes:
+      label: School District or Institution
+      placeholder: "e.g. Laramie County School District 1, Natrona County SD 1, University of Wyoming"
+    validations:
+      required: true
+  - type: input
+    id: job_title_or_url
+    attributes:
+      label: Job Title or Listing URL
+      placeholder: "e.g. Elementary Teacher or https://..."
+  - type: textarea
+    id: details
+    attributes:
+      label: Description & Details
+      description: Describe the mistake, provide the correct link, or link to the official district posting.
+      placeholder: "This position was filled last week, or the application link should point to..."
+    validations:
+      required: true

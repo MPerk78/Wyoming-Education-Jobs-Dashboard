@@ -1,0 +1,727 @@
+"Institution","IPEDS_UNITID","Title","Category","Job_Type","First_Seen_Date","Last_Seen_Date","Weeks_Observed","Estimated_Days_Open","Status","is_stem","is_health","is_cte","is_adjunct","is_faculty"
+"Casper College",240505,"Accounting Instructor","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-04-25","2025-05-16",4,28,"Closed / Filled",1,0,1,0,1
+"Casper College",240505,"Accounting Instructor","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-09-26","2025-11-28",10,70,"Closed / Filled",1,0,1,0,1
+"Casper College",240505,"Accounting Instructor","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-04-03","2026-05-01",5,35,"Closed / Filled",1,0,1,0,1
+"Casper College",240505,"Adjunct Faculty - Accounting","CTE - Business & Computing","Adjunct/Part-Time Faculty","2025-06-06","2025-06-27",4,28,"Closed / Filled",1,0,1,1,0
+"Casper College",240505,"Adjunct Faculty - Communications","Humanities","Adjunct/Part-Time Faculty","2026-03-20","2026-04-17",5,35,"Closed / Filled",0,0,0,1,0
+"Casper College",240505,"Adjunct Faculty - Dance","The Arts","Adjunct/Part-Time Faculty","2026-06-05","2026-07-10",6,42,"Closed / Filled",0,0,0,1,0
+"Casper College",240505,"Adjunct Faculty - Electrical Apprentice Program","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-06-06","2025-07-25",8,56,"Closed / Filled",1,0,1,1,0
+"Casper College",240505,"Adjunct Faculty - Electronics","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-06-06","2025-06-13",2,14,"Closed / Filled",1,0,1,1,0
+"Casper College",240505,"Adjunct Faculty - Music Instructor (Bass Guitar)","The Arts","Adjunct/Part-Time Faculty","2025-06-06","2025-07-04",5,35,"Closed / Filled",0,0,0,1,0
+"Casper College",240505,"Adjunct Faculty - Phys/Engineering","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-03-20","2026-04-17",5,35,"Closed / Filled",1,0,1,1,0
+"Casper College",240505,"Adjunct Faculty - Physical Education (Bowling)","Physical Education","Adjunct/Part-Time Faculty","2026-01-16","2026-01-23",2,14,"Closed / Filled",0,0,0,1,0
+"Casper College",240505,"Adjunct Faculty - World Languages (Spanish)","Language","Adjunct/Part-Time Faculty","2026-07-24","2026-07-31",2,14,"Closed / Filled",0,0,0,1,0
+"Casper College",240505,"Adult Learning Center Instructor","Education","Instructor/Teacher/Faculty","2025-08-29","2025-09-05",2,14,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Adult Learning Center Instructor","Education","Instructor/Teacher/Faculty","2026-07-10","2026-07-17",2,14,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Agriculture Instructor","Science","Instructor/Teacher/Faculty","2026-02-27","2026-03-20",4,28,"Closed / Filled",1,0,0,0,1
+"Casper College",240505,"Athletic Training Instructor","Physical Education","Instructor/Teacher/Faculty","2025-01-24","2025-03-28",9,70,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Clinical Instructor - Paramedics","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-02-20","2026-02-27",2,14,"Closed / Filled",1,1,1,0,1
+"Casper College",240505,"Criminal Justice Instructor","Criminal Justice","Instructor/Teacher/Faculty","2026-09-25","2026-10-30",6,42,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Early Childhood Learning Center Teacher","Education","Instructor/Teacher/Faculty","2024-12-27","2025-01-03",2,14,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Early Childhood Learning Center Teacher","Education","Instructor/Teacher/Faculty","2025-04-18","2025-04-18",1,7,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Early Childhood Learning Center Teacher","Education","Instructor/Teacher/Faculty","2025-05-16","2025-05-30",3,21,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Early Childhood Learning Center Teacher","Education","Instructor/Teacher/Faculty","2026-05-01","2026-05-01",1,7,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Education Instructor","Education","Instructor/Teacher/Faculty","2026-01-30","2026-03-20",8,56,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Electronics Technology Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-01-23","2026-02-27",6,42,"Closed / Filled",1,0,1,0,1
+"Casper College",240505,"Engineering Adjunct","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-10-23","2026-11-13",4,28,"Still Active",1,0,1,1,0
+"Casper College",240505,"KEY Camp Instructor","Uncategorized","Instructor/Teacher/Faculty","2025-02-14","2025-04-25",11,77,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"KEY Camp Instructor","Uncategorized","Instructor/Teacher/Faculty","2025-12-19","2026-04-03",16,112,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Medical Lab Tech Clinical Instructor","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-01-24","2025-01-24",1,7,"Closed / Filled",1,1,1,0,1
+"Casper College",240505,"Medical Lab Tech Clinical Instructor","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-08","2026-05-15",2,14,"Closed / Filled",1,1,1,0,1
+"Casper College",240505,"Medical Lab Tech Clinical Instructor","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-08-04","2026-08-14",2,17,"Closed / Filled",1,1,1,0,1
+"Casper College",240505,"Musical Theatre Instructor","The Arts","Instructor/Teacher/Faculty","2025-01-10","2025-02-14",6,42,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Nursing Clinical Adjunct Instructor","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-08-01","2025-08-01",1,7,"Closed / Filled",1,1,1,1,0
+"Casper College",240505,"Nursing Educator","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-06-27","2025-07-04",2,14,"Closed / Filled",1,1,1,0,1
+"Casper College",240505,"Nursing Educator","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-15","2026-06-12",5,35,"Closed / Filled",1,1,1,0,1
+"Casper College",240505,"Nursing Instructor","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-09-25","2026-10-02",2,14,"Closed / Filled",1,1,1,0,1
+"Casper College",240505,"Occupational Therapy Assistant (OTA) Instructor","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-08","2026-06-05",5,35,"Closed / Filled",1,1,1,0,1
+"Casper College",240505,"Occupational Therapy Assistant Instructor","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-06-19","2026-06-19",1,7,"Closed / Filled",1,1,1,0,1
+"Casper College",240505,"Paramedics/EMS Clinical Adjunct Instructor","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-08-01","2025-08-01",1,7,"Closed / Filled",1,1,1,1,0
+"Casper College",240505,"Psychology Instructor","Social Science","Instructor/Teacher/Faculty","2026-04-17","2026-05-08",4,28,"Closed / Filled",1,0,0,0,1
+"Casper College",240505,"Radiography Clinical Adjunct Instructor","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-08-01","2025-09-12",7,49,"Closed / Filled",1,1,1,1,0
+"Casper College",240505,"Sociology Adjunct Instructor","Social Science","Adjunct/Part-Time Faculty","2024-10-11","2024-11-01",4,28,"Closed / Filled",1,0,0,1,0
+"Casper College",240505,"Theatre Instructor - Scenic Design","The Arts","Instructor/Teacher/Faculty","2026-06-05","2026-07-10",6,42,"Closed / Filled",0,0,0,0,1
+"Casper College",240505,"Theatre Instructor/Scenic and Lighting Designer","The Arts","Instructor/Teacher/Faculty","2026-01-30","2026-03-27",8,63,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"ABE/GED/HiSET Instructor","Education","Instructor/Teacher/Faculty","2025-01-17","2025-04-11",13,91,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"ABE/GED/HiSET Instructor","Education","Instructor/Teacher/Faculty","2025-08-29","2026-01-30",23,161,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"ABE/HiSET Instructor","Education","Instructor/Teacher/Faculty","2025-03-28","2025-03-28",1,7,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"ABE/HiSET Instructor- Recompete","Education","Instructor/Teacher/Faculty","2025-04-04","2025-04-11",2,14,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"ABE/HiSET Instructor- Recompete Grant","Education","Instructor/Teacher/Faculty","2025-04-18","2025-04-25",2,14,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"ABE/HiSET Instructor- Recompete Grant","Education","Instructor/Teacher/Faculty","2025-07-25","2025-08-15",4,28,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"ABE/HiSET Instructor- Recompete Grant","Education","Instructor/Teacher/Faculty","2025-09-19","2026-01-30",20,140,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Adjunct","Uncategorized","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",118,833,"Still Active",0,0,0,1,0
+"Central Wyoming College",240514,"Adjunct - Chemistry - Jackson","Science","Adjunct/Part-Time Faculty","2024-08-09","2024-10-18",11,77,"Closed / Filled",1,0,0,1,0
+"Central Wyoming College",240514,"Adjunct Instructor - Math","Math","Adjunct/Part-Time Faculty","2025-09-05","2025-12-12",15,105,"Closed / Filled",1,0,0,1,0
+"Central Wyoming College",240514,"Adjunct Instructor- Computer Science- Riverton","CTE - Business & Computing","Adjunct/Part-Time Faculty","2024-08-09","2026-01-23",76,539,"Closed / Filled",1,0,1,1,0
+"Central Wyoming College",240514,"Adjunct- Art- Jackson","The Arts","Adjunct/Part-Time Faculty","2024-08-09","2026-07-10",100,707,"Closed / Filled",0,0,0,1,0
+"Central Wyoming College",240514,"Adjunct- General for Jackson","Uncategorized","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",118,833,"Still Active",0,0,0,1,0
+"Central Wyoming College",240514,"Adjunct- Spanish- Jackson","Language","Adjunct/Part-Time Faculty","2024-08-09","2024-10-18",11,77,"Closed / Filled",0,0,0,1,0
+"Central Wyoming College",240514,"Business Instructor","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-06-13","2025-09-12",14,98,"Closed / Filled",1,0,1,0,1
+"Central Wyoming College",240514,"Cosmetology Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-05-01","2026-09-18",21,147,"Closed / Filled",1,0,1,0,1
+"Central Wyoming College",240514,"Cosmetology Program Director/Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-05-30","2025-07-04",6,42,"Closed / Filled",1,0,1,0,1
+"Central Wyoming College",240514,"Criminal Justice Instructor","Criminal Justice","Instructor/Teacher/Faculty","2025-02-28","2025-03-07",2,14,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Culinary/Hospitality Instructor","Culinary/Hospitality","Instructor/Teacher/Faculty","2024-08-09","2024-08-30",4,28,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"EMT Instructor- Recompete","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-04-04","2025-04-11",2,14,"Closed / Filled",1,1,1,0,1
+"Central Wyoming College",240514,"EMT Instructor- Recompete Grant","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-04-18","2025-11-07",30,210,"Closed / Filled",1,1,1,0,1
+"Central Wyoming College",240514,"Equine Studies Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-05-15","2026-06-12",5,35,"Closed / Filled",1,0,1,0,1
+"Central Wyoming College",240514,"Event Planning Instructor","Culinary/Hospitality","Instructor/Teacher/Faculty","2024-08-09","2025-02-14",24,196,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Hospitality/Tourism Management Instructor","Culinary/Hospitality","Instructor/Teacher/Faculty","2024-08-09","2024-08-09",1,7,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Hospitality/Tourism Management Instructor","Culinary/Hospitality","Instructor/Teacher/Faculty","2024-09-06","2024-09-06",1,7,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Hospitality/Tourism Management Instructor","Culinary/Hospitality","Instructor/Teacher/Faculty","2024-10-11","2025-02-14",16,133,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Instructor of Geospatial Information Science & Technology & Expedition Science","Science","Instructor/Teacher/Faculty","2026-01-16","2026-03-06",8,56,"Closed / Filled",1,0,0,0,1
+"Central Wyoming College",240514,"Librarian-Reference Instruction & Student Engagement (RISE)","Library","Instructor/Teacher/Faculty","2025-12-12","2026-03-06",13,91,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Librarian-Reference, Instruction, & Student Engagement (RISE)","Library","Instructor/Teacher/Faculty","2025-06-13","2025-10-03",17,119,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Mathematics Instructor","Math","Instructor/Teacher/Faculty","2026-06-19","2026-07-10",4,28,"Closed / Filled",1,0,0,0,1
+"Central Wyoming College",240514,"Nursing Assistant Instructor- Recompete","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-04-04","2025-04-11",2,14,"Closed / Filled",1,1,1,0,1
+"Central Wyoming College",240514,"Nursing Assistant Instructor- Recompete Grant","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-04-18","2025-08-15",18,126,"Closed / Filled",1,1,1,0,1
+"Central Wyoming College",240514,"Nursing Instructor","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-03-07","2025-09-12",28,196,"Closed / Filled",1,1,1,0,1
+"Central Wyoming College",240514,"Nursing Instructor","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-03-27","2026-11-13",34,238,"Still Active",1,1,1,0,1
+"Central Wyoming College",240514,"Online Learning & Outreach Librarian","Library","Instructor/Teacher/Faculty","2026-05-01","2026-05-29",5,35,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Psychology Instructor","Social Science","Instructor/Teacher/Faculty","2026-08-04","2026-10-02",9,66,"Closed / Filled",1,0,0,0,1
+"Central Wyoming College",240514,"Social Work/Human Services Instructor","Human Services","Instructor/Teacher/Faculty","2026-11-06","2026-11-13",2,14,"Still Active",0,0,0,0,1
+"Central Wyoming College",240514,"Theatre Director and Instructor","The Arts","Instructor/Teacher/Faculty","2026-03-06","2026-03-13",2,14,"Closed / Filled",0,0,0,0,1
+"Central Wyoming College",240514,"Welding Program Director/Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-05-30","2025-06-20",4,28,"Closed / Filled",1,0,1,0,1
+"Eastern Wyoming Community College",240596,"Adjunct Agriculture  Instructor","Science","Adjunct/Part-Time Faculty","2026-06-26","2026-11-13",21,147,"Still Active",1,0,0,1,0
+"Eastern Wyoming Community College",240596,"Adjunct Arts, Humantities, Social & Behavioral Sciences Instructor","Social Science","Adjunct/Part-Time Faculty","2026-06-26","2026-11-13",21,147,"Still Active",1,0,0,1,0
+"Eastern Wyoming Community College",240596,"Adjunct Business Instructor","CTE - Business & Computing","Adjunct/Part-Time Faculty","2026-06-05","2026-11-13",24,168,"Still Active",1,0,1,1,0
+"Eastern Wyoming Community College",240596,"Adjunct College Instructor","Uncategorized","Adjunct/Part-Time Faculty","2026-06-26","2026-11-13",21,147,"Still Active",0,0,0,1,0
+"Eastern Wyoming Community College",240596,"Adjunct Health Sciences Instructor","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-06-26","2026-11-13",21,147,"Still Active",1,1,1,1,0
+"Eastern Wyoming Community College",240596,"Adjunct Math & Science Instructor","Math","Adjunct/Part-Time Faculty","2026-06-26","2026-11-13",21,147,"Still Active",1,0,0,1,0
+"Eastern Wyoming Community College",240596,"Adjunct Physics Instructor","Science","Adjunct/Part-Time Faculty","2026-07-10","2026-08-14",6,42,"Closed / Filled",1,0,0,1,0
+"Eastern Wyoming Community College",240596,"Adjunct Veterinary Technology Instructor","Science","Adjunct/Part-Time Faculty","2026-06-26","2026-11-13",21,147,"Still Active",1,0,0,1,0
+"Eastern Wyoming Community College",240596,"Agriculture Technology Instructor","Science","Instructor/Teacher/Faculty","2026-05-22","2026-07-24",10,70,"Closed / Filled",1,0,0,0,1
+"Eastern Wyoming Community College",240596,"Anatomy & Physiology Instructor","Science","Instructor/Teacher/Faculty","2026-05-01","2026-06-19",8,56,"Closed / Filled",1,0,0,0,1
+"Eastern Wyoming Community College",240596,"Business Instructor","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-05-02","2025-11-21",30,210,"Closed / Filled",1,0,1,0,1
+"Eastern Wyoming Community College",240596,"CDL Instructor (Douglas Campus)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-06-20","2025-11-14",22,154,"Closed / Filled",1,0,1,0,1
+"Eastern Wyoming Community College",240596,"CDL Instructor (Torrington Campus)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-08-15","2025-10-10",9,63,"Closed / Filled",1,0,1,0,1
+"Eastern Wyoming Community College",240596,"CDL Program Instructor Part Time","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-04-25","2025-10-10",25,175,"Closed / Filled",1,0,1,1,0
+"Eastern Wyoming Community College",240596,"CDL Program Instructor Part Time Douglas Campus","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-05-09","2025-06-06",5,35,"Closed / Filled",1,0,1,1,0
+"Eastern Wyoming Community College",240596,"Certified Nursing Assistant (CNA) Instructor, Douglas","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-10-18","2025-01-03",12,84,"Closed / Filled",1,1,1,0,1
+"Eastern Wyoming Community College",240596,"Certified Nursing Assistant (CNA) Instructor, Torrington","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-11-01","2025-03-28",22,154,"Closed / Filled",1,1,1,0,1
+"Eastern Wyoming Community College",240596,"Chemistry Instructor","Science","Instructor/Teacher/Faculty","2026-05-01","2026-06-12",7,49,"Closed / Filled",1,0,0,0,1
+"Eastern Wyoming Community College",240596,"Cosmetology Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-07-24","2026-07-24",1,7,"Closed / Filled",1,0,1,0,1
+"Eastern Wyoming Community College",240596,"Foundational Math Instructor","Math","Instructor/Teacher/Faculty","2026-02-13","2026-05-15",14,98,"Closed / Filled",1,0,0,0,1
+"Eastern Wyoming Community College",240596,"Gunsmithing Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-10-31","2026-05-15",29,203,"Closed / Filled",1,0,1,0,1
+"Eastern Wyoming Community College",240596,"Health Technology Instructor","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-09-13","2024-10-11",5,35,"Closed / Filled",1,1,1,0,1
+"Eastern Wyoming Community College",240596,"Health Technology Instructor (CNA-Douglas Campus)","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2024-10-11",10,70,"Closed / Filled",1,1,1,0,1
+"Eastern Wyoming Community College",240596,"INTERNAL ONLY Agri-business Instructor","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-05-22","2026-05-29",2,14,"Closed / Filled",1,0,1,0,1
+"Eastern Wyoming Community College",240596,"Math Instructor","Math","Instructor/Teacher/Faculty","2025-05-02","2025-08-22",17,119,"Closed / Filled",1,0,0,0,1
+"Eastern Wyoming Community College",240596,"Math Instructor","Math","Instructor/Teacher/Faculty","2026-03-20","2026-11-13",35,245,"Still Active",1,0,0,0,1
+"Eastern Wyoming Community College",240596,"Medical Assistant (MA) Instructor, Douglas","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-10-18","2024-12-06",8,56,"Closed / Filled",1,1,1,0,1
+"Eastern Wyoming Community College",240596,"Nursing Instructor-Douglas","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-04-04","2025-05-16",7,49,"Closed / Filled",1,1,1,0,1
+"Eastern Wyoming Community College",240596,"Nursing Instructor-Torrington","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2024-10-11",10,70,"Closed / Filled",1,1,1,0,1
+"Eastern Wyoming Community College",240596,"Nursing Instructor-Torrington","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-03-21","2025-05-30",11,77,"Closed / Filled",1,1,1,0,1
+"Eastern Wyoming Community College",240596,"Nursing Instructor-Torrington","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-22","2026-09-25",19,133,"Closed / Filled",1,1,1,0,1
+"Eastern Wyoming Community College",240596,"Vet Tech (Large Animal) Instructor","Science","Instructor/Teacher/Faculty","2026-10-23","2026-11-13",4,28,"Still Active",1,0,0,0,1
+"Eastern Wyoming Community College",240596,"Welding Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-05-09","2025-08-01",13,91,"Closed / Filled",1,0,1,0,1
+"Gillette College",240666,"AE Instructor - Part-Time","Education","Adjunct/Part-Time Faculty","2025-09-05","2025-12-05",14,98,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Accounting Adjunct","CTE - Business & Computing","Adjunct/Part-Time Faculty","2025-05-02","2026-05-22",56,392,"Closed / Filled",1,0,1,1,0
+"Gillette College",240666,"Accounting Adjunct Instructor","CTE - Business & Computing","Adjunct/Part-Time Faculty","2026-04-24","2026-11-13",30,210,"Still Active",1,0,1,1,0
+"Gillette College",240666,"Adjunct Faculty- Beginning Digital Photography","The Arts","Adjunct/Part-Time Faculty","2026-08-11","2026-08-21",2,17,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Adjunct Instructor for Education Program","Education","Adjunct/Part-Time Faculty","2026-03-13","2026-06-12",14,98,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Adjunct Instructor of Mathematics","Math","Adjunct/Part-Time Faculty","2025-07-25","2025-08-01",2,14,"Closed / Filled",1,0,0,1,0
+"Gillette College",240666,"Adjunct Instructor – Part-Time","Uncategorized","Adjunct/Part-Time Faculty","2024-08-09","2025-04-11",36,252,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Adjunct Nursing Instructor","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-04-24","2026-11-13",30,210,"Still Active",1,1,1,1,0
+"Gillette College",240666,"Adult Education Instructor","Education","Instructor/Teacher/Faculty","2025-08-15","2025-10-17",10,70,"Closed / Filled",0,0,0,0,1
+"Gillette College",240666,"Adult Education Instructor","Education","Instructor/Teacher/Faculty","2026-08-28","2026-11-13",12,84,"Still Active",0,0,0,0,1
+"Gillette College",240666,"Area 59 STEM Achievers Program - Instructor","Education","Instructor/Teacher/Faculty","2025-04-18","2025-05-16",5,35,"Closed / Filled",0,0,0,0,1
+"Gillette College",240666,"Area 59 STEM and Makerspace Instructor","Education","Instructor/Teacher/Faculty","2026-07-31","2026-11-13",16,112,"Still Active",0,0,0,0,1
+"Gillette College",240666,"Art History Adjunct Instructor","History","Adjunct/Part-Time Faculty","2026-04-24","2026-11-13",30,210,"Still Active",0,0,0,1,0
+"Gillette College",240666,"Biology Adjunct","Science","Adjunct/Part-Time Faculty","2025-05-02","2026-01-30",40,280,"Closed / Filled",1,0,0,1,0
+"Gillette College",240666,"Biology Adjunct Instructor","Science","Adjunct/Part-Time Faculty","2025-01-10","2025-04-11",14,98,"Closed / Filled",1,0,0,1,0
+"Gillette College",240666,"Business Adjunct","CTE - Business & Computing","Adjunct/Part-Time Faculty","2025-05-02","2026-06-26",61,427,"Closed / Filled",1,0,1,1,0
+"Gillette College",240666,"Business Adjunct Instructor","CTE - Business & Computing","Adjunct/Part-Time Faculty","2024-12-06","2025-04-11",19,133,"Closed / Filled",1,0,1,1,0
+"Gillette College",240666,"CDL Adjunct Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-12-06","2025-03-14",15,105,"Closed / Filled",1,0,1,1,0
+"Gillette College",240666,"CDL Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-01-31","2025-03-07",6,42,"Closed / Filled",1,0,1,0,1
+"Gillette College",240666,"CDL Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-04-11","2025-09-19",23,168,"Closed / Filled",1,0,1,0,1
+"Gillette College",240666,"CDL Instructor Part-time","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2024-11-29",17,119,"Closed / Filled",1,0,1,1,0
+"Gillette College",240666,"Chemistry Instructor","Science","Instructor/Teacher/Faculty","2024-08-09","2024-10-18",11,77,"Closed / Filled",1,0,0,0,1
+"Gillette College",240666,"Communications Adjunct","Humanities","Adjunct/Part-Time Faculty","2025-05-30","2026-01-16",34,238,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Criminal Justice Forensic Psych Adjunct Instructor","Criminal Justice","Adjunct/Part-Time Faculty","2026-07-10","2026-10-23",16,112,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Criminal Justice Forensic Psych Instructor","Criminal Justice","Instructor/Teacher/Faculty","2026-04-24","2026-07-03",11,77,"Closed / Filled",0,0,0,0,1
+"Gillette College",240666,"Criminal Justice Instructor","Criminal Justice","Instructor/Teacher/Faculty","2026-05-29","2026-07-17",8,56,"Closed / Filled",0,0,0,0,1
+"Gillette College",240666,"Diesel Technology Faculty","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-08-15","2025-09-12",5,35,"Closed / Filled",1,0,1,0,1
+"Gillette College",240666,"Education Instructor","Education","Instructor/Teacher/Faculty","2024-11-22","2025-01-10",8,56,"Closed / Filled",0,0,0,0,1
+"Gillette College",240666,"Education Instructor","Education","Instructor/Teacher/Faculty","2025-02-28","2025-05-09",9,77,"Closed / Filled",0,0,0,0,1
+"Gillette College",240666,"Electrical Apprenticeship Adjunct Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2025-01-10",23,161,"Closed / Filled",1,0,1,1,0
+"Gillette College",240666,"English Adjunct Instructor","Humanities","Adjunct/Part-Time Faculty","2025-05-30","2026-01-16",34,238,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Exercise Science and Athletic Training Adjunct","Physical Education","Adjunct/Part-Time Faculty","2025-07-18","2026-01-16",27,189,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Graphic Design Adjunct Instructor","The Arts","Adjunct/Part-Time Faculty","2024-08-09","2026-01-30",76,546,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Industrial Electrical Faculty","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-10-16","2026-11-13",5,35,"Still Active",1,0,1,0,1
+"Gillette College",240666,"Industrial Electrical Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-03-28","2025-08-29",23,161,"Closed / Filled",1,0,1,0,1
+"Gillette College",240666,"Librarian","Library","Instructor/Teacher/Faculty","2025-06-20","2025-09-12",13,91,"Closed / Filled",0,0,0,0,1
+"Gillette College",240666,"MSHA Adjunct","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-04-10","2026-11-13",32,224,"Still Active",1,0,1,1,0
+"Gillette College",240666,"Mathematics Adjunct","Math","Adjunct/Part-Time Faculty","2025-08-08","2026-01-16",24,168,"Closed / Filled",1,0,0,1,0
+"Gillette College",240666,"Nursing Faculty","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-04-10","2026-08-21",20,140,"Closed / Filled",1,1,1,0,1
+"Gillette College",240666,"Nursing Faculty","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-11-13","2026-11-13",1,7,"Still Active",1,1,1,0,1
+"Gillette College",240666,"Part Time CDL Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-05-02","2026-04-03",48,343,"Closed / Filled",1,0,1,1,0
+"Gillette College",240666,"Political Science Adjunct","Social Science","Adjunct/Part-Time Faculty","2025-07-25","2026-05-15",42,301,"Closed / Filled",1,0,0,1,0
+"Gillette College",240666,"Psychology Adjunct","Social Science","Adjunct/Part-Time Faculty","2025-05-02","2026-01-16",38,266,"Closed / Filled",1,0,0,1,0
+"Gillette College",240666,"Psychology Instructor","Social Science","Instructor/Teacher/Faculty","2025-12-26","2026-10-23",43,308,"Closed / Filled",1,0,0,0,1
+"Gillette College",240666,"Psychology of Child Development Adjunct","Human Services","Adjunct/Part-Time Faculty","2026-04-24","2026-10-23",27,189,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"STEM Achievers Teacher","Education","Instructor/Teacher/Faculty","2026-04-10","2026-04-10",1,7,"Closed / Filled",0,0,0,0,1
+"Gillette College",240666,"Spanish Adjunct Instructor","Language","Adjunct/Part-Time Faculty","2025-05-30","2026-01-16",34,238,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Spanish Adjunct Instructor","Language","Adjunct/Part-Time Faculty","2026-04-24","2026-06-19",9,63,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Spanish II Adjunct Instructor - Online","Language","Adjunct/Part-Time Faculty","2026-10-09","2026-10-16",2,14,"Closed / Filled",0,0,0,1,0
+"Gillette College",240666,"Verizon Innovative Learning STEM Achievers Program Instructor","Education","Instructor/Teacher/Faculty","2024-12-13","2025-04-11",18,126,"Closed / Filled",0,0,0,0,1
+"Gillette College",240666,"Welding Adjunct Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-08-15","2026-11-13",65,462,"Still Active",1,0,1,1,0
+"Gillette College",240666,"Welding Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-09-06","2025-02-28",26,182,"Closed / Filled",1,0,1,0,1
+"Gillette College",240666,"Welding Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-06-20","2025-10-31",20,140,"Closed / Filled",1,0,1,0,1
+"Gillette College",240666,"Welding Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-12-19","2026-11-13",48,336,"Still Active",1,0,1,0,1
+"Laramie County Community College",240620,"Adjuct Instructor, CDL - Evening Shift","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-06-20","2025-06-20",1,7,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Adjunct Instructor, ACES","Uncategorized","Adjunct/Part-Time Faculty","2025-08-15","2025-10-17",10,70,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Adult Basic Education","Education","Adjunct/Part-Time Faculty","2025-12-19","2026-01-09",4,28,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Adult Basic Education","Education","Adjunct/Part-Time Faculty","2026-07-03","2026-08-28",9,63,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Adult Basic Education (Laramie Campus)","Education","Adjunct/Part-Time Faculty","2026-07-03","2026-08-28",9,63,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Agriculture","Science","Adjunct/Part-Time Faculty","2025-08-15","2026-11-06",65,455,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Agroecology","Science","Adjunct/Part-Time Faculty","2025-08-01","2026-11-06",67,469,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Anthropology","Social Science","Adjunct/Part-Time Faculty","2025-12-19","2026-10-30",46,322,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Art (Digital Arts & Media/Visual Communication)","The Arts","Adjunct/Part-Time Faculty","2025-05-16","2026-11-13",79,553,"Still Active",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Biology","Science","Adjunct/Part-Time Faculty","2025-04-18","2026-11-06",82,574,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Biology (Laramie Campus)","Science","Adjunct/Part-Time Faculty","2025-04-04","2026-10-16",81,567,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Business","CTE - Business & Computing","Adjunct/Part-Time Faculty","2025-03-28","2026-11-13",86,602,"Still Active",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, CDL - Evening Shift","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-06-27","2026-04-10",42,294,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, CDL - Evening Shift","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-08-28","2026-11-06",11,77,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, CNA","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-12-26","2026-11-13",47,329,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, CPR/First Aid (Laramie Campus)","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-04-24","2026-07-10",12,84,"Closed / Filled",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Cardiovascular","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-07-18","2026-11-13",70,490,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Certified Clinical Medical Assisting","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-03-13","2026-10-09",31,217,"Closed / Filled",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Certified Nurse Assistant (CNA) (Laramie Campus)","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-01-30","2026-11-13",42,294,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Chemistry","Science","Adjunct/Part-Time Faculty","2025-03-28","2026-11-06",85,595,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Clinical Dental Hygiene","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-03-28","2026-09-04",76,532,"Closed / Filled",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Clinical Dental Hygienist","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-09-11","2026-11-13",10,70,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Clinical Dentist","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-10-31","2026-11-13",55,385,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Communication","Humanities","Adjunct/Part-Time Faculty","2024-08-09","2025-01-17",24,168,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Communications","Humanities","Adjunct/Part-Time Faculty","2025-08-01","2026-11-13",68,476,"Still Active",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Computer Science","CTE - Business & Computing","Adjunct/Part-Time Faculty","2026-06-12","2026-11-13",23,161,"Still Active",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Computer Skills Training","CTE - Business & Computing","Adjunct/Part-Time Faculty","2025-07-18","2026-06-05",47,329,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Computer Skills Training (Laramie Campus)","CTE - Business & Computing","Adjunct/Part-Time Faculty","2025-07-18","2025-08-29",7,49,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Construction Trades","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-06-13","2025-08-01",8,56,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Criminal Justice","Criminal Justice","Adjunct/Part-Time Faculty","2026-08-21","2026-10-30",11,77,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Cybersecurity","CTE - Business & Computing","Adjunct/Part-Time Faculty","2025-05-16","2026-11-13",79,553,"Still Active",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, DMS","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-07-11","2026-11-13",71,497,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Developmental Math, Laramie Campus","Math","Adjunct/Part-Time Faculty","2025-12-12","2026-11-13",49,343,"Still Active",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Diesel Technology","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2025-01-17",24,168,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, ES/Physics","Science","Adjunct/Part-Time Faculty","2025-03-28","2026-11-06",85,595,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, ESL","Language","Adjunct/Part-Time Faculty","2026-09-18","2026-10-09",4,28,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Education","Education","Adjunct/Part-Time Faculty","2025-08-15","2025-10-10",9,63,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Electrical Apprenticeship (Cheyenne)","Language","Adjunct/Part-Time Faculty","2026-07-24","2026-11-13",17,119,"Still Active",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Electrical Apprenticeship (Laramie Campus)","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-07-24","2026-11-13",17,119,"Still Active",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Electrical Technology","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2025-01-17",24,168,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Emergency Medical Services (EMS), Laramie Campus","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-10-17","2026-11-06",56,392,"Closed / Filled",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Engineering","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-06-19","2026-11-13",22,154,"Still Active",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, English","Humanities","Adjunct/Part-Time Faculty","2026-05-15","2026-11-13",27,189,"Still Active",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, English as a Second Language (ESL) (Evening)","Language","Adjunct/Part-Time Faculty","2025-10-31","2025-12-05",6,42,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Essential Systems Technology","Uncategorized","Adjunct/Part-Time Faculty","2025-07-04","2026-04-24",43,301,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Geology","Science","Adjunct/Part-Time Faculty","2025-03-28","2026-11-06",85,595,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Health Sciences","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-06-06","2026-11-13",76,532,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, History - Laramie Campus","History","Adjunct/Part-Time Faculty","2025-05-02","2026-10-16",77,539,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, In-Car Driving","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-05-30","2026-11-13",77,539,"Still Active",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Industrial Systems","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2025-01-17",24,168,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Information Technology","CTE - Business & Computing","Adjunct/Part-Time Faculty","2025-05-16","2026-10-23",76,532,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Kinesiology & Health Promotion","Physical Education","Adjunct/Part-Time Faculty","2025-08-15","2026-07-10",48,336,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Life Enrichment (Laramie Campus)","Uncategorized","Adjunct/Part-Time Faculty","2025-08-15","2026-01-02",21,147,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Ludden Library","Library","Adjunct/Part-Time Faculty","2026-02-27","2026-05-15",12,84,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Math - Laramie Campus","Math","Adjunct/Part-Time Faculty","2025-05-02","2026-11-06",80,560,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Mathematics","Math","Adjunct/Part-Time Faculty","2025-07-18","2026-11-13",70,490,"Still Active",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Music","The Arts","Adjunct/Part-Time Faculty","2025-05-02","2026-11-13",81,567,"Still Active",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Nursing","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-03-28","2026-11-13",86,602,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Paramedic/EMT","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-09-05","2026-11-13",63,441,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Physical Therapist Assistant","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-05-01","2026-11-13",29,203,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Pipefitting","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-09-18","2026-11-13",9,63,"Still Active",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Political Science - Laramie Campus","Social Science","Adjunct/Part-Time Faculty","2025-05-02","2026-10-16",77,539,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Psychology","Social Science","Adjunct/Part-Time Faculty","2025-10-17","2026-10-30",55,385,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Radiography","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-01-16","2026-11-13",44,308,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Respiratory Therapist","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-08-15","2026-11-13",66,462,"Still Active",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, SEEK (Subject Matter Expert)","Uncategorized","Adjunct/Part-Time Faculty","2025-06-06","2025-06-06",1,7,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Sociology (Laramie Campus)","Social Science","Adjunct/Part-Time Faculty","2025-11-21","2026-10-16",48,336,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Speech Language Pathology Assistant (SLPA)","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-07-03","2026-10-30",18,126,"Closed / Filled",1,1,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Technical Skills Training","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-05-02","2025-07-04",10,70,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Technical Skills Training - Laramie Campus","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-05-02","2025-07-04",10,70,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Telecommunications","Humanities","Adjunct/Part-Time Faculty","2025-05-16","2026-11-13",79,553,"Still Active",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, WHP","Uncategorized","Adjunct/Part-Time Faculty","2024-08-09","2025-01-03",22,154,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct Instructor, Zoology/Biology","Science","Adjunct/Part-Time Faculty","2025-03-28","2026-11-06",85,595,"Closed / Filled",1,0,0,1,0
+"Laramie County Community College",240620,"Adjunct, Adult Basic Education (Laramie Campus)","Education","Adjunct/Part-Time Faculty","2025-08-08","2025-10-10",10,70,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Adjunct, Construction Trades","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-09-26","2026-02-20",22,154,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Adjunct, Plumbing Apprenticeship Training","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-04-25","2025-12-05",33,231,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"CDL Adjunct Instructor, LCSD #2","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-10-16","2026-11-13",5,35,"Still Active",1,0,1,1,0
+"Laramie County Community College",240620,"CDL Instructor (9-months (Only Open to Current LCCC Employees in the CDL Program)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-04-04","2025-04-11",2,14,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Construction Trades, Instructor/Coordinator","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-10-09","2026-10-09",1,7,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Economics Instructor","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-03-28","2025-04-25",5,35,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Electrical/Industrial Maintenance Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-06-05","2026-07-03",5,35,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"English Language Adjunct Instructor, Eastern Laramie County Outreach Center","Humanities","Adjunct/Part-Time Faculty","2025-08-15","2025-10-17",10,70,"Closed / Filled",0,0,0,1,0
+"Laramie County Community College",240620,"Information Technology Instructor","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-05-16","2025-06-27",7,49,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor & Specialist, Marketing (Part-Time)","CTE - Business & Computing","Adjunct/Part-Time Faculty","2025-04-11","2025-04-25",3,21,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Instructor, Adult Basic Education","Education","Instructor/Teacher/Faculty","2026-04-03","2026-05-29",9,63,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Adult Basic Education (Open to Current LCCC Laramie Campus Employees Only)","Education","Instructor/Teacher/Faculty","2025-07-18","2025-08-08",4,28,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Agriculture","Science","Instructor/Teacher/Faculty","2026-07-03","2026-07-24",4,28,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Automotive Technology","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-05-30","2025-06-06",2,14,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, Biology","Science","Instructor/Teacher/Faculty","2026-02-20","2026-06-26",19,133,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Business Training","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-04-17","2026-05-01",3,21,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, Business Training (Only Open to Current LCCC Employees)","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-02-06","2026-02-13",2,14,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, CNA","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-15","2026-06-19",6,42,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Commercial Driver License (CDL)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-04-17","2026-10-30",29,203,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, Communication","Humanities","Instructor/Teacher/Faculty","2025-09-19","2025-11-21",10,70,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Construction Workforce","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-10-23","2026-10-30",2,14,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, DMS Concentrations","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-03-14","2025-03-14",1,7,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Dental Hygiene","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2024-09-20",7,49,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Dental Hygiene","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-15","2026-07-03",8,56,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Diagnostic Medical Sonography (DMS) Concentrations","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-01-16","2026-02-13",5,35,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Diesel Technology","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-05-08","2026-07-24",12,84,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, Diesel Technology (Part-Time)","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-04-25","2026-02-13",41,301,"Closed / Filled",1,0,1,1,0
+"Laramie County Community College",240620,"Instructor, Economics & Public Policy; Director, WCBEA","Social Science","Instructor/Teacher/Faculty","2025-05-02","2025-06-13",7,49,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Education","Education","Instructor/Teacher/Faculty","2026-04-03","2026-05-01",5,35,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Emerging Ag Technology","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-05-15","2026-06-05",4,28,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, English","Humanities","Instructor/Teacher/Faculty","2025-03-14","2025-04-18",6,42,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Instructor, English","Humanities","Instructor/Teacher/Faculty","2026-05-01","2026-06-26",9,63,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Instructor, General Health Sciences","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-05-30","2025-07-25",9,63,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Health Sciences","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-06-26","2026-07-17",4,28,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Human Anatomy & Physiology","Science","Instructor/Teacher/Faculty","2026-04-17","2026-06-26",11,77,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Information Technology","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-04-03","2026-05-29",9,63,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, Information Technology Pathway","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-08-09","2024-08-30",4,28,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, Kinesiology & Health Promotion","Physical Education","Instructor/Teacher/Faculty","2025-10-24","2026-04-03",24,168,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Mathematics","Math","Instructor/Teacher/Faculty","2024-12-20","2025-02-28",11,77,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Nursing (10-Month)","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-02-27","2026-05-22",13,91,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Nursing (9-Month) (Only Open to Current LCCC Nursing Faculty)","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-02-27","2026-02-27",1,7,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Nursing (9-month)","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-03-13","2026-07-24",20,140,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Nursing (Open to Current LCCC Nursing Department Employees Only)","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-08-01","2025-08-01",1,7,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Psychology","Social Science","Instructor/Teacher/Faculty","2025-10-17","2025-11-14",5,35,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Psychology","Social Science","Instructor/Teacher/Faculty","2026-01-09","2026-05-01",17,119,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Instructor, Speech Language Pathology Assistant","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-01-09","2026-04-17",15,105,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Speech Language Pathology Assistant","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-29","2026-07-24",9,63,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor, Welding Technology","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-11-28","2026-01-09",7,49,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, Welding Technology","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-04-03","2026-08-07",19,133,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor, Zoology/Biology","Science","Instructor/Teacher/Faculty","2026-02-20","2026-04-10",8,56,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Instructor-Examiner, CDL (9-months (Only Open to Current LCCC Employees in the CDL Program)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-04-04","2025-04-11",2,14,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor/Clinical Coordinator, Dental Hygiene","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-29","2026-06-26",5,35,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor/Clinical Coordinator, Medical Assistant (Open to Current LCCC Employees Only)","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-29","2026-05-29",1,7,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor/Clinical Coordinator, Nursing","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-06-20","2025-07-25",6,42,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor/Clinical Coordinator, Physical Therapist Assistant (Open to Current HSW Employees Only)","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-06-20","2025-06-20",1,7,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor/Clinical Coordinator, Physical Therapy Assistant (Open to Current HSW Employees Only)","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-07-04","2025-07-04",1,7,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor/Coordinator, Electrical Workforce (Open to Current LCCC Employees Only)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-05-08","2026-05-08",1,7,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor/Coordinator, Medical Assistant","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-11-07","2025-12-05",5,35,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Instructor/Course Coordinator, Health Information Technology Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-06-20","2025-10-31",20,140,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Instructor/Course Coordinator, Health Information Technology Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-06-05","2026-06-19",3,21,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Interim Instructor, Agriculture","Science","Instructor/Teacher/Faculty","2025-10-03","2026-01-09",15,105,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Interim Instructor, Biology","Science","Instructor/Teacher/Faculty","2025-07-11","2025-07-11",1,7,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Interim Instructor, Health Information Technology & Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-07-10","2026-07-17",2,14,"Closed / Filled",1,0,1,0,1
+"Laramie County Community College",240620,"Interim Instructor, Mathematics","Math","Instructor/Teacher/Faculty","2024-11-22","2024-12-13",4,28,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Interim Instructor, Speech Language Pathology Assistant","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-07-25","2025-07-25",1,7,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Interim Instructor, Speech Language Pathology Assistant","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-07-17","2026-07-24",2,14,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Interim Instructor/Clinical Coordinator, Physical Therapist Assistant Program","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-09-27","2025-01-17",17,119,"Closed / Filled",1,1,1,0,1
+"Laramie County Community College",240620,"Interim Math Instructor","Math","Instructor/Teacher/Faculty","2025-05-23","2025-10-17",22,154,"Closed / Filled",1,0,0,0,1
+"Laramie County Community College",240620,"Lead Teacher","Uncategorized","Instructor/Teacher/Faculty","2026-05-08","2026-06-05",5,35,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Librarian","Library","Instructor/Teacher/Faculty","2025-08-01","2025-09-12",7,49,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Part-Time Librarian","Library","Instructor/Teacher/Faculty","2026-05-22","2026-11-13",26,182,"Still Active",0,0,0,0,1
+"Laramie County Community College",240620,"Subject Matter Expert, Life Enrichment Class","Uncategorized","Instructor/Teacher/Faculty","2024-08-09","2025-01-17",24,168,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Substitute Teacher","Uncategorized","Instructor/Teacher/Faculty","2025-05-02","2025-06-20",8,56,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Teacher","Uncategorized","Instructor/Teacher/Faculty","2025-05-30","2025-06-20",4,28,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Teacher","Uncategorized","Instructor/Teacher/Faculty","2025-10-31","2025-11-21",4,28,"Closed / Filled",0,0,0,0,1
+"Laramie County Community College",240620,"Zoology/Biology Instructor","Science","Instructor/Teacher/Faculty","2025-03-21","2025-05-16",9,63,"Closed / Filled",1,0,0,0,1
+"Northwest College",240657,"Adjunct - Instructor of CAD","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-10-31","2026-09-04",45,315,"Closed / Filled",1,0,1,1,0
+"Northwest College",240657,"Adjunct - Instructor of Communication","Humanities","Adjunct/Part-Time Faculty","2025-06-27","2025-09-05",11,77,"Closed / Filled",0,0,0,1,0
+"Northwest College",240657,"Adjunct - Instructor of Nursing","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-06-27","2025-09-05",11,77,"Closed / Filled",1,1,1,1,0
+"Northwest College",240657,"Adjunct - Instructor of Ski Area Operations Courses","Uncategorized","Adjunct/Part-Time Faculty","2025-10-17","2025-12-12",9,63,"Closed / Filled",0,0,0,1,0
+"Northwest College",240657,"Adjunct Clinical Nursing Instructor","CTE - Health Sciences","Adjunct/Part-Time Faculty","2024-08-09","2024-08-16",2,14,"Closed / Filled",1,1,1,1,0
+"Northwest College",240657,"Adjunct Instructor of Equine Studies","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-11-15","2024-12-20",6,42,"Closed / Filled",1,0,1,1,0
+"Northwest College",240657,"FIxed Term Instructor of Equine Studies","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-07-31","2026-08-21",4,28,"Closed / Filled",1,0,1,0,1
+"Northwest College",240657,"Fixed Term Instructor/Assistant Professor of Business","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-07-11","2025-08-15",6,42,"Closed / Filled",1,0,1,0,1
+"Northwest College",240657,"Fixed Term Instructor/Assistant Professor of Graphic Design","The Arts","Instructor/Teacher/Faculty","2024-08-09","2024-08-16",2,14,"Closed / Filled",0,0,0,0,1
+"Northwest College",240657,"Fixed-Term Instructor of Nursing","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-05-16","2026-06-12",57,399,"Closed / Filled",1,1,1,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Art - Tenure Track","The Arts","Instructor/Teacher/Faculty","2025-12-19","2026-01-09",4,28,"Closed / Filled",0,0,0,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Business  (Accounting Emphasis) - Tenure Track","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-05-01","2026-05-29",5,35,"Closed / Filled",1,0,1,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Business (Accounting Emphasis)  - Tenure Track","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-12-19","2026-01-09",4,28,"Closed / Filled",1,0,1,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Business - Tenure Track","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-12-19","2026-01-09",4,28,"Closed / Filled",1,0,1,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Criminal Justice - Tenure Track","Criminal Justice","Instructor/Teacher/Faculty","2024-12-20","2025-01-17",5,35,"Closed / Filled",0,0,0,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of English as a Second Language (ESL) and English - Tenure Track","Language","Instructor/Teacher/Faculty","2025-12-19","2026-01-09",4,28,"Closed / Filled",0,0,0,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Graphic Design - Tenure Track","The Arts","Instructor/Teacher/Faculty","2024-12-13","2025-06-06",26,182,"Closed / Filled",0,0,0,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Music - Tenure Track","The Arts","Instructor/Teacher/Faculty","2025-12-19","2026-01-09",4,28,"Closed / Filled",0,0,0,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Political Science and First Year Seminar - Tenure Track","Social Science","Instructor/Teacher/Faculty","2025-12-19","2026-01-09",4,28,"Closed / Filled",1,0,0,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Psychology - Tenure Track","Social Science","Instructor/Teacher/Faculty","2025-05-23","2025-06-06",3,21,"Closed / Filled",1,0,0,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Sociology - Tenure Track","Social Science","Instructor/Teacher/Faculty","2025-05-23","2025-06-06",3,21,"Closed / Filled",1,0,0,0,1
+"Northwest College",240657,"Instructor/Assistant Professor of Sociology - Tenure Track","Social Science","Instructor/Teacher/Faculty","2025-12-19","2026-01-09",4,28,"Closed / Filled",1,0,0,0,1
+"Sheridan College",240666,"Accounting/Business Faculty","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-08-23","2024-11-29",14,105,"Closed / Filled",1,0,1,0,1
+"Sheridan College",240666,"Assistant Professor of Business","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-05-30","2025-07-25",9,63,"Closed / Filled",1,0,1,0,1
+"Sheridan College",240666,"Assistant Professor of Business","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-05-29","2026-07-24",9,63,"Closed / Filled",1,0,1,0,1
+"Sheridan College",240666,"Assistant Professor of Carpentry/Construction","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-08-21","2026-11-06",12,84,"Closed / Filled",1,0,1,0,1
+"Sheridan College",240666,"Assistant Professor of Dental Hygiene","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-05-29","2026-06-12",3,21,"Closed / Filled",1,1,1,0,1
+"Sheridan College",240666,"Assistant Professor of Machining/Manufacturing","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-08-21","2026-11-13",13,91,"Still Active",1,0,1,0,1
+"Sheridan College",240666,"Assistant Professor of Mathematics","Math","Instructor/Teacher/Faculty","2025-02-28","2025-05-02",10,70,"Closed / Filled",1,0,0,0,1
+"Sheridan College",240666,"Assistant Professor of Nursing","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-04-25","2025-07-18",13,91,"Closed / Filled",1,1,1,0,1
+"Sheridan College",240666,"Assistant Professor of Welding","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-04-04","2025-08-08",19,133,"Closed / Filled",1,0,1,0,1
+"Sheridan College",240666,"Assistant Professor, Commercial Motor Vehicle (CMV) Driver Training Program","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-06-06","2025-07-04",5,35,"Closed / Filled",1,0,1,0,1
+"Sheridan College",240666,"Assistant Professor- Computer Science Youth Outreach Coordinator (Part-Time)","Human Services","Adjunct/Part-Time Faculty","2025-05-30","2025-07-25",9,63,"Closed / Filled",0,0,0,1,0
+"Sheridan College",240666,"Business Faculty","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-12-06","2025-02-21",12,84,"Closed / Filled",1,0,1,0,1
+"Sheridan College",240666,"Engineering Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2024-09-13",6,42,"Closed / Filled",1,0,1,0,1
+"Sheridan College",240666,"Hospitality Faculty Coordinator","Culinary/Hospitality","Instructor/Teacher/Faculty","2025-02-14","2025-04-25",11,77,"Closed / Filled",0,0,0,0,1
+"Sheridan College",240666,"Hospitality Faculty Coordinator","Culinary/Hospitality","Instructor/Teacher/Faculty","2026-05-29","2026-08-11",12,81,"Closed / Filled",0,0,0,0,1
+"Sheridan College",240666,"Manufacturing Faculty Coordinator","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-09-20","2025-03-07",25,175,"Closed / Filled",1,0,1,0,1
+"Sheridan College",240666,"Part Time HSE/ELA Instructor","Uncategorized","Adjunct/Part-Time Faculty","2026-10-30","2026-11-13",3,21,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Accounting Instructor","CTE - Business & Computing","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Acting II Instructor","The Arts","Adjunct/Part-Time Faculty","2024-10-25","2026-11-13",108,756,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Adobe Creative Cloud Instructor","The Arts","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Advanced Manufacturing Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-09-06","2026-11-13",115,805,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Agriculture Instructor","Science","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Anthropology Instructor (Online)","Social Science","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Art Instructor","The Arts","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Astronomy Instructor","Science","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Athletic Trainer Instructor","Physical Education","Adjunct/Part-Time Faculty","2024-08-09","2024-09-20",7,49,"Closed / Filled",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Band Director / Music Instructor","The Arts","Adjunct/Part-Time Faculty","2026-06-19","2026-07-17",5,35,"Closed / Filled",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Business Instructor","CTE - Business & Computing","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Commercial Motor Vehicle (CMV) Driver Training Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-09-27","2026-11-13",112,784,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Communications Instructor","Humanities","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Community Interest (CI) Johnson County","Uncategorized","Adjunct/Part-Time Faculty","2025-05-30","2026-11-13",77,539,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Composites Manufacturing","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-09-13","2026-11-13",114,798,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Computer Science or Information Technology Instructor","CTE - Business & Computing","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Construction Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Culinary Instructor","Culinary/Hospitality","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Dental Hygiene Instructor","CTE - Health Sciences","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,1,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Diesel Technology Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Education Instructor","Education","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Electrical Apprenticeship Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-09-20","2026-11-13",113,791,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Engineering Science and Engineering Tech Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - English Instructor","Humanities","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Geology Instructor","Science","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - HVAC Apprenticeship Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-09-27","2026-11-13",112,784,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Health and Human Performance Instructor","Physical Education","Adjunct/Part-Time Faculty","2024-12-20","2026-11-13",100,700,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - History Instructor","History","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Hospitality/Tourism","Culinary/Hospitality","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Human Services Instructor","Human Services","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Industrial Electricity Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2024-09-06",5,35,"Closed / Filled",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Life Science (Biology or A&P) Instructor","Science","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Machine Tool Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Massage Therapy Instructor","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-04-18","2026-11-13",83,581,"Still Active",1,1,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Massage Therapy Instructor (On-line)","CTE - Health Sciences","Adjunct/Part-Time Faculty","2024-08-09","2025-04-11",36,252,"Closed / Filled",1,1,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Math Instructor","Math","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Music Instructor","The Arts","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Nursing Instructor","CTE - Health Sciences","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,1,1,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Online Criminal Justice Instructor","Criminal Justice","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Psychology Instructor","Social Science","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Spanish Instructor","Language","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Theater Instructor","The Arts","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Sheridan College",240666,"Part-time Faculty Pool - Welding Instructor","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"University of Wyoming",240727,"Assistant Instructional Professor of Finance","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-09-18","2026-10-30",7,49,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Assistant Lecturer - Musical Theatre Voice","The Arts","Instructor/Teacher/Faculty","2024-10-11","2025-02-28",21,147,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Lecturer, Family and Consumer Sciences","Science","Instructor/Teacher/Faculty","2026-07-24","2026-11-13",16,119,"Still Active",1,0,0,0,1
+"University of Wyoming",240727,"Assistant Lecturer/Program Assistant Director for the Graduate Program in Nutrition and Dietetics (GPND), Family and Consumer Sciences","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-08-11","2026-11-13",14,101,"Still Active",1,1,1,0,1
+"University of Wyoming",240727,"Assistant Librarian - Academic Success Librarian","Library","Instructor/Teacher/Faculty","2025-08-08","2025-11-07",14,98,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Collection Management Librarian","Library","Instructor/Teacher/Faculty","2024-10-18","2025-03-28",24,168,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Electronic Resources Librarian","Library","Instructor/Teacher/Faculty","2025-08-08","2025-10-31",13,91,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Faculty Support Librarian","Library","Instructor/Teacher/Faculty","2026-08-28","2026-11-13",12,84,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Law Library","Legal","Instructor/Teacher/Faculty","2025-05-23","2025-07-11",8,56,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Law Library","Legal","Instructor/Teacher/Faculty","2025-10-03","2025-12-12",11,77,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Scholarly Communications & Open Publishing Librarian","Library","Instructor/Teacher/Faculty","2025-09-19","2026-01-02",16,112,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Scholarly Communications and Open Publishing Librarian","Library","Instructor/Teacher/Faculty","2026-08-28","2026-11-13",12,84,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Special Collections Librarian","Library","Instructor/Teacher/Faculty","2024-08-09","2024-11-08",14,98,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Transfer Support Librarian","Library","Instructor/Teacher/Faculty","2025-06-27","2025-10-17",17,119,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Librarian - Undergraduate Research Librarian","Library","Instructor/Teacher/Faculty","2025-04-18","2025-07-25",15,105,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Art Education and Foundations (Visual Arts)","The Arts","Instructor/Teacher/Faculty","2026-08-14","2026-11-13",14,98,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Ballet (Theatre & Dance)","The Arts","Instructor/Teacher/Faculty","2026-10-30","2026-11-13",3,21,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Criminal Justice & Sociology","Criminal Justice","Instructor/Teacher/Faculty","2025-08-22","2025-11-07",12,84,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - English","Humanities","Instructor/Teacher/Faculty","2026-08-04","2026-11-13",15,108,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Family & Consumer Sciences (Extension Specialist in Human Nutrition and Food)","Extension/Outreach","Instructor/Teacher/Faculty","2024-08-09","2025-04-25",38,266,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Geology & Geophysics","Science","Instructor/Teacher/Faculty","2025-10-24","2026-04-24",27,189,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-08-22","2025-09-19",5,35,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Assistant Professor - Marketing","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-11-06","2026-11-13",2,14,"Still Active",1,0,1,0,1
+"University of Wyoming",240727,"Assistant Professor - Plant or Fungal Genomics, Botany","Science","Instructor/Teacher/Faculty","2026-09-11","2026-11-13",10,70,"Still Active",1,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - SPPAIS Public Law","Legal","Instructor/Teacher/Faculty","2026-09-18","2026-11-13",9,63,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Social Work","Human Services","Instructor/Teacher/Faculty","2026-03-13","2026-05-15",10,70,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Soil Microbial Ecology","Science","Instructor/Teacher/Faculty","2026-10-09","2026-11-13",5,42,"Still Active",1,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Strength Training, Conditioning, Human Performance, Kinesiology and Health","Physical Education","Instructor/Teacher/Faculty","2024-11-15","2025-04-04",21,147,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Teacher/Artist of Trumpet, Music","The Arts","Instructor/Teacher/Faculty","2026-10-16","2026-11-13",5,35,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Zoology & Physiology (Aquatic Ecosystem Ecology)","Science","Instructor/Teacher/Faculty","2026-10-09","2026-11-13",6,42,"Still Active",1,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor - Zoology & Physiology (Biometrician)","Science","Instructor/Teacher/Faculty","2026-11-06","2026-11-13",2,14,"Still Active",1,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor OR Professor of Practice - Civil Legal Services Clinic, College of Law","Legal","Instructor/Teacher/Faculty","2026-09-04","2026-11-13",11,77,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor OR Professor of Practice - Defender Aid Clinic, College of Law","Legal","Instructor/Teacher/Faculty","2026-09-04","2026-11-13",11,77,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor of Music (Choral) & Associate Director of Choral Activities (Music)","The Arts","Instructor/Teacher/Faculty","2026-10-09","2026-11-13",6,42,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor of Practice - Communication & Journalism","Humanities","Instructor/Teacher/Faculty","2024-10-18","2025-04-25",28,196,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor of Practice - Criminal Justice and Sociology","Criminal Justice","Instructor/Teacher/Faculty","2026-09-04","2026-11-13",11,77,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor of Practice - Theatre and Dance - Stage Management and Production Management","The Arts","Instructor/Teacher/Faculty","2024-12-13","2025-05-02",21,147,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor – Nuclear Science/Chemistry, School of Energy Resources Directors Office","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-09-20","2025-06-13",39,273,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Assistant Professor – Nuclear Science/Engineering, School of Energy Resources Directors Office","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-09-20","2025-06-13",39,273,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Assistant Professor – Nuclear Science/Engineering, School of Energy Resources Directors Office","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-09-19","2026-03-13",26,182,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Assistant Professor, Education Leadership","Education","Instructor/Teacher/Faculty","2026-11-13","2026-11-13",1,7,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor, Mathematics Education Outreach","Education","Instructor/Teacher/Faculty","2025-08-15","2025-09-12",5,35,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor/Extension Specialist, Livestock & Agricultural Marketing-Agricultural & Applied Economics","Extension/Outreach","Instructor/Teacher/Faculty","2025-09-19","2026-02-06",21,147,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant Professor– Theatre History and Dramatic Literature","History","Instructor/Teacher/Faculty","2024-09-27","2024-12-27",14,98,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assistant or Associate Librarian - Chair, Public Services/Public Services Librarian","Library","Instructor/Teacher/Faculty","2025-06-06","2025-09-19",16,112,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assoc Dean/Assoc Professor- Nursing","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-02-06","2026-05-22",16,112,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Assoc Professor - Social Work (MSW Program Director)","Human Services","Instructor/Teacher/Faculty","2024-08-09","2024-08-16",2,14,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assoc Professor-Graduate Program Coordinator-FWWSON","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-06-06","2026-11-13",75,532,"Still Active",1,1,1,0,1
+"University of Wyoming",240727,"Assoc Professor-Graduate Program Director (Clincal-Fixed term)-FWWSON","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-06-06","2025-06-06",1,7,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Assoc Professor-Graduate Program Director (Clinical-Fixed term)-FWWSON","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-06-13","2026-11-13",74,525,"Still Active",1,1,1,0,1
+"University of Wyoming",240727,"Assoc Professor-MSW Program Director-Social Work","Human Services","Instructor/Teacher/Faculty","2024-08-30","2025-07-04",45,315,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Assoc Professor/MSW Program Director - Division of Social Work","Human Services","Instructor/Teacher/Faculty","2026-08-28","2026-11-13",12,84,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Assoc Professor/MSW Program Director - Social Work","Human Services","Instructor/Teacher/Faculty","2025-09-19","2025-11-21",10,70,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Associate Director/Ext Educator, Sr - UW Extension","Extension/Outreach","Instructor/Teacher/Faculty","2024-08-09","2024-08-09",1,7,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Associate Director/Extension Educator, Sr - UW Extension","Extension/Outreach","Instructor/Teacher/Faculty","2025-05-23","2025-08-22",14,98,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Associate Lecturer - BSN Program Director, School of Nursing","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-12-26","2026-11-13",46,329,"Still Active",1,1,1,0,1
+"University of Wyoming",240727,"Associate Lecturer - School of Energy Resources","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-10-24","2025-12-12",8,56,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Associate Librarian - Assistant Dean, User Services","Library","Instructor/Teacher/Faculty","2024-08-09","2024-11-08",14,98,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Associate Professor - MSW Program Director","Human Services","Instructor/Teacher/Faculty","2026-03-13","2026-07-31",21,147,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Associate Professor Supply Chain (SCM) or Operations Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-09-05","2025-10-17",7,49,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Associate/Full Professor of Marketing - Management & Marketing","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-10-30","2026-11-13",3,21,"Still Active",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Agronomy or Horticulture, Plant Sciences","Science","Instructor/Teacher/Faculty","2026-01-09","2026-07-31",30,210,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Anthropology","Social Science","Instructor/Teacher/Faculty","2024-08-09","2024-12-06",18,126,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Applied Artificial Intelligence","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-01-17","2025-05-16",18,126,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Art History","History","Instructor/Teacher/Faculty","2024-08-09","2025-02-21",29,203,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Chemical & Biomedical Engineering","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-10-18","2025-05-30",33,231,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Asst Professor - Civil & Architectural Engineering & Construction Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-10-18","2025-04-18",27,189,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Civil & Architectural Engineering & Construction Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-08-15","2026-04-03",34,238,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - College of Law","Legal","Instructor/Teacher/Faculty","2025-08-29","2026-08-21",51,364,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - College of Law Deans Office","Legal","Instructor/Teacher/Faculty","2025-02-21","2025-03-14",4,28,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Communication Disorders","Humanities","Instructor/Teacher/Faculty","2025-06-20","2025-11-07",21,147,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Counseling Leadership Advocacy & Design","Human Services","Instructor/Teacher/Faculty","2025-10-17","2026-06-19",36,252,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Criminal Justice","Criminal Justice","Instructor/Teacher/Faculty","2024-08-09","2024-11-15",15,105,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Criminal Justice, Criminal Justice & Sociology","Criminal Justice","Instructor/Teacher/Faculty","2025-01-10","2025-02-14",6,42,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Ecosystem Science & Management, Soil Science","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-02-06","2026-02-27",4,28,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Electrical Engineering & Computer Science","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-10-18","2025-05-30",33,231,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Electrical Engineering & Computer Science","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-11-07","2026-02-13",15,105,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Energy & Petroleum Engineering","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-12-26","2026-04-24",18,126,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - English","Humanities","Instructor/Teacher/Faculty","2024-08-16","2024-11-29",16,112,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Geology & Geophysics","Science","Instructor/Teacher/Faculty","2024-11-29","2026-01-30",61,434,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Kinesiology & Health","Physical Education","Instructor/Teacher/Faculty","2024-10-11","2025-02-07",18,126,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Kinesiology & Health Biomechanics","Physical Education","Instructor/Teacher/Faculty","2025-09-05","2025-11-07",10,70,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Kinesiology Exercise Science","Physical Education","Instructor/Teacher/Faculty","2025-09-26","2025-12-05",11,77,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Latin American History","Language","Instructor/Teacher/Faculty","2024-08-09","2024-12-06",18,126,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Mammalian Ecology/Zoology & Physiology","Science","Instructor/Teacher/Faculty","2024-11-15","2025-06-13",31,217,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Management & Marketing","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-08-22","2025-08-22",1,7,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Marketing","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-08-29","2025-10-24",9,63,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Mathematics & Statistics","Math","Instructor/Teacher/Faculty","2024-10-25","2025-03-14",21,147,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Mathematics & Statistics","Math","Instructor/Teacher/Faculty","2025-11-07","2026-03-27",21,147,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Mechanical Engineering","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2024-08-16",2,14,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Mechanical Engineering","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-10-11","2025-02-28",21,147,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Mechanical Engineering","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-09-19","2026-01-02",16,112,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Molecular Biology - Computational Biochemist","Science","Instructor/Teacher/Faculty","2025-08-29","2026-01-30",23,161,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Music Theory","The Arts","Instructor/Teacher/Faculty","2024-09-13","2025-01-03",17,119,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Philosophy & Religious Studies","Humanities","Instructor/Teacher/Faculty","2024-09-27","2025-02-28",23,161,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Physics & Astronomy","Science","Instructor/Teacher/Faculty","2025-07-18","2025-12-12",22,154,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Plant or Fungal Genomics","Science","Instructor/Teacher/Faculty","2025-09-19","2026-07-24",45,315,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Printmaking","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2025-01-24",25,175,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Psychology","Social Science","Instructor/Teacher/Faculty","2025-08-15","2025-12-12",18,126,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Psychology","Social Science","Instructor/Teacher/Faculty","2026-07-24","2026-11-13",17,119,"Still Active",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - School of Computing","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-12-05","2026-03-27",17,119,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - School of Teacher Education","Education","Instructor/Teacher/Faculty","2024-09-13","2025-02-07",22,154,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - School of Teacher Education","Education","Instructor/Teacher/Faculty","2026-02-13","2026-04-24",11,77,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Sensory Biology/Zoology & Physiology","Science","Instructor/Teacher/Faculty","2024-09-06","2025-02-28",26,182,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Social Work","Human Services","Instructor/Teacher/Faculty","2024-09-20","2024-12-27",15,105,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Social Work","Human Services","Instructor/Teacher/Faculty","2026-09-04","2026-11-13",11,77,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Sociology","Social Science","Instructor/Teacher/Faculty","2024-08-09","2025-02-07",27,189,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Supply Chain Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-08-29","2025-11-21",13,91,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst Professor - Teacher/Artist of Collaborative Piano and Piano","The Arts","Instructor/Teacher/Faculty","2025-10-03","2026-02-13",20,140,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Wyoming and the American West - History","History","Instructor/Teacher/Faculty","2024-08-09","2024-11-22",16,112,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor - Zoology & Physiology","Science","Instructor/Teacher/Faculty","2024-11-15","2025-02-28",16,112,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor -Chemical & Biomedical Engineering","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-08-22","2026-04-17",35,245,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Asst Professor in Outdoor Recreation and Tourism Management","Culinary/Hospitality","Instructor/Teacher/Faculty","2025-07-18","2025-11-21",19,133,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor- Counseling Leadership Advocacy & Design","Human Services","Instructor/Teacher/Faculty","2025-10-17","2026-04-03",25,175,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst Professor- Public Health","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-09-19","2025-12-05",12,84,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Asst Professor- School of Politics, Public Affairs, and International Studies - MPA","Social Science","Instructor/Teacher/Faculty","2024-08-09","2024-11-15",15,105,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Asst Professor/Extension Specialist, Regional Economics/Community Development - Agricultural & Applied Economics","Extension/Outreach","Instructor/Teacher/Faculty","2025-08-08","2026-01-09",23,161,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Asst/Assoc Professor - Applied AI/ML and Advanced AI Applications","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-02-13","2026-05-29",16,112,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Asst/Assoc Professor - Communication Disorders","Humanities","Instructor/Teacher/Faculty","2026-06-26","2026-11-13",20,147,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Asst/Assoc Professor-Kinesiology Exercise Science","Physical Education","Instructor/Teacher/Faculty","2025-09-19","2025-12-05",12,84,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Cent$ible Nutrition Program Educator 1 - Campbell & Crook Counties, UW Extension","Extension/Outreach","Instructor/Teacher/Faculty","2024-11-22","2025-02-28",15,105,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Cent$ible Nutrition Program Educator 1 - Campbell & Crook Counties, UW Extension","Extension/Outreach","Instructor/Teacher/Faculty","2025-05-02","2025-07-04",10,70,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Cent$ible Nutrition Program Educator 1 - Carbon County","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2024-10-11",10,70,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Cent$ible Nutrition Program Educator 1 - Natrona County","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2024-08-23",3,21,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Cent$ible Nutrition Program Educator 1 - Natrona County","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-01-10","2025-02-28",8,56,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Cent$ible Nutrition Program Educator 1 - North Lincoln/Sublette/Teton Counties","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2025-02-28",30,210,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Cent$ible Nutrition Program Educator 1 - Sweetwater County","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2024-11-15",15,105,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Cent$ible Nutrition Program Educator 1 - Wind River Reservation","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2025-02-28",30,210,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Assistant Professor - Educational Health Center of Wyoming","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-04-10","2026-07-17",15,105,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Assistant Professor - UW Family Medicine Cheyenne","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-09-25","2026-11-13",8,56,"Still Active",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Assistant Professor; Assistant Director, Experiential Education - School of Pharmacy","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-01-23","2026-07-31",28,196,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Asst Professor - FMR Cheyenne","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-09-19","2025-09-26",2,14,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Asst Professor - Practice Partnership with CRMC","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-06-20","2025-11-14",22,154,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Asst Professor - School of Pharmacy","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-03-07","2025-05-30",13,91,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Asst Professor - School of Pharmacy","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-02-13","2026-08-21",27,196,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Asst Professor - UW Medical Residency Casper","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-04-04","2025-05-02",5,35,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Asst Professor - WWAMI Medical Education Program","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2025-02-07",27,189,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Asst Professor, Faculty Behaviorist - Family Medical Residency Cheyenne","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-10-03","2026-07-03",40,280,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Professor - Family Medicine Residency Programs Casper","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2024-11-08",14,98,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Clinical Professor, Assistant - Wyoming Institute for Disabilities","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-04-03","2026-06-19",12,84,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Department Head/Professor-Communication and Journalism","Humanities","Instructor/Teacher/Faculty","2025-09-05","2025-12-05",14,98,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Director Physician Assistant Program/Clinical Associate Professor College of Health Sciences","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-08-29","2026-05-22",39,273,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Director/Professor - Communication Disorders","Humanities","Instructor/Teacher/Faculty","2025-11-21","2026-05-22",27,189,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Director/Professor - Powell Research and Extension Center","Extension/Outreach","Instructor/Teacher/Faculty","2024-08-09","2025-06-20",45,322,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator - Plant Sciences","Extension/Outreach","Instructor/Teacher/Faculty","2024-08-09","2024-11-01",13,91,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Assistant - Sublette Co. 4-H Youth Development","Extension/Outreach","Instructor/Teacher/Faculty","2026-05-29","2026-06-26",5,35,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Assistant - WORTH (Tourism)","Extension/Outreach","Instructor/Teacher/Faculty","2026-06-19","2026-10-16",17,126,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Assoc - 4-H Youth Livestock Specialist","Extension/Outreach","Instructor/Teacher/Faculty","2025-06-06","2025-08-22",12,84,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Assoc - Youth Development Specialist/AmeriCorps Program Director","Extension/Outreach","Instructor/Teacher/Faculty","2025-02-28","2025-04-25",9,63,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Associate - Extension Volunteer Specialist","Extension/Outreach","Instructor/Teacher/Faculty","2026-08-14","2026-10-30",12,84,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - 4-H UW Extension","Extension/Outreach","Instructor/Teacher/Faculty","2025-01-31","2025-07-04",23,161,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - 4-H Youth Development, Niobrara County","Extension/Outreach","Instructor/Teacher/Faculty","2026-01-16","2026-03-06",7,56,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - 4-H Youth Development, Sweetwater County - UW Extension","Extension/Outreach","Instructor/Teacher/Faculty","2024-10-25","2024-12-06",7,49,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - 4-H Youth Development, Uinta Co.","Extension/Outreach","Instructor/Teacher/Faculty","2026-02-13","2026-03-06",4,28,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - Ag & Natural Resources, Sheridan Co.","Extension/Outreach","Instructor/Teacher/Faculty","2026-09-18","2026-11-13",9,63,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - Carbon Co. Ag & Natural Resources","Extension/Outreach","Instructor/Teacher/Faculty","2025-03-28","2025-08-29",23,161,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - Climate Hub Fellow","Extension/Outreach","Instructor/Teacher/Faculty","2024-09-27","2024-12-27",14,98,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - Sweetwater Co. CVH","Extension/Outreach","Instructor/Teacher/Faculty","2024-10-18","2025-02-14",18,126,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - Sweetwater Co. CVH","Extension/Outreach","Instructor/Teacher/Faculty","2025-03-21","2025-07-11",17,119,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - Sweetwater Community Vitality and Health","Extension/Outreach","Instructor/Teacher/Faculty","2026-01-30","2026-04-24",13,91,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst - UW Extension, Community Vitality and Health Sheridan Co","Extension/Outreach","Instructor/Teacher/Faculty","2024-08-09","2024-09-06",5,35,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst, Niobrara County CVH","Extension/Outreach","Instructor/Teacher/Faculty","2024-10-25","2025-01-24",14,98,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst., 4-H Youth Dev. Laramie Co (Military Focus)","Extension/Outreach","Instructor/Teacher/Faculty","2025-11-21","2025-12-12",4,28,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Asst., 4-H Youth Development Laramie Co.","Extension/Outreach","Instructor/Teacher/Faculty","2024-10-25","2025-01-17",13,91,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator, Senior/4-H Program Leader - UW Extension","Extension/Outreach","Instructor/Teacher/Faculty","2026-07-03","2026-10-16",15,112,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Assoc - Community Resource and Engagement Specialist","Extension/Outreach","Instructor/Teacher/Faculty","2024-12-20","2025-02-28",11,77,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - 4-H Youth Development - Laramie CO","Extension/Outreach","Instructor/Teacher/Faculty","2025-11-21","2025-12-12",4,28,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - 4-H Youth Development, Goshen Co.","Extension/Outreach","Instructor/Teacher/Faculty","2024-08-09","2024-10-11",10,70,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - 4-H Youth Development, Sublette Co.","Extension/Outreach","Instructor/Teacher/Faculty","2025-03-28","2025-05-23",9,63,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - 4-H Youth Development, Sublette Co.","Extension/Outreach","Instructor/Teacher/Faculty","2025-06-20","2025-07-11",4,28,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - 4-H Youth Development, Sublette Co. | UW Extension","Extension/Outreach","Instructor/Teacher/Faculty","2025-08-29","2025-09-26",5,35,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - 4-H Youth Development, Teton Co.","Extension/Outreach","Instructor/Teacher/Faculty","2024-11-01","2025-05-23",30,210,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - 4-H Youth Development, Uinta Co.","Extension/Outreach","Instructor/Teacher/Faculty","2024-09-27","2025-01-17",17,119,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - 4-H Youth Development, Uinta Co.","Extension/Outreach","Instructor/Teacher/Faculty","2025-10-03","2025-10-24",4,28,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - Agriculture and Natural Resources-Uinta Co.","Extension/Outreach","Instructor/Teacher/Faculty","2025-03-21","2025-06-06",12,84,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - Carbon Co. Ag & Natural Resources","Extension/Outreach","Instructor/Teacher/Faculty","2026-02-13","2026-11-13",39,280,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - Park County Ag & Natural Resources","Extension/Outreach","Instructor/Teacher/Faculty","2026-06-19","2026-11-13",21,154,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - Platte Co. 4-H Youth Development","Extension/Outreach","Instructor/Teacher/Faculty","2025-02-14","2025-07-11",22,154,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - Sublette Co. Ag & Natural Resources","Extension/Outreach","Instructor/Teacher/Faculty","2026-02-06","2026-04-03",9,63,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - Sweetwater County 4-H Youth Development","Extension/Outreach","Instructor/Teacher/Faculty","2026-04-24","2026-05-22",5,35,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst - Weston Co. Community Vitality & Health","Extension/Outreach","Instructor/Teacher/Faculty","2026-02-13","2026-11-13",39,280,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst -Sheridan 4-H Youth Development","Extension/Outreach","Instructor/Teacher/Faculty","2025-09-26","2025-10-17",4,28,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst 4-H Youth Development - Crook Co.","Extension/Outreach","Instructor/Teacher/Faculty","2024-08-09","2024-09-20",7,49,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst, 4-H Youth Development, Niobrara County","Extension/Outreach","Instructor/Teacher/Faculty","2025-03-21","2025-05-02",7,49,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Educator,Asst, Agriculture and Natural Resources-Uinta County, WY","Extension/Outreach","Instructor/Teacher/Faculty","2024-10-18","2025-01-24",15,105,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Specialist/Assistant Professor of Rangeland Ecology - Ecosystem Science & Management","Extension/Outreach","Instructor/Teacher/Faculty","2025-10-10","2026-02-27",21,147,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Extension Specialist/Assistant Professor of Rangeland Ecology and Management - Ecosystem Science & Management","Extension/Outreach","Instructor/Teacher/Faculty","2025-02-14","2025-06-13",18,126,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Faculty/Executive Director of SUS-UW Kinesiology Undergraduate Dual-degree Program","Physical Education","Instructor/Teacher/Faculty","2026-10-16","2026-11-13",5,35,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Hourly Pooled - Campus Recreation - Group Fitness Instructor","Physical Education","Instructor/Teacher/Faculty","2025-11-07","2025-11-28",4,28,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Hourly Pooled - Group Fitness Instructor - Campus Recreation","Physical Education","Instructor/Teacher/Faculty","2024-11-01","2024-11-29",5,35,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Hourly Pooled - Group Fitness Instructor/Personal Trainer Campus Recreation","Physical Education","Instructor/Teacher/Faculty","2026-04-03","2026-05-01",5,35,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Hourly Pooled - Part Time Cent$ible Nutrition Program Educator 1, North Lincoln/Sublette/Teton Counties","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-05-16","2025-07-04",8,56,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Hourly Pooled- Group Fitness Instructor - Campus Recreation","Physical Education","Instructor/Teacher/Faculty","2025-04-04","2025-05-02",5,35,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Hourly Pooled-Group Fitness Instructor/Personal Trainer - Campus Recreation","Physical Education","Instructor/Teacher/Faculty","2026-11-06","2026-11-13",2,14,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Instructional Professor, Assistant - Organizational Behavior/Human Resources Management","Social Science","Instructor/Teacher/Faculty","2024-10-11","2024-12-20",11,77,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Instructional Professor, Asst - Strategic Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-09-27","2025-05-30",36,252,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Instructional Professor, Asst/Lecturer, Asst - Chemical & Biomedical Engineering","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-05-02","2025-08-22",17,119,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Lecturer Assistant - Agricultural Communications","Humanities","Instructor/Teacher/Faculty","2024-08-16","2024-12-27",20,140,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer Assistant - Agricultural Communications","Humanities","Instructor/Teacher/Faculty","2025-03-07","2025-05-30",13,91,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer, Assistant - Energy & Petroleum Engineering","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-08-21","2026-11-13",13,91,"Still Active",1,0,1,0,1
+"University of Wyoming",240727,"Lecturer, Assistant - Music Theory","The Arts","Instructor/Teacher/Faculty","2025-10-03","2026-02-06",19,133,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer, Asst - Engineering & Physical Sciences Deans Office","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2024-09-13",6,42,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Lecturer, Asst - Human Nutrition & Food, Family and Consumer Sciences","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-09-20","2024-11-08",8,56,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Lecturer, Asst - Kinesiology Exercise Science","Physical Education","Instructor/Teacher/Faculty","2025-09-26","2026-01-16",17,119,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer, Asst - Laramie Campus - BSW Field Education Coordinator","Education","Instructor/Teacher/Faculty","2025-03-21","2026-01-30",45,322,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer, Asst - Mathematics & Statistics","Math","Instructor/Teacher/Faculty","2024-10-11","2025-05-30",34,238,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Lecturer, Asst - Psychology","Social Science","Instructor/Teacher/Faculty","2025-01-24","2025-04-04",11,77,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Lecturer, Asst - School of Nursing","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2024-09-27",8,56,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Lecturer, Asst OR Instructional Professor, Asst – Course-Based Undergraduate Research Experiences","Uncategorized","Instructor/Teacher/Faculty","2025-03-14","2025-06-13",14,98,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer, Asst in Human Nutrition and Food - Family & Consumer Sciences","CTE - Health Sciences","Instructor/Teacher/Faculty","2024-08-09","2024-11-22",16,112,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Lecturer, Asst – Music – Trombone","The Arts","Instructor/Teacher/Faculty","2024-09-13","2024-12-27",16,112,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer, Asst-Nursing","CTE - Health Sciences","Instructor/Teacher/Faculty","2025-10-10","2026-10-30",55,392,"Closed / Filled",1,1,1,0,1
+"University of Wyoming",240727,"Lecturer, Asst/Assoc and Degree Coordinator in Outdoor Recreation and Tourism","Culinary/Hospitality","Instructor/Teacher/Faculty","2025-02-21","2025-06-06",16,112,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer, Asst/Instructional Professor, Asst - Electrical Engineering & Computer Science","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-04-17","2026-07-10",13,91,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Lecturer,Asst - Engineering & Physical Sciences Deans Office","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-10-25","2025-04-18",26,182,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Lecturer,Asst - LeaRN Programs","Uncategorized","Instructor/Teacher/Faculty","2026-04-03","2026-06-19",12,84,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer,Asst - Mechanical Engineering","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-10-18","2025-02-14",18,126,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Lecturer,Asst - Mechanical Engineering","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-03-28","2025-05-02",6,42,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Lecturer,Asst - SPPAIS","Uncategorized","Instructor/Teacher/Faculty","2026-01-09","2026-03-06",9,63,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer,Asst,-BSW Program Director-Division of Social Work","Human Services","Instructor/Teacher/Faculty","2024-08-30","2024-12-27",18,126,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer,Asst- BSW Program Director-Division of Social Work","Human Services","Instructor/Teacher/Faculty","2024-08-09","2024-08-16",2,14,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Lecturer,Asst- English","Humanities","Instructor/Teacher/Faculty","2024-08-09","2024-08-09",1,7,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Master Teacher (with Assistant Curator rank) - Art Museum","The Arts","Instructor/Teacher/Faculty","2024-10-18","2025-04-18",27,189,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Master Teacher (with Assistant Curator rank) - Art Museum","The Arts","Instructor/Teacher/Faculty","2025-05-30","2026-03-13",42,294,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Monthly Pooled - Upward Bound Summer Program 2025 Comp./Lit. Instructor","Education","Instructor/Teacher/Faculty","2025-03-21","2025-09-05",25,175,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Monthly Pooled - Upward Bound Summer Program 2025 Foreign Language Instructor","Language","Instructor/Teacher/Faculty","2025-03-21","2025-05-02",7,49,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Monthly Pooled - Upward Bound Summer Program 2025 Math Instructor","Education","Instructor/Teacher/Faculty","2025-03-21","2025-05-09",8,56,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Monthly Pooled - Upward Bound Summer Program 2025 Science Instructor","Education","Instructor/Teacher/Faculty","2025-03-21","2025-05-02",7,49,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Monthly Pooled - Upward Bound Summer Program Comp/Lit Instructor","Education","Instructor/Teacher/Faculty","2026-03-13","2026-05-15",10,70,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Monthly Pooled - Upward Bound Summer Program Math Instructor","Education","Instructor/Teacher/Faculty","2026-03-13","2026-05-15",10,70,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Monthly Pooled-Upward Bound Summer Program Foreign Language Instructor","Language","Instructor/Teacher/Faculty","2026-03-13","2026-05-15",10,70,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Monthly Pooled-Upward Bound Summer Program Science Instructor","Education","Instructor/Teacher/Faculty","2026-03-13","2026-07-10",18,126,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Office Associate - Faculty Senate","Uncategorized","Instructor/Teacher/Faculty","2024-10-11","2024-10-18",2,14,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Office Associate - School of Teacher Education","Education","Instructor/Teacher/Faculty","2025-10-31","2025-11-07",2,14,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Office Associate, Senior - School of Teacher Education","Education","Instructor/Teacher/Faculty","2025-08-22","2025-08-29",2,14,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Open Rank Professor - College of Law, Constitution Law","Legal","Instructor/Teacher/Faculty","2025-09-12","2025-10-17",6,42,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Open Rank Professor - College of Law, Energy, Environmental, and Natural Resources Law","Legal","Instructor/Teacher/Faculty","2025-09-19","2025-10-17",5,35,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Open Rank Professor - College of Law, Torts Law","Legal","Instructor/Teacher/Faculty","2025-09-12","2025-10-24",7,49,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Open Rank Professor - Constitutional Law, College of Law Deans Office","Legal","Instructor/Teacher/Faculty","2026-09-11","2026-11-13",10,70,"Still Active",0,0,0,0,1
+"University of Wyoming",240727,"Open Rank Tenure Track Professor of Accounting - Accounting & Finance","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-10-18","2025-01-10",13,91,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Open Rank Tenure Track Professor of Finance - Accounting & Finance","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-10-18","2024-11-15",5,35,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Open Rank Tenure-Track Professor of Supply Chain Management","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-10-18","2025-02-28",20,140,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Pooled Position Limited Tempor-Outdoor Program Field Instructor-Campus Rec","Physical Education","Instructor/Teacher/Faculty","2024-08-16","2024-09-20",6,42,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Professor of Practice - Energy & Petroleum Engineering","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2024-12-06",18,126,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Research Professor, Assistant - Wyoming Institute for Disabilities","Education","Instructor/Teacher/Faculty","2026-04-03","2026-04-24",4,28,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Temporary Lecturer - Chinese Course - Spring 2026","Language","Instructor/Teacher/Faculty","2025-08-29","2025-11-07",11,77,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Temporary Lecturer - Psychology","Social Science","Instructor/Teacher/Faculty","2024-08-09","2024-08-30",4,28,"Closed / Filled",1,0,0,0,1
+"University of Wyoming",240727,"Temporary Lecturer -College of Law","Legal","Instructor/Teacher/Faculty","2025-02-21","2025-08-08",25,175,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Temporary Lecturer- School of Computing","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-03-06","2026-04-24",8,56,"Closed / Filled",1,0,1,0,1
+"University of Wyoming",240727,"Visiting Assistant Professor - Art Education (Visual Arts)","The Arts","Instructor/Teacher/Faculty","2026-05-22","2026-07-10",8,56,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Visiting Assistant Professor - Music (Teacher/Artist of Trumpet)","The Arts","Instructor/Teacher/Faculty","2026-06-05","2026-07-10",6,42,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Visiting Assistant Professor - Photography","The Arts","Instructor/Teacher/Faculty","2026-03-27","2026-05-08",7,49,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Visiting Asst Professor - Honors College","Uncategorized","Instructor/Teacher/Faculty","2025-01-10","2025-02-28",8,56,"Closed / Filled",0,0,0,0,1
+"University of Wyoming",240727,"Visiting Asst Professor in Native American and Indigenous Studies (American Cultural Studies)","Social Science","Instructor/Teacher/Faculty","2025-11-07","2026-03-27",21,147,"Closed / Filled",1,0,0,0,1
+"Western Wyoming Community College",240693,"Adjunct Faculty - Anatomy and Physiology","Science","Adjunct/Part-Time Faculty","2026-10-02","2026-11-13",7,49,"Still Active",1,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Automotive Technology","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-12-06","2026-05-08",75,525,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Biology","Science","Adjunct/Part-Time Faculty","2025-11-14","2026-11-13",53,371,"Still Active",1,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Business","CTE - Business & Computing","Adjunct/Part-Time Faculty","2024-08-09","2025-01-10",23,161,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Business","CTE - Business & Computing","Adjunct/Part-Time Faculty","2026-04-24","2026-08-14",17,119,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Ceramics","The Arts","Adjunct/Part-Time Faculty","2025-02-14","2025-05-02",12,84,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Certified Nursing Assistant (CNA)","CTE - Health Sciences","Adjunct/Part-Time Faculty","2024-08-09","2025-01-10",23,161,"Closed / Filled",1,1,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Certified Nursing Assistant (CNA) (Rock Springs & Evanston)","CTE - Health Sciences","Adjunct/Part-Time Faculty","2025-04-04","2026-11-13",85,595,"Still Active",1,1,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Computer Science","CTE - Business & Computing","Adjunct/Part-Time Faculty","2024-12-06","2025-03-07",14,98,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - EMS (Workforce)","CTE - Health Sciences","Adjunct/Part-Time Faculty","2024-08-09","2026-05-08",92,644,"Closed / Filled",1,1,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Education","Education","Adjunct/Part-Time Faculty","2026-01-09","2026-02-27",8,56,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Education (Remote or On Campus)","Education","Adjunct/Part-Time Faculty","2024-12-20","2025-01-10",4,28,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Electrical & Instrumentation Technology","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2024-10-18",11,77,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Electrical Apprenticeship","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-05-02","2025-08-15",16,112,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Engineering","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-03-06","2026-11-13",37,259,"Still Active",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - General Metallurgy","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-09-19","2026-05-08",34,238,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Geology","Science","Adjunct/Part-Time Faculty","2025-12-19","2026-11-13",48,336,"Still Active",1,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Heavy Equipment Operator","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-02-14","2025-05-30",16,112,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - History","History","Adjunct/Part-Time Faculty","2025-12-19","2026-09-25",41,287,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - History- Cheyenne Wyoming","Language","Adjunct/Part-Time Faculty","2025-02-14","2025-02-28",3,21,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Industrial Safety","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Information Systems","CTE - Business & Computing","Adjunct/Part-Time Faculty","2024-10-04","2025-01-03",14,98,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Information Systems","CTE - Business & Computing","Adjunct/Part-Time Faculty","2026-07-17","2026-11-13",18,126,"Still Active",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Instructor of Theatre-Stage Make-Up","The Arts","Adjunct/Part-Time Faculty","2025-11-14","2026-07-24",37,259,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Mathematics","Math","Adjunct/Part-Time Faculty","2026-04-17","2026-07-24",15,105,"Closed / Filled",1,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Medical Term","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-07-17","2026-11-13",18,126,"Still Active",1,1,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Nursing","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-08-28","2026-11-13",12,84,"Still Active",1,1,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Nutrition","CTE - Health Sciences","Adjunct/Part-Time Faculty","2026-07-10","2026-11-13",19,133,"Still Active",1,1,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Physics","Science","Adjunct/Part-Time Faculty","2026-03-06","2026-11-13",37,259,"Still Active",1,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Powerline Technology","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-03-06","2026-11-13",37,259,"Still Active",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Spanish","Language","Adjunct/Part-Time Faculty","2026-04-17","2026-11-13",31,217,"Still Active",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Substation Technologies","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2024-08-16",2,14,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Vocal Music Instructor and Voice Lessons","The Arts","Adjunct/Part-Time Faculty","2025-05-09","2025-07-25",12,84,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Welding (Evanston Outreach)","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2025-05-09","2026-05-08",53,371,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Welding (Star Valley High School)","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2026-05-08",92,644,"Closed / Filled",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty - Yoga Instructor","Physical Education","Adjunct/Part-Time Faculty","2026-03-13","2026-07-24",20,140,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty -Psychology ( Evanston Campus)","Social Science","Adjunct/Part-Time Faculty","2024-11-22","2025-02-28",15,105,"Closed / Filled",1,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty- Physical or Outdoor Activity","Physical Education","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",0,0,0,1,0
+"Western Wyoming Community College",240693,"Adjunct Faculty-Commerical Driver's License (CDL)","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2024-08-09","2026-11-13",119,833,"Still Active",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct Instructor of Manufacturing, Industrial Technology, or Workforce Development","CTE - Trades & Engineering","Adjunct/Part-Time Faculty","2026-11-13","2026-11-13",1,7,"Still Active",1,0,1,1,0
+"Western Wyoming Community College",240693,"Adjunct/Concurrent Faculty - Dance, Ballet Emphasis","The Arts","Adjunct/Part-Time Faculty","2026-06-05","2026-07-10",6,42,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Instructor / Assistant Professor of Biology","Science","Instructor/Teacher/Faculty","2025-06-06","2025-07-25",8,56,"Closed / Filled",1,0,0,0,1
+"Western Wyoming Community College",240693,"Instructor / Assistant Professor of Electrical & Instrumentation Technology","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-11-22","2025-02-28",15,105,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor / Assistant Professor of Powerline Technology","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2025-09-05",57,399,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor for Commercial Driver's License (CDL) Training (12 Month)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2024-09-13",6,42,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor of College and Career Readiness (Part Time Benefited)","Education","Adjunct/Part-Time Faculty","2026-03-27","2026-04-10",3,21,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Business","CTE - Business & Computing","Instructor/Teacher/Faculty","2024-08-09","2024-11-22",16,112,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Computer Science","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-04-04","2025-06-20",12,84,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Computer Science","CTE - Business & Computing","Instructor/Teacher/Faculty","2025-08-08","2025-10-03",9,63,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Electrical & Instrumentation (Evanston Campus)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2026-02-06",79,553,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Electrical & Instrumentation (Rock Springs Campus)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-04-25","2026-02-06",42,294,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Electrical & Instrumentation (Rock Springs Campus)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-05-01","2026-11-13",29,203,"Still Active",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Industrial Maintenance","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2026-11-13",118,833,"Still Active",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Information Systems","CTE - Business & Computing","Instructor/Teacher/Faculty","2026-06-05","2026-08-28",13,91,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Musical Theatre","The Arts","Instructor/Teacher/Faculty","2026-02-06","2026-05-08",14,98,"Closed / Filled",0,0,0,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Nursing","CTE - Health Sciences","Instructor/Teacher/Faculty","2026-03-27","2026-05-15",8,56,"Closed / Filled",1,1,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Powerline Technology","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-02-20","2026-10-02",33,231,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Psychology","Social Science","Instructor/Teacher/Faculty","2025-02-14","2025-05-16",14,98,"Closed / Filled",1,0,0,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Psychology","Social Science","Instructor/Teacher/Faculty","2025-12-19","2026-03-20",14,98,"Closed / Filled",1,0,0,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Sociology and Criminal Justice","Criminal Justice","Instructor/Teacher/Faculty","2026-01-09","2026-01-23",3,21,"Closed / Filled",0,0,0,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Sociology and Criminal Justice","Criminal Justice","Instructor/Teacher/Faculty","2026-03-06","2026-04-24",8,56,"Closed / Filled",0,0,0,0,1
+"Western Wyoming Community College",240693,"Instructor/Assistant Professor of Substation Technology","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2024-08-09","2025-09-12",58,406,"Closed / Filled",1,0,1,0,1
+"Western Wyoming Community College",240693,"Non-Credit Community Education Instructor","Education","Instructor/Teacher/Faculty","2026-06-05","2026-11-13",24,168,"Still Active",0,0,0,0,1
+"Western Wyoming Community College",240693,"Non-Credit Instructor (Star Valley, Wyoming)","Uncategorized","Instructor/Teacher/Faculty","2024-08-09","2026-05-08",92,644,"Closed / Filled",0,0,0,0,1
+"Western Wyoming Community College",240693,"Part-time Instructor of Adult Basic Education (ABE), English as a Second Language (ESL), and Option III High School Credit Recovery","Language","Adjunct/Part-Time Faculty","2024-08-09","2024-08-16",2,14,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Part-time Instructor of Adult Basic Education (ABE), English as a Second Language (ESL), and Option III High School Credit Recovery (Kemmerer)","Language","Adjunct/Part-Time Faculty","2025-08-01","2025-09-12",7,49,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Part-time Instructor of Adult Basic Education (ABE), English as a Second Language (ESL), and Option III High School Credit Recovery (Pinedale)","Language","Adjunct/Part-Time Faculty","2025-08-01","2025-10-03",10,70,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Part-time Instructor of Adult Basic Education (ABE), English as a Second Language (ESL), and Option III High School Credit Recovery (Rock Springs, WY)","Language","Adjunct/Part-Time Faculty","2025-08-01","2025-09-05",6,42,"Closed / Filled",0,0,0,1,0
+"Western Wyoming Community College",240693,"Workforce Instructor Electrical Pre-Apprenticeship (Grant Funded)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-10-02","2026-11-13",7,49,"Still Active",1,0,1,0,1
+"Western Wyoming Community College",240693,"Workforce Instructor Pipe Fitting Pre-Apprenticeship (Grant Funded)","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2026-10-02","2026-11-13",7,49,"Still Active",1,0,1,0,1
+"Western Wyoming Community College",240693,"Workforce MSHA Instructor","CTE - Trades & Engineering","Instructor/Teacher/Faculty","2025-09-19","2026-11-13",61,427,"Still Active",1,0,1,0,1

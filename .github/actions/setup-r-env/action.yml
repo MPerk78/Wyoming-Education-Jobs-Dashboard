@@ -1,0 +1,56 @@
+name: Set up R + Chrome for this project
+description: >
+  R, system libraries, the pipeline's R packages, and headless Chrome --
+  enough to run the full testthat suite (including the shinytest2 boot
+  smoke) and any single scraper live. Shared by pr-tests.yml and
+  copilot-setup-steps.yml. weekly-scrape.yml keeps its own inline copy on
+  purpose (its package list also feeds rsconnect::writeManifest()), so if
+  you add a package there, add it here too.
+outputs:
+  chrome-path:
+    description: Path to the installed Chrome binary (for CHROMOTE_CHROME)
+    value: ${{ steps.setup-chrome.outputs.chrome-path }}
+runs:
+  using: composite
+  steps:
+    # Before anything runs apt (2026-11-11 *.ubuntu.com DNS outage).
+    - uses: ./.github/actions/apt-mirror-fallback
+
+    - uses: r-lib/actions/setup-pandoc@v2
+
+    - uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: 'release'
+        use-public-rspm: true
+
+    - name: Install system dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev libpoppler-cpp-dev \
+          libudunits2-dev libgdal-dev libgeos-dev libproj-dev
+
+    - name: Install R packages
+      shell: bash
+      run: |
+        Rscript -e 'install.packages(c(
+          "rmarkdown", "dplyr", "purrr", "readr", "readxl", "rvest",
+          "stringr", "tidyverse", "writexl", "xml2", "jsonlite",
+          "httr2", "lubridate", "chromote", "rsconnect", "testthat",
+          "withr", "here", "pdftools", "shinytest2",
+          "shiny", "bslib", "shinyWidgets", "DT", "data.table",
+          "leaflet", "plotly", "scales", "shinycssloaders", "sf"
+        ))'
+
+    # Shared code (bostickmike/edjobs) at the version pinned in EDJOBS_VERSION
+    # (R package migration, phase 0, 2026-11-10); weekly-scrape.yml installs it
+    # the same way.
+    - name: Install edjobs at the pinned version
+      shell: bash
+      env:
+        GITHUB_PAT: ${{ github.token }}
+      run: Rscript -e 'install.packages("pak"); pak::pak(paste0("bostickmike/edjobs@v", trimws(readLines("EDJOBS_VERSION"))), ask = FALSE)'
+
+    - name: Install Chrome
+      id: setup-chrome
+      uses: browser-actions/setup-chrome@v1

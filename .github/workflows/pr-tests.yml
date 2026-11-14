@@ -1,0 +1,52 @@
+name: PR checks
+
+# Every PR -- human or Copilot coding agent -- gets the full testthat suite
+# (the weekly workflow only ever tested what was already on main). PRs
+# linked to a scraper auto-fix issue also get a live re-run of just the
+# fixed scraper against the real site (live_check_autofix.R), since fixture
+# tests alone can't show the fixture matches what the site actually serves.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write
+
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: setup
+        uses: ./.github/actions/setup-r-env
+
+      - name: Run test suite
+        env:
+          NOT_CRAN: "true"
+          CHROMOTE_CHROME: ${{ steps.setup.outputs.chrome-path }}
+        run: Rscript -e 'here::here(); testthat::test_dir("tests/testthat", stop_on_failure = TRUE)'
+
+      - name: Live-check the scraper this PR fixes (auto-fix PRs only)
+        id: live_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CHROMOTE_CHROME: ${{ steps.setup.outputs.chrome-path }}
+        run: Rscript .github/scripts/live_check_autofix.R
+
+      - name: Post the live-check result on the PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -f /tmp/live_check.md ] || exit 0
+          gh pr comment "${{ github.event.pull_request.number }}" --repo "$GITHUB_REPOSITORY" --body-file /tmp/live_check.md

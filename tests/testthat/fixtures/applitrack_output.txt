@@ -1,0 +1,519 @@
+
+
+var addthis_config = {
+          services_compact: 'email, facebook, twitter, more',
+          services_exclude: 'print'
+}
+
+var VacanciesAreOnThisPage = true
+
+//window.onerror = function nada(){}
+
+function centerWin(zwidth,zheight){
+       var winHeight
+       var winWidth
+       winHeight = screen.availHeight
+       winWidth = screen.width
+       if (zwidth > winWidth){zwidth=winWidth}
+       if (zheight > winHeight){zheight=winHeight}
+       zleft = parseInt((winWidth/2)-(zwidth/2))
+       if (zleft < 10){zleft = 0}
+       ztop = parseInt((winHeight/2)-(zheight/2))
+       if (ztop < 25){ztop = 0}
+       var x = "width=" + zwidth + ",height=" + zheight + ",left=" + zleft + ",top=" + ztop
+       return x
+}
+
+function applyFor(posJobCode,posFirstChoice,posSpecialty){
+       var openwindow = false
+       if (document.layers){
+              alert("Please go back and then click 'Start an Application' to apply for this position.")
+              return false;
+       }
+       var OpenWin = true
+       try {
+              if (typeof self.opener.updateApp == "boolean"){
+                     OpenWin = false
+              }
+       } catch (e) {
+              OpenWin = true
+       }
+
+       if (OpenWin){
+              var applyFor = window.open("https://www.applitrack.com/bighorn/onlineapp/_application.aspx?posJobCodes=" + posJobCode + "&posFirstChoice=" + posFirstChoice + "&posSpecialty=" + posSpecialty + "","applyFor","location=no,resizable=yes,scrollbars=yes," + centerWin(795,550))
+              applyFor.focus()
+       } else {
+              window.opener.location = "javascript: applyFor('" + posJobCode + "','" + posFirstChoice + "','" + posSpecialty + "')"
+              self.close()
+       }
+}
+
+function oldWay(){
+       var openwindow = false
+       if (document.layers){
+              alert("Please go back and then click 'Start an Application' to apply for this position.")
+              return false;
+       }
+       if (opener == null){
+              var applyFor = window.open("https://www.applitrack.com/bighorn/onlineapp/_application.aspx?posJobCodes=" + posJobCode + "&posFirstChoice=" + posFirstChoice + "&posSpecialty=" + posSpecialty + "","applyFor","location=no,resizable=yes,scrollbars=yes," + centerWin(795,550))
+              applyFor.focus()
+       }else{
+              if (typeof self.opener == "undefined"){
+                     var applyFor = window.open("https://www.applitrack.com/bighorn/onlineapp/_application.aspx?posJobCodes=" + posJobCode + "&posFirstChoice=" + posFirstChoice + "&posSpecialty=" + posSpecialty + "","applyFor","location=no,resizable=yes,scrollbars=yes," + centerWin(795,550))
+                     applyFor.focus()
+              }else{
+                     if (typeof self.opener.updateApp == "boolean"){
+                           window.opener.location = "javascript: applyFor('" + posJobCode + "','" + posFirstChoice + "','" + posSpecialty + "')"
+                           self.close()
+                     }else{
+                           var applyFor = window.open("https://www.applitrack.com/bighorn/onlineapp/_application.aspx?posJobCodes=" + posJobCode + "&posFirstChoice=" + posFirstChoice + "&posSpecialty=" + posSpecialty + "","applyFor","location=no,resizable=yes,scrollbars=yes," + centerWin(795,550))
+                           applyFor.focus()
+                     }
+              }
+       }
+}
+function applyForInternal(posJobCode,posFirstChoice,posSpecialty){
+    var passDistrictCode;
+
+       var applyFor = window.open("https://www.applitrack.com/bighorn/onlineapp/_application.aspx?isInternal=1&posJobCodes=" + posJobCode + "&posFirstChoice=" + posFirstChoice + "&posSpecialty=" + posSpecialty + passDistrictCode + "","applyFor","location=no,resizable=yes,scrollbars=yes," + centerWin(795,550))
+       applyFor.focus()
+}
+
+function applyForOutsideDistrict(district,posJobCode,posFirstChoice,posSpecialty){
+    var applyPage;
+    var applyWinSize;
+    
+        applyPage = '_application.aspx';
+    
+       var applyFor = window.open("https://www.applitrack.com/" + district + "/onlineapp/" + applyPage + "?posJobCodes=" + posJobCode + "&posFirstChoice=" + posFirstChoice + "&posSpecialty=" + posSpecialty + "","applyFor","location=no,resizable=yes,scrollbars=yes," + centerWin(795,550))
+       applyFor.focus()
+}
+
+function toggle_block(i) {
+       if (AppliTrack_$(i).style.display == 'none'){ AppliTrack_$(i).style.display = 'block';} else {AppliTrack_$(i).style.display = 'none';}
+       setUpPageBreaks()
+       return false;
+}
+
+function submitAppliTrackSearch(){
+       AppliTrack_SearchExecute(null);
+}
+
+/* Deprecated; use AppliTrack_SearchExecute() */
+function AppliTrackSort(key){
+       winLoc = window.location.toString()
+       if (window.location.search == "") {
+              window.location = winLoc + "?AppliTrackSort=" + escape(key)
+       }else{
+              if (window.location.search.indexOf("AppliTrackSort=") > 0){
+                     var currLoc = winLoc.substring(0,winLoc.indexOf("AppliTrackSort="))
+                     window.location = winLoc.replace(/([^a-zA-Z0-9\-\.]+AppliTrackSort=)([a-zA-Z0-9\-\.]+)([&a-zA-Z0-9\-\.]*)/i,'$1' + escape(key) + '$3');
+              }else{
+                     window.location = winLoc + (winLoc.indexOf("?") < 0?"?":"&") + "AppliTrackSort=" + escape(key)
+              }
+       }
+}
+
+function AppliTrackSearchFocus(){
+    var e = AppliTrack_$('AppliTrackPostingSearchBasic');
+       if (e && e.value == "Search Postings"){
+              e.value = ""
+              e.style.color = "black"
+              e.style.fontStyle = "normal"
+       }
+}
+function AppliTrackSearchBlur(){
+    var e = AppliTrack_$('AppliTrackPostingSearchBasic');
+       if (e && e.value == ""){
+              e.value = "Search Postings"
+              e.style.color = "#999999"
+              e.style.fontStyle = "italic"
+       }
+}
+function AppliTrack_WatchForEnter(e){
+       if(window.event)
+        key = window.event.keyCode;     //IE
+    else
+        key = e.which;     //firefox
+
+    if (key == 13)
+    {
+              AppliTrack_SearchExecute(null);
+
+              if(window.event){
+                  window.event.cancelBubble = true;
+                  window.event.returnValue = false;
+              }
+
+              if (event && event.stopPropagation) {
+            event.stopPropagation();
+        }
+        if (event && event.preventDefault) {
+            event.preventDefault();
+        }
+        return false;
+    }
+}
+
+function AppliTrackInit(){
+       try{
+           var sf = AppliTrack_$('AppliTrackPostingSearchBasic');
+           var sc = AppliTrack_$('AppliTrackSearchSubCategory');
+           if(sf){sf.value = "Search Postings"}
+           if(sc){sc.disabled = true;}
+           if (window.location.search.indexOf("category") > 0 || window.location.search.indexOf("AppliTrackPostingSearchBasic") > 0){
+                  AppliTrack_$('AppliTrackPostings').scrollIntoView(true)
+           }
+       }
+    catch(e){}
+}
+setTimeout('AppliTrackInit()',100)
+function AppliTrack_ToggleAdvancedSearch(){
+    var hc = AppliTrack_$('AppliTrackSearchAdvancedHeaderCollapsed');
+    var he=AppliTrack_$('AppliTrackSearchAdvancedHeaderExpanded');
+    var c=AppliTrack_$('AppliTrackSearchAdvancedContainer');
+    var s=AppliTrack_$('AppliTrackSearchSimpleContainer');
+    if(!hc||!he||!c) return;
+    if(hc.style.display=='block'){
+        hc.style.display='none';
+        he.style.display='block';
+        c.style.display='block';
+        s.style.opacity='.5';
+        s.style.filter='alpha(opacity=50)';
+    }
+    else{
+        hc.style.display='block';
+        he.style.display='none';
+        c.style.display='none';
+        s.style.opacity='1';
+        s.style.filter='alpha(opacity=100)';
+    }
+}
+
+function AppliTrack_onKeyPressToggle(e){
+    if(window.event) {
+        key = window.event.keyCode;     //IE
+    } else {
+        key = e.which;     //firefox
+    }
+    //toggle advanced settings on 'enter' and 'space' keypress
+    if (key == 13 || key == 32) {
+        AppliTrack_ToggleAdvancedSearch();
+    }
+}
+
+function AppliTrack_SearchCategorySelect(){
+    var c = AppliTrack_$('AppliTrackSearchCategory');
+    var sc=AppliTrack_$('AppliTrackSearchSubCategory');
+    if(!c||!sc){return;}
+    if(c.options&&c.selectedIndex > 0){
+        sc.disabled=false;
+        var v = c.options[c.selectedIndex].value;
+        if(v!=''){
+            try{
+                eval('var g = '+v);
+                sc.options.length = 0;
+                sc.options[sc.options.length] = new Option('All ' + g.id + ' postings','');
+
+                for(var i=0;i < g.vals.length;i++){
+                    if(g.vals[i]==''){
+                        sc.options[sc.options.length] = new Option('All ' + g.id + ' postings','');
+                    }
+                    else{
+                        sc.options[sc.options.length] = new Option(g.vals[i],g.vals[i]);
+                    }
+                }
+            }catch(e){/*malformed option*/}
+        }
+    }
+    else{
+        sc.options.length = 0;
+        sc.disabled = true;
+    }
+
+}
+
+function AppliTrack_RadiusSelect(){
+    var l = AppliTrack_$('AppliTrackSearchLocation');
+    var sr=AppliTrack_$('AppliTrackSearchRadius');
+    var zct=AppliTrack_$('AppliTrackZipCode');
+    var zcv = AppliTrack_$('AppliTrackZipValidator');
+     if(!l||!sr){return;}
+      if(l.options[l.selectedIndex].value != ''){
+        sr.disabled = true;
+        zct.disabled = true;
+        zcv.style.visibility='hidden';
+        }
+        else
+        {
+          sr.disabled = false;
+          zct.disabled = false;
+        }
+}
+
+
+function AppliTrack_SearchExecute(f /*,execute search, default advanced form visible*/){
+
+  var ll = AppliTrack_$('AppliTrackSearchLocation');
+  var zct = AppliTrack_$('AppliTrackZipCode');
+  var zcv = AppliTrack_$('AppliTrackZipValidator');
+  var sbb = AppliTrack_$('AppliTrackPostingSearchBasic');
+  var validateZip =true;
+  if (zct !=null) {
+    if (zct.value != '' ){
+        validateZip =  /(^\d{5}$)|(^\d{5}-\d{4}$)/.test(zct.value);
+    }
+    else
+    {
+        validateZip = true;
+    }
+  }
+  else
+  {
+    validateZip = true;
+  }
+
+  if(( sbb.value !='Search Postings') || validateZip ){
+    var loc = window.location.search;
+       if(loc.substring(0,1) == '?'){
+        //always replace the current search - refactor this to eliminate compounding searching
+           loc = 'all=1';
+        //loc= loc.substring(1,loc.length);
+       }
+       if(f&&(f.tagName+'').toLowerCase()=='form')
+       { f.onSubmit = null; }
+
+       if(!arguments||arguments.length<2||arguments[1]){
+           //search
+        var k = AppliTrack_$('AppliTrackPostingSearchBasic');
+        var ak= AppliTrack_$('AppliTrackSearchKeyword');
+        var tt= AppliTrack_$('AppliTrackSearchTitle');
+        var d = AppliTrack_$('AppliTrackSearchDistrict');
+        var l = AppliTrack_$('AppliTrackSearchLocation');
+        var c = AppliTrack_$('AppliTrackSearchCategory');
+        var sc= AppliTrack_$('AppliTrackSearchSubCategory');
+        var pd= AppliTrack_$('AppliTrackSearchPostDateRange');
+        var sregion = AppliTrack_$('AppliTrackSearchRegion');
+        var zc =AppliTrack_$('AppliTrackZipCode');
+        var zipr = AppliTrack_$('AppliTrackSearchRadius');
+        var int = AppliTrack_$('internal');
+        var state= AppliTrack_$('AppliTrackSearchState');
+
+           var s = '';
+           if(!AppliTrack_isEmpty(k)&&'Search Postings'!=''+k.value)
+             {
+               s+=(s!=''?' ':'');
+               if(k.value !=''){ s+='title:' + k.value;}
+             }
+           if(!AppliTrack_isEmpty(ak)){s+=(s!=''?' ':'') + ak.value;}
+           if(d&&d.options&&d.selectedIndex>=0&&''!=''+d.options[d.selectedIndex].value){
+               for(var i=1;i < d.options.length;i++){
+                   if(d.options[i].selected && d.options[i].value+''!=''){
+                       s+=(s!=''?' ':'') + 'district:' + d.options[i].value;
+                   }
+               }
+               loc = AppliTrack_RemoveParam(loc,'district');
+           }
+        var radius='';
+        if (zipr != null)
+        {
+            if (zipr.value !='')
+            {
+            radius=' radius%3A"'+ zipr.value +'"';
+            }
+        }
+        if (l != null)
+        {
+               if(l&&l.options&&''!=''+l.options[l.selectedIndex].value){
+                   s+=(s!=''?' ':'') + 'location:"' + l.options[l.selectedIndex].value + '"';
+                   loc = AppliTrack_RemoveParam(loc,'location');
+               }
+        }
+           if(tt&&''!=''+tt.value){
+               s+=(s!=''?' ':'') + 'title:"' + tt.value + '"';
+               loc = AppliTrack_RemoveParam(loc,'title');
+           }
+        if(pd&&pd.options&&''!=''+pd.options[pd.selectedIndex].value){
+               s+=(s!=''?' ':'') + 'dateposted:' + pd.options[pd.selectedIndex].value + '';
+               loc = AppliTrack_RemoveParam(loc,'dateposted');
+           }
+           if(c&&c.options&&''!=''+c.options[c.selectedIndex].value){
+            try{
+                eval('var g = '+c.options[c.selectedIndex].value);
+                s+=(s!=''?' ':'') + 'category:"' + g.id + '"';
+                loc = AppliTrack_RemoveParam(loc,'category');
+            }catch(e){/*malformed option*/}
+           }
+
+           if(sregion && sregion.options && sregion.options[sregion.selectedIndex] != null && ''!=''+sregion.options[sregion.selectedIndex].text){
+                try{
+                    s+=(s!=''?' ':'') + 'region:"' + sregion.options[sregion.selectedIndex].text + '"';
+                    loc = AppliTrack_RemoveParam(loc,'region');
+                }catch(e){/*malformed option*/}
+           }
+
+           if(sc&&sc.options&&!sc.disabled&&sc.selectedIndex>=0&&'' != ''+sc.options[sc.selectedIndex].value){
+               s+=(s!=''?' ':'') + 'subcategory:"' + sc.options[sc.selectedIndex].value + '"';
+               loc = AppliTrack_RemoveParam(loc,'subcategory');
+           }
+
+           if (typeof CustomSearchFormExtender == 'function') {
+               s = s + CustomSearchFormExtender();
+           }
+           loc = AppliTrack_AddParam(loc,'AppliTrackPostingSearch',s);
+       }
+    if (zc != null){
+        loc = AppliTrack_AddParam(loc,'AppliTrackZipCode', zc.value);
+        loc = AppliTrack_AddParam(loc,'AppliTrackZipRadius', zipr.value);
+    }
+    if (state != null){
+        loc = AppliTrack_AddParam(loc,'AppliTrackSearchState', state.value);
+    }
+    if (int != null)
+    {
+        loc = AppliTrack_AddParam(loc,'internal', int.value);
+    }
+       //sort
+    var so = AppliTrack_$('AppliTrackSort');
+       if(so&&so.options&&''!=''+so.options[so.selectedIndex].value){
+           loc = AppliTrack_AddParam(loc ,'AppliTrackSort',''+so.options[so.selectedIndex].value);
+       }
+
+       //display
+    var m = AppliTrack_$('AppliTrackLayoutMode');
+       if(m&&m.options&&''!=''+m.options[m.selectedIndex].value){
+           loc = AppliTrack_AddParam(loc ,'AppliTrackLayoutMode',''+m.options[m.selectedIndex].value);
+       }
+
+    //expand/collapse
+    if(arguments&&arguments.length==3&&arguments[2]&&(navigator.vendor+'').indexOf('Apple')==-1){
+        loc = AppliTrack_AddParam(loc,'AppliTrackSearch','expanded');
+    }
+
+
+
+    //GET
+    if(loc.match(/^&/g))  {loc = loc.substring(1,loc.length);}
+    if(!loc.match(/^\?/g)){loc = '?' + loc;}
+    if(loc.match(/[&\?]$/)!=null){loc = loc.substr(0,loc.length-1);}
+        window.location = window.location.toString().replace(window.location.search,'') + loc;
+
+    }
+
+    // if no zip code show this
+    else
+    {
+        if (zcv != null){
+            zcv.style.visibility="visible";
+        }
+    }
+}
+
+
+function AppliTrack_isEmpty(s){
+    var st = (s&&s.value?s.value:s);
+    return !(st && ''!=''+st && 'undefined'!=''+st);
+}
+
+function AppliTrack_AddParam(loc,key,val){
+    var rv = loc+'';
+    if(!AppliTrack_isEmpty(key)&&!AppliTrack_isEmpty(val)){
+        if (rv.match(new RegExp(key+'=',"ig"))){
+            rv = AppliTrack_RemoveParam(rv,key);
+           }
+        if(rv.length>0 && !rv.match('&$')){rv += '&';}
+           rv += key + "=" + escape(val);
+
+    }
+    return rv;
+}
+
+function AppliTrack_RemoveParam(loc,key){
+
+    var rv = (loc+'').split('&');
+    if(key!= ''){
+        for(var i=0;i < rv.length;i++){
+           if(rv[i].substring(0,key.length) == key){
+                rv[i]='';
+            }
+        }
+    }
+    return (rv?rv.join('&').replace('&&','&'):'');
+}
+function AppliTrack_$(id) {
+    var o = null;
+    if( document.layers ) {
+        o = document.layers[id];
+    } else if( document.all ) {
+        o = document.all[id];
+    } else if( document.getElementById ) {
+        o = document.getElementById(id);
+    }
+    return o;
+}
+
+
+function updateEmailLinkFromCurrentWindowLocation(mailSubject, mailMsg, queryStrings)
+{
+    queryStrings = queryStrings.replace('default.aspx', 'JobPostings/view.asp');
+    var newLine = "%0D%0A";
+    var sanitizedUrl = sanitizeUrl(window.location.href, queryStrings)
+    window.location.href = mailSubject + mailMsg + newLine + newLine + encodeURIComponent(sanitizedUrl);
+}
+
+function updateHrefFromCurrentWindowLocation(queryStrings, isOpenInNewTab, isClearPreviousParams, isReplaceDefault){
+    var currentLocation = window.location.href;
+
+    if(isClearPreviousParams) currentLocation =  window.location.origin + window.location.pathname;
+
+    if(isReplaceDefault) currentLocation = currentLocation.replace('default.aspx', 'JobPostings/view.asp');
+
+    if (currentLocation.indexOf('?') == -1 && queryStrings.indexOf('?') == -1) {
+        currentLocation = currentLocation + "?";
+    }
+    else {
+        if (currentLocation.indexOf('?') != -1) currentLocation = currentLocation + '&';
+    }
+
+    if(isOpenInNewTab)
+        window.open(sanitizeUrl(currentLocation, queryStrings), '_blank' );
+    else
+        window.location.href = sanitizeUrl(currentLocation, queryStrings);
+}
+
+function sanitizeUrl(currentLocation, queryStrings){
+    queryStrings = queryStrings.replace("ApplitrackHardcodedURL?1=1", "");
+    queryStrings = queryStrings.replace("ApplitrackHardcodedURL", "");
+
+    return removeDuplicateQueryStringsFromUrl(currentLocation + queryStrings);
+}
+
+function removeDuplicateQueryStringsFromUrl(currentLocation)
+{
+	// Example : "http://qa4.applitrack.com/dex/jobhomepage.html?AppliTrackSort=newest&AppliTrackSort=newest"
+	var delimeter = '&';
+	var newUrl = [];
+	var urlArray = currentLocation.split(delimeter);
+
+	urlArray.forEach(function(urlParameter, index)
+	{
+		if (newUrl.indexOf(urlParameter) == -1 && urlParameter.indexOf('?') != 0)
+		{
+			if((urlParameter.indexOf('/') > 0 && index == 0) || urlParameter.indexOf('=') > 0)
+			{
+				newUrl.push(urlParameter);
+			}
+		}
+	});
+
+	return newUrl.join(delimeter);
+}
+
+document.write('<div id=\'AppliTrackOutput\'><form id=\'AppliTrackSearchForm\' name=\'AppliTrackSearchForm\' onsubmit=\'return false;\'><a name=AppliTrackPostings id=AppliTrackPostings></a><link rel=\'stylesheet\' type=\'text/css\' href=\'/olacommon/jobpostings/postingStyles.v3.css?v=8-17-2016\' /><div class=\'AppliTrackListHeader\'id=\'ApplicantMain\'><div>Openings as of 8/2/2026</div></div><br><div style=\'display: none;\'>force display?True</div><div id=\'AppliTrackSearchContainer\'><table width=\'100%\' class=\'AppliTrackSearchBG\'><tr><td class="normal" width="100%">Viewing All Types&nbsp;(<b>3</b> openings)</td><td align=right nowrap><div id=\'AppliTrackSearchSimpleContainer\'><label for=\'AppliTrackPostingSearchBasic\' class=\'HiddenButReadable\'>Search Postings:</label><input type=\'text\' size=\'15\' id=\'AppliTrackPostingSearchBasic\' style=\'font-style: italic; color: #999999\' onfocus=\'AppliTrackSearchFocus()\' onblur=\'AppliTrackSearchBlur()\' onKeyPress=\'return AppliTrack_WatchForEnter(event)\' /><input type=\'button\' value=\'Go\'&nbsp; class=\'button\' style=\'padding:0px 0px;\' onclick=\'submitAppliTrackSearch()\' /></div></td></tr></table><div id=\'AppliTrackSearchAdvancedHeaderCollapsed\' style=\'display:block;\' onclick=\'AppliTrack_ToggleAdvancedSearch()\' tabindex=\'0\' aria-role=\'button\' onkeydown=\'AppliTrack_onKeyPressToggle(event)\'>Options</div><div id=\'AppliTrackSearchAdvancedContainer\' style=\'display:none;\'><div class=\'section\' style=\'padding-bottom:4px;border-bottom:solid 1px #ddd;\'><div class=\'header\'>Search Job Postings</div><div><label for=\'AppliTrackSearchKeyword\'><span class=\'fixedCol1 label\' nowrap=\'nowrap\'><u>Posting</u> contains:</span></label><input style=\'width:250px;\' type=\'text\' name=\'AppliTrackSearchKeyword\' id=\'AppliTrackSearchKeyword\' onKeyPress=\'return AppliTrack_WatchForEnter(event)\'/></div><div><label for=\'AppliTrackSearchTitle\'><span class=\'fixedCol1 label\' nowrap=\'nowrap\'><u>Title</u> contains:</span></label><input style=\'width:250px;\' type=\'text\' name=\'AppliTrackSearchTitle\' id=\'AppliTrackSearchTitle\' onKeyPress=\'return AppliTrack_WatchForEnter(event)\' /></div><div><span class=\'fixedCol1 label\'>In Category:</span><select name=\'AppliTrackSearchCategory\' id=\'AppliTrackSearchCategory\' onchange=\'AppliTrack_SearchCategorySelect()\' onKeyPress=\'return AppliTrack_WatchForEnter(event)\'><option style=\'color:#666;font-style: italic;\'>Select Category</option><option value=\'{id:"Substitute",vals:["Substitute Teacher"]}\'>Substitute</option><option value=\'{id:"Support Staff",vals:["Para-Educator Special Services"]}\'>Support Staff</option><option value=\'{id:"Transportation",vals:["Substitute Bus Driver"]}\'>Transportation</option></select><span class=\'label\'> and </span><span class=\'label\' style=\'white-space:nowrap\'>SubCategory:<select name=\'AppliTrackSearchSubCategory\' id=\'AppliTrackSearchSubCategory\' disabled=\'disabled\' onKeyPress=\'return AppliTrack_WatchForEnter(event)\'><option></option></select></span></div><div><span class=\'fixedCol1 label\'>At Location:</span><select name=\'AppliTrackSearchLocation\' id=\'AppliTrackSearchLocation\' onchange=\'AppliTrack_RadiusSelect()\' onKeyPress=\'return AppliTrack_WatchForEnter(event)\'><option value=\'\' style=\'font-style:italic;color:#999\'> -- Any Location -- </option><option value="District Wide">District Wide</option><option value="Greybull High School">Greybull High School</option><option value="Transportation">Transportation</option></select></div><div id="AppliTrackSearchZipCodeSection"><span class=\'fixedCol1 label\'>Within:</span><select name=\'AppliTrackSearchRadius\' id=\'AppliTrackSearchRadius\' onchange=\'AppliTrack_SearchCategorySelect()\' onKeyPress=\'return AppliTrack_WatchForEnter(event)\'><option value=\'5\'>5</option><option value=\'10\'>10</option><option value=\'15\'>15</option><option value=\'25\'>25</option><option value=\'50\'>50</option><option value=\'100\'>100</option><option value=\'150\'>150</option></select><span class=\'fixedCol1 label\' style=\'margin-left: -25px;\'>miles of Zip:</span><label for=\'AppliTrackZipCode\' class=\'HiddenButReadable\'>Zip Code</label><input style=\'width:70px;\' type=\'text\' name=\'AppliTrackZipCode\' id=\'AppliTrackZipCode\' onKeyPress=\'return AppliTrack_WatchForEnter(event)\' /><stronge name=\'AppliTrackZipValidator\' id=\'AppliTrackZipValidator\' style=\'visibility:hidden;text-align: left;color:red;\'>Invalid Zipcode</stronge><input style=\'width:250px;\' type=\'hidden\' name=\'internal\' id=\'internal\' value=\'\'&nbsp; /></div><button id="AppliTrackSearchButton" type="button" style=\'float:right;margin-right:10px;cursor:pointer;\' onclick=\'AppliTrack_SearchExecute(null)\'>Search</button><div><span class=\'label\' style=\'width:125px;text-align:right;\'>Posted in the last:</span><select name=\'AppliTrackSearchPostDateRange\' id=\'AppliTrackSearchPostDateRange\' onKeyPress=\'return AppliTrack_WatchForEnter(event)\'><option value=\'\'>All Dates</option><option value=\'7\'>7 Days</option><option value=\'14\'>14 Days</option><option value=\'30\'>30 Days</option></select></div></div><div class=\'section\' style=\'vertical-align: top;\'><span style=\'white-space:nowrap\'><span class=\'header\'>Sort Results By:</span><select name=\'AppliTrackSort\' id=\'AppliTrackSort\' class=\'data\'><option class=\'data\' value=\'type\' selected=\'selected\'>type</option><option class=\'data\' value=\'title\'>title</option><option class=\'data\' value=\'location\'>location</option><option class=\'data\' value=\'newest\'>newest</option><option class=\'data\' value=\'oldest\'>oldest</option></select></span><span style=\'white-space:nowrap\'><span class=\'header\'>Display as:</span><select name=\'AppliTrackLayoutMode\' id=\'AppliTrackLayoutMode\' class=\'data\'><option value=\'detail\' selected=\'selected\'>Detailed View</option><option value=\'condensed\'>Condensed View</option></select></span></div></div><div id=\'AppliTrackSearchAdvancedHeaderExpanded\' style=\'display:none;\' onclick=\'AppliTrack_ToggleAdvancedSearch()\'>Options</div></div><div id=\'AppliTrackListContent\'><p align=center class=noprint id=\'p508_h\'><span class=\'ListHeader\'>Openings as of 8/2/2026<br/></span></p><ul class=\'postingsList\' id=\'p508_\'><table class=\'title\' style=\'padding: 0px; width:99.2%\'><tr><td id=\'wrapword\' style=\'width: 950px; padding: 5px;\'>Life Skills Paraprofessional - Middle/High School</td><td style=\'width: 275px;\'><span class=\'title2\' style=\'float:right;text-align:right;margin-top: 8px;margin-right: 6px;\'> JobID: 508 <input type=\'button\' value=\' Apply \' onclick="applyFor(\'508\',\'Support Staff\',\'Para-Educator Special Services\')" class=\'screenOnly ApplyButton\' /></span></td></tr></table><div style=\'position:relative;\'><li><span class=\'label\'>Position Type:</span><br/>&nbsp;&nbsp;<span class=\'normal\'>Support Staff/</span><span class=\'normal\'>Para-Educator Special Services</span><br/><br/></li><li><span class="label" >Date Posted:</span><br/>&nbsp;&nbsp;<span class="normal">8/2/2026</span><br/><br/></li><li><span class="label" >Location:</span><br/>&nbsp;&nbsp;<span class="normal">Greybull High School<br/><font color="red">(High-Needs School)</font></span><br/><br/></li><li><span class="label" >Date Available:</span><br/>&nbsp;&nbsp;<span class=\'normal\'>08/19/2026</span><br/><br/></li><li><span class="label" > Closing Date: </span><br/>&nbsp;&nbsp;<span class=\'normal\'>until filled</span><br/><br/></li><span>&nbsp&nbsp</span>');
+document.write('<span class="label" >Additional Information: &nbsp;</span><span class="normal"><a href="javascript:void(toggle_block(\'DescriptionText508_\'))"><u>Show/Hide</u></a></span><br/><span id=\'DescriptionText508_\' style=\'border: 1px solid black; padding:5px; display:none; opacity:.8;\'><span class="normal"><p><strong><u>Middle/High School Life Skills Special Education&nbsp;Paraprofessional</u></strong></p><p><strong>Position Purpose</strong></p><p>- &nbsp;Under the direct supervision of a certified staff member, to assist certified professional staff with students in the classroom to meet instructional goals and objectives, and to free certified professional employees from non-professional duties such as proctoring study halls to enable them to make a contribution to other aspects of the educational program, such as curriculum development.</p><p><strong>Essential Job Functions</strong></p><p>- &nbsp;Assists and guides students to reinforce reading, language arts, mathematics, computer instruction, and other skills.&nbsp;</p><p>- &nbsp;Works with students individually and in small groups to reinforce basic learning and implement assigned programs.</p><p>- &nbsp;Assists professional staff in the administration and correction of classroom exercises, tests and assessments.</p><p>- &nbsp;Assists in classroom preparations and strategies for reinforcing instructional materials and skills according to individual student needs.</p><p>- &nbsp;Assists with record-keeping procedures to document student learning and performance.</p><p>- &nbsp;Assists with classroom behavioral management to minimize disruptions, ensure a safe and orderly classroom, and ensure students are on task.</p><p>- &nbsp;Assists students in non-instructional areas, such as supervising the student lunch programs, bus duty, playground duty, corridor, study hall, and other related non-instructional areas.</p><p>- &nbsp;Accompanies students on field trips for the purpose of assisting with supervision.</p><p>- &nbsp;Constructs, copies and distribute and use educational materials as needed.</p><p>- &nbsp;Assists teacher with parent contact as requested to foster effective and participatory parent involvement in student education.</p><p>- &nbsp;Assists students with special needs in all aspects of classroom instruction to maximize inclusion, learning, achievement if IEP objectives, etc.</p><p>- &nbsp;Participates in IEP process and serves as resource for the student personnel evaluation team as needed.</p><p>- &nbsp;Assist students with physical or mental disabilities with activities of daily living for the purpose of maximizing their ability to participate in school or learning activities.</p><p>- &nbsp;Follows all applicable safety rules, procedures and regulations governing the proper manner of assistance for all students, including those with disabilities or other special needs.</p><p><strong>Additional Duties:</strong></p><p>- &nbsp;Assist guidance, pupil services staff or building administration, as needed.</p><p>- &nbsp;Perform any other related duties as assigned including student bus supervision and support.&nbsp;</p><p>Note: &nbsp; The above description is illustrative of tasks and responsibilities. &nbsp;It is not meant to be all inclusive of every task or responsibility.</p><p><strong>Equipment</strong></p><p>- &nbsp;Use standard office equipment, such as personal computers and copiers.</p><p><strong>Travel Requirements</strong></p><p>- &nbsp;Travel between schools, or between schools and central offices, may be required for certain positions.</p><p><strong>Knowledge, Skills and Abilities</strong></p><p>- &nbsp;Ability to carry out instructions furnished in written or oral form.</p><p>- &nbsp;Ability to add, subtract, multiply and divide, and perform arithmetic operations as needed to assist students.</p><p>- &nbsp;Ability to understand, apply and use personal computers and software applications (e.g., Word, Excel).</p><p>- &nbsp;Ability to work with a diverse group of individuals.</p><p>- &nbsp;Ability to maintain confidentiality of information regarding students, employees and others.</p><p>- &nbsp;Ability to establish a supportive and compassionate relationship with students with special needs.</p><p>- &nbsp;Ability to establish and maintain cooperative working relationships with students, staff and others contacted in the course of work.</p><p>- &nbsp;Ability to report work orally or in writing to supervisor as required.</p><p>- &nbsp;Effective writing and verbal communication skills.</p><p><strong>Physical and Mental Demands, Work Hazards</strong></p><p>- &nbsp;Works in standard office and school building environments.</p><p>- &nbsp;Ability to work outdoors during outdoor student activities.</p><p>Note: &nbsp; Also see the Summary of Physical, Sensory and Environmental Requirements Needed to Perform Essential Functions for this position.</p><p><strong>Qualifications Profile</strong></p><p>- &nbsp;Any combination of education and experience providing the required skill and knowledge for successful performance would be qualifying. &nbsp;Typical qualifications would be equivalent to:</p><p>- &nbsp;High School diploma or equivalent.</p><p>- &nbsp;Successful completion of college level coursework or passing of examination as required by the No Child Left Behind Act.</p><p>- &nbsp;Prior experience working with special needs children desirable.&nbsp; Coaching positions available.</p><p>&nbsp;</p><p><strong>FLSA Status:</strong> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Non-exempt</p><p>&nbsp;</p><p>&nbsp;</p><p>&nbsp;</p></span><br /><img src=\'https://www.applitrack.com/clear.gif\' height=8><br /></span><br/><div class=\'label\' align=\'right\' style=\'position:absolute; top:0%;right:1%;\'><span class=\'s\'><div class="addthis_toolbox addthis_default_style "><a class="addthis_button_preferred_1"></a><a class="addthis_button_preferred_2"></a><a class="addthis_button_preferred_3"></a><a class="addthis_button_compact"></a><a class="addthis_counter addthis_bubble_style"></a></div><script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4dfeb954767d3dc8"></script><br><a href=\'javascript:updateEmailLinkFromCurrentWindowLocation("mailto:?subject=Job Posting&body=","I thought you would be interested in an employment opportunity I found at Big Horn County School District 3. The position is Life Skills Paraprofessional - Middle/High School. Please click the link below for more information about this vacancy.","ApplitrackHardcodedURL?1=1&AppliTrackJobId=508&AppliTrackLayoutMode=detail&AppliTrackViewPosting=1")\'><span style=\'color:#4c4c4c;font-size:.9em;font-weight:normal;\'>Email To A Friend</span></a><br/><a href=\'javascript:updateHrefFromCurrentWindowLocation("ApplitrackHardcodedURL?1=1&AppliTrackJobId=508&AppliTrackLayoutMode=detail&AppliTrackViewPosting=1" , true, false, true)\'><span style=\'color:#4c4c4c;font-size:.9em;font-weight:normal;\'>Print Version</span> </a><br/></span></div><br/></div></ul><div style=\'width: 100%; height: .75px; background: gray; overflow: hidden; margin-bottom:4px;\'></div><br /><p align=center class=noprint id=\'p229_h\'><span class=\'ListHeader\'>Openings as of 8/2/2026<br/></span></p><ul class=\'postingsList\' id=\'p229_\'><table class=\'title\' style=\'padding: 0px; width:99.2%\'><tr><td id=\'wrapword\' style=\'width: 950px; padding: 5px;\'>Substitute Teacher</td><td style=\'width: 275px;\'><span class=\'title2\' style=\'float:right;text-align:right;margin-top: 8px;margin-right: 6px;\'> JobID: 229 <input type=\'button\' value=\' Apply \' onclick="applyFor(\'229\',\'Substitute\',\'Substitute Teacher\')" class=\'screenOnly ApplyButton\' /></span></td></tr></table><div style=\'position:relative;\'><li><span class=\'label\'>Position Type:</span><br/>&nbsp;&nbsp;<span class=\'normal\'>Substitute/</span><span class=\'normal\'>Substitute Teacher</span><br/><br/></li><li><span class="label" >Date Posted:</span><br/>&nbsp;&nbsp;<span class="normal">7/5/2017</span><br/><br/></li><li><span class="label" >Location:</span><br/>&nbsp;&nbsp;<span class="normal">District Wide</span><br/><br/></li><li><span class="label" > Closing Date: </span><br/>&nbsp;&nbsp;<span class=\'normal\'>Open During School Year</span><br/><br/></li><span>&nbsp&nbsp</span>');
+document.write('<br/><div class=\'label\' align=\'right\' style=\'position:absolute; top:0%;right:1%;\'><span class=\'s\'><div class="addthis_toolbox addthis_default_style "><a class="addthis_button_preferred_1"></a><a class="addthis_button_preferred_2"></a><a class="addthis_button_preferred_3"></a><a class="addthis_button_compact"></a><a class="addthis_counter addthis_bubble_style"></a></div><script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4dfeb954767d3dc8"></script><br><a href=\'javascript:updateEmailLinkFromCurrentWindowLocation("mailto:?subject=Job Posting&body=","I thought you would be interested in an employment opportunity I found at Big Horn County School District 3. The position is Substitute Teacher. Please click the link below for more information about this vacancy.","ApplitrackHardcodedURL?1=1&AppliTrackJobId=229&AppliTrackLayoutMode=detail&AppliTrackViewPosting=1")\'><span style=\'color:#4c4c4c;font-size:.9em;font-weight:normal;\'>Email To A Friend</span></a><br/><a href=\'javascript:updateHrefFromCurrentWindowLocation("ApplitrackHardcodedURL?1=1&AppliTrackJobId=229&AppliTrackLayoutMode=detail&AppliTrackViewPosting=1" , true, false, true)\'><span style=\'color:#4c4c4c;font-size:.9em;font-weight:normal;\'>Print Version</span> </a><br/></span></div><br/></div></ul><div style=\'width: 100%; height: .75px; background: gray; overflow: hidden; margin-bottom:4px;\'></div><br /><p align=center class=noprint id=\'p455_h\'><span class=\'ListHeader\'>Openings as of 8/2/2026<br/></span></p><ul class=\'postingsList\' id=\'p455_\'><table class=\'title\' style=\'padding: 0px; width:99.2%\'><tr><td id=\'wrapword\' style=\'width: 950px; padding: 5px;\'>Substitute Bus Driver / Activity Driver</td><td style=\'width: 275px;\'><span class=\'title2\' style=\'float:right;text-align:right;margin-top: 8px;margin-right: 6px;\'> JobID: 455 <input type=\'button\' value=\' Apply \' onclick="applyFor(\'455\',\'Transportation\',\'Substitute Bus Driver\')" class=\'screenOnly ApplyButton\' /></span></td></tr></table><div style=\'position:relative;\'><li><span class=\'label\'>Position Type:</span><br/>&nbsp;&nbsp;<span class=\'normal\'>Transportation/</span><span class=\'normal\'>Substitute Bus Driver</span><br/><br/></li><li><span class="label" >Date Posted:</span><br/>&nbsp;&nbsp;<span class="normal">12/17/2024</span><br/><br/></li><li><span class="label" >Location:</span><br/>&nbsp;&nbsp;<span class="normal">Transportation</span><br/><br/></li><li><span class="label" > Closing Date: </span><br/>&nbsp;&nbsp;<span class=\'normal\'>Open During School Year</span><br/><br/></li><span>&nbsp&nbsp</span><span class="label" >Additional Information: &nbsp;</span><span class="normal"><a href="javascript:void(toggle_block(\'DescriptionText455_\'))"><u>Show/Hide</u></a></span><br/><span id=\'DescriptionText455_\' style=\'border: 1px solid black; padding:5px; display:none; opacity:.8;\'><span class="normal"><strong>Purpose Statement</strong><br /> The job of Bus Driver was established for the purpose/s of providing support within the student transportation services area with<br /> specific responsibilities for transporting students over scheduled routes and/or to/from special excursions; ensuring vehicle<br /> operation is in safe operating condition; and ensuring safety of students during transport, loading and unloading from buses.<br /> This job reports to Transportation Supervisor.<br /> <br /> &nbsp;</span><br /><img src=\'https://www.applitrack.com/clear.gif\' height=8><br /></span>');
+function setUpPageBreaks(){h = 0; try{AppliTrack_$('p229_h').className = 'noprint'; if (h + AppliTrack_$('p229_').clientHeight > 775){h = 0; AppliTrack_$('p229_h').className = 'printOnly'; } h = h + AppliTrack_$('p229_').clientHeight; AppliTrack_$('p455_h').className = 'noprint'; if (h + AppliTrack_$('p455_').clientHeight > 775){h = 0; AppliTrack_$('p455_h').className = 'printOnly'; } h = h + AppliTrack_$('p455_').clientHeight; }catch(ex){}}
+var h = 0
+setTimeout("setUpPageBreaks()",100)
+document.write('<br/><div class=\'label\' align=\'right\' style=\'position:absolute; top:0%;right:1%;\'><span class=\'s\'><div class="addthis_toolbox addthis_default_style "><a class="addthis_button_preferred_1"></a><a class="addthis_button_preferred_2"></a><a class="addthis_button_preferred_3"></a><a class="addthis_button_compact"></a><a class="addthis_counter addthis_bubble_style"></a></div><script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-4dfeb954767d3dc8"></script><br><a href=\'javascript:updateEmailLinkFromCurrentWindowLocation("mailto:?subject=Job Posting&body=","I thought you would be interested in an employment opportunity I found at Big Horn County School District 3. The position is Substitute Bus Driver / Activity Driver. Please click the link below for more information about this vacancy.","ApplitrackHardcodedURL?1=1&AppliTrackJobId=455&AppliTrackLayoutMode=detail&AppliTrackViewPosting=1")\'><span style=\'color:#4c4c4c;font-size:.9em;font-weight:normal;\'>Email To A Friend</span></a><br/><a href=\'javascript:updateHrefFromCurrentWindowLocation("ApplitrackHardcodedURL?1=1&AppliTrackJobId=455&AppliTrackLayoutMode=detail&AppliTrackViewPosting=1" , true, false, true)\'><span style=\'color:#4c4c4c;font-size:.9em;font-weight:normal;\'>Print Version</span> </a><br/></span></div><br/></div></ul><div style=\'width: 100%; height: .75px; background: gray; overflow: hidden; margin-bottom:4px;\'></div><br /></div><span class=\'screenOnly\'><div class="subnotetext"></div></span><noscript>Powered by Aspex Solutions - AppliTrack, Applicant Tracking for Educators. Online Job Employment Applications, Web Based Employment Applications for School Districts and Educational Institutions - <a href=http://www.aspexsolutions.com/home/>www.aspexsolutions.com</a></noscript><noscript>You can also view <a href=\'http://www.k12jobspot.com/wyoming-teaching-jobs\'>Wyoming teaching jobs</a> at www.k12jobspot.com. K12JobSpot is a site that has thousands of teaching jobs - all from AppliTrack school districts.</noscript></form></div>');
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www."); document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));try {var pageTracker = _gat._getTracker("UA-12436368-1");pageTracker._trackPageview();} catch(err) {}

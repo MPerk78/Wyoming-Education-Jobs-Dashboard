@@ -1,0 +1,22 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.httr-oauth
+.DS_Store
+.quarto
+.positai
+scrape_log.csv
+/facultydata.csv
+
+# Mark's shared working folder: contains a live OpenAI API key
+# (OpenAI.txt) plus large RSelenium binaries (geckodriver.exe,
+# selenium-server-*.jar). Kept locally for reference/backfill only --
+# never committed.
+OneDrive_1_8-4-2026/
+
+# Scratch dir for the Claude auto-fix workflow (issue text, PR body, report)
+.autofix/
+all_direct_k12_job_listings.csv
+.claude/worktrees/
+.edjobs/

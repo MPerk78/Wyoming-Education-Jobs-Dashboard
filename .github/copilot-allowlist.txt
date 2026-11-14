@@ -1,0 +1,47 @@
+# Custom allowlist for the Copilot cloud agent's firewall
+# (repo Settings -> Copilot -> Internet access -> Copilot cloud agent ->
+# Custom allowlist). Settings don't sync from this file -- it's the source
+# of truth you copy from. One domain per line; an entry is assumed to cover
+# its subdomains (schoolspring.com covers crook1.schoolspring.com).
+#
+# test-copilot-allowlist.R fails when a host the scrapers hit isn't covered
+# here -- a k12_district_registry.csv Job_Link, a misc_district_registry
+# url, a he_institution_urls page, or a URL hardcoded in a scraper file or
+# Wy_ED_Jobs.Rmd. So adding a district means adding its domain here AND in
+# the repo settings, or the agent can't fetch that page to fix it.
+applitrack.com
+cheyenneclassical.org
+eeik.fa.us2.oraclecloud.com
+governmentjobs.com
+growingluskleaders.org
+guernseysunrise.org
+lcsd2.org
+paylocity.com
+pcsd16.com
+peopleadmin.com
+platte1.org
+prairieviewschool.org
+redroverk12.com
+schooljobs.com
+schoolspring.com
+sheridan.edu
+sheridan3.com
+simplehire.com
+sites.google.com
+sub1.org
+tedk12.com
+uinta4.com
+uwyo.edu
+wcsd1.org
+weston7.org
+wsba-wy.org
+wsh2.k12.wy.us
+wyoclassical.org
+
+# Render-time asset hosts: not job-board URLs, but chromote needs them for
+# the page to hydrate. Without Apptegy's CDNs the agent's headless Chrome
+# gets an empty shell, so innerText shows no postings (found on the Montana
+# dashboard's first auto-fix, 2026-09-30). test-copilot-allowlist.R checks
+# these per platform.
+5il.co
+apptegy.net

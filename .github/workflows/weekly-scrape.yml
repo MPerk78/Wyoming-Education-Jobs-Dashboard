@@ -1,0 +1,413 @@
+name: Weekly job data refresh
+
+on:
+  schedule:
+    # Every Friday 13:00 UTC (~7am Mountain), matching the historical
+    # weekly cadence of the archive snapshots this replaces.
+    - cron: '0 13 * * 5'
+  workflow_dispatch: {}
+
+# One weekly run at a time: a second run waits for the first (MT has had this
+# since 2026-11-03, when a late scheduled run overlapped a manual one).
+concurrency:
+  group: weekly-scrape
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  # file_autofix_issues.R dispatches claude-autofix.yml per new issue.
+  actions: write
+
+jobs:
+  # GitHub starts the scheduled run hours late (MT 2026-11-10: 13:00 UTC cron,
+  # started 20:05). A manual run dispatched earlier the same day has already
+  # pushed that day's data, so the late scheduled run would only fail at its
+  # push (same-day files conflict). This job lets a scheduled run see that and
+  # stop cleanly. Manual dispatches always run. (Workflow plan 2026-11-10, 2.2.)
+  guard:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      # The checkout above is main as it was when this run was *created*; a
+      # scheduled run created before the manual run pushed, then queued behind
+      # it (concurrency), would never see that push (MT 2026-11-10: created at
+      # 6f52b4a, started 9 s after c2dec92 landed). So read main's tip now.
+      # grep without -q reads all of git's output: no SIGPIPE under pipefail.
+      - name: Skip a scheduled run when today's data refresh is already on main
+        id: check
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          if [ "${{ github.event_name }}" = "schedule" ] && \
+             git fetch --depth=50 origin main && \
+             git log -n 50 --format=%s FETCH_HEAD | grep -xF "Automated weekly data refresh ($today)" > /dev/null; then
+            echo "::notice::Today's data refresh ($today) is already on main (a manual run); skipping this scheduled run."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  scrape:
+    needs: guard
+    if: needs.guard.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    # 60 like MT: 11-11's test run took 29 of 30 minutes, and the 11-13 run hit 30.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      # Before anything runs apt (2026-11-11 *.ubuntu.com DNS outage).
+      - uses: ./.github/actions/apt-mirror-fallback
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev libpoppler-cpp-dev \
+            libudunits2-dev libgdal-dev libgeos-dev libproj-dev
+
+      - name: Install R packages
+        run: |
+          Rscript -e 'install.packages(c(
+            # Wy_ED_Jobs.Rmd (the scrape pipeline) dependencies
+            "rmarkdown", "dplyr", "purrr", "readr", "readxl", "rvest",
+            "stringr", "tidyverse", "writexl", "xml2", "jsonlite",
+            "httr2", "lubridate", "chromote", "rsconnect", "testthat",
+            "withr", "here", "pdftools", "shinytest2",
+            # app.R dependencies -- these never run in this workflow, but
+            # rsconnect::writeManifest() can only capture a package if it
+            # is actually installed in the environment generating the
+            # manifest. Omitting these once already broke every Connect
+            # Cloud redeploy silently (manifest missing shiny entirely).
+            "shiny", "bslib", "shinyWidgets", "DT", "data.table",
+            "leaflet", "plotly", "scales", "shinycssloaders",
+            # sf is not used directly by app.R, but leaflet >= 2.2.x Imports
+            # it as a hard dependency, so writeManifest() cannot snapshot
+            # without it installed either (broke 2026-09-11).
+            "sf"
+          ))'
+
+      # Shared code (bostickmike/edjobs) at the version pinned in EDJOBS_VERSION
+      # (R package migration, phase 0, 2026-11-10). Before the test suite: the
+      # tests and the run-expectations step load it.
+      - name: Install edjobs at the pinned version
+        env:
+          GITHUB_PAT: ${{ github.token }}
+        run: Rscript -e 'install.packages("pak"); pak::pak(paste0("bostickmike/edjobs@v", trimws(readLines("EDJOBS_VERSION"))), ask = FALSE)'
+
+      - name: Install Chrome (for the 4 Apptegy misc-district scrapers)
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Run test suite (abort before touching real data if red)
+        env:
+          # so test-app-boot-smoke.R's skip_on_cran() doesn't skip the
+          # shinytest2 browser boot -- Chrome is installed above
+          NOT_CRAN: "true"
+          CHROMOTE_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: |
+          Rscript -e 'here::here(); testthat::test_dir("tests/testthat", stop_on_failure = TRUE)'
+
+      - name: Snapshot pre-run data for the sanity check
+        run: |
+          mkdir -p /tmp
+          cp Wy_Ed_Jobs/combinedclean.csv /tmp/baseline_combinedclean.csv
+          cp Wy_Ed_Jobs/hedata.xlsx /tmp/baseline_hedata.xlsx
+
+      - name: Pre-flight API canary check
+        continue-on-error: true
+        env:
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+        run: Rscript .github/scripts/canary_api_check.R
+
+      - name: Run the scrape pipeline
+        env:
+          CHROMOTE_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+          # Optional: raises the BLS OEWS API limits (bls_oews_scraper.R); the
+          # once-a-year refresh also fits the keyless limits.
+          BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
+        run: |
+          # Interrupted at 40 minutes (normally 10-25), leaving the job time to
+          # print where R was stuck (render_with_stack.R) and upload what the
+          # run had written so far (the step below).
+          timeout -s INT -k 120 40m Rscript .github/scripts/render_with_stack.R Wy_ED_Jobs.Rmd
+
+      # A failed or cancelled run commits nothing, so keep what it wrote
+      # (archives, scrape_log.csv, posting_status.csv, ...) for 30 days.
+      - name: Upload this run's partial outputs if it failed
+        if: failure() || cancelled()
+        run: |
+          mkdir -p /tmp/partial-outputs
+          find . -path ./.git -prune -o -type f -mmin -90 -size -20M -print | cpio -pdm /tmp/partial-outputs 2>/dev/null || true
+      - if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: partial-outputs-${{ github.run_id }}
+          path: /tmp/partial-outputs
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Refresh K-12 and Higher Ed vacancy duration spells
+        run: |
+          Rscript scripts/generate_job_duration_spells.R
+          Rscript scripts/generate_he_job_duration_spells.R
+
+      # Posting-level K-12 and HE spells, Kaplan-Meier durations, advertised
+      # windows and frozen boards (research tables at the repo root; the
+      # dashboard's duration tabs stay paused). Rebuilt from the archives each
+      # week, using coverage_calendar.csv and posting_status.csv; a failure here
+      # doesn't stop the run.
+      - name: Rebuild posting-level K-12 and HE spells
+        id: build_posting_spells
+        continue-on-error: true
+        run: Rscript scripts/build_posting_spells.R
+
+      - name: Sanity-check the new data before committing anything
+        run: Rscript .github/scripts/sanity_check.R
+
+      - name: Verify every shipped dataset still has the columns app.R expects
+        run: Rscript .github/scripts/verify_schema.R
+
+      # Tier-2 data-quality sweep, re-run against THIS week's freshly written
+      # CSVs (the test suite above ran pre-pipeline, against last week's
+      # committed data). Blocking: a range/sign/referential-integrity/enum
+      # regression in this week's output must not ship to the live dashboard.
+      - name: Data-quality invariant sweep on the new data
+        run: Rscript -e 'testthat::test_file("tests/testthat/test-weekly-data-quality.R", stop_on_failure = TRUE)'
+
+      # These three steps are diagnostic/alerting only (see drift_check.R's
+      # header comment) -- a bug in any of them must never block the actual
+      # data commit + Connect Cloud redeploy below, which is the part that
+      # actually matters and was already working reliably before this was
+      # added. continue-on-error swallows a real crash in one of these into
+      # a silently-green step, though -- the "meta-check" step below is
+      # what catches THAT, so a bug in the alerting system itself doesn't
+      # go unnoticed just because it isn't allowed to block the pipeline.
+      - name: Check each source for drift against its own history
+        id: check_drift
+        continue-on-error: true
+        run: Rscript .github/scripts/check_drift.R
+
+      - name: Corroborate any flagged sources with a live chromote check
+        id: corroborate_drift
+        continue-on-error: true
+        env:
+          CHROMOTE_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
+          # Optional: lets the step read the missed job titles off each
+          # flagged page (llm_titles_from_page_text). Unset -> skipped.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -f /tmp/drift_flagged.csv ] && [ "$(tail -n +2 /tmp/drift_flagged.csv | wc -l)" -gt 0 ]; then
+            Rscript .github/scripts/corroborate_drift.R
+          else
+            echo "Nothing flagged, skipping."
+          fi
+
+      # Runs after corroborate_drift.R (which overwrites, not appends,
+      # /tmp/drift_report.md) so a flagged salary source never gets
+      # silently clobbered by that step running afterward -- see
+      # check_salary_drift.R's own append-if-exists logic.
+      - name: Check salary source coverage against its known-fixed universe
+        id: check_salary_drift
+        continue-on-error: true
+        run: Rscript .github/scripts/check_salary_drift.R
+
+      # Same shape of check as check_salary_drift.R above, for the Census
+      # ACS/SAIPE sources (county income/rent/mining-share/population-trend,
+      # district child poverty) instead of WSBA/IPEDS salary data.
+      - name: Check Census source coverage and value plausibility
+        id: check_census_drift
+        continue-on-error: true
+        run: Rscript .github/scripts/check_census_drift.R
+
+      # Postings can keep arriving while the pay a source used to carry goes
+      # blank (a changed pay field or detail endpoint) -- check_drift.R
+      # can't see that, since it counts postings. Same non-blocking shape.
+      - name: Check posted-pay coverage against each source's own history
+        id: check_pay_coverage
+        continue-on-error: true
+        run: Rscript .github/scripts/check_pay_coverage.R
+
+      # Titles that aren't job titles (page text, summaries, a level with no
+      # role, pay Posted Pay doesn't carry) and sources whose share of Other
+      # jumped against their recent weeks -- a scraper reading the wrong
+      # element keeps its row count, so check_drift.R can't see it
+      # (classification safeguards items 5 and 6). Same non-blocking shape.
+      - name: Check title shape and each source's share of Other
+        id: check_title_quality
+        continue-on-error: true
+        run: Rscript .github/scripts/check_title_quality.R
+
+      # The from-archive rebuild must reproduce the committed data (rebuild
+      # parity, classification safeguards item 12), or neither disaster
+      # recovery nor scripts/reclassify_committed_data.R can be trusted.
+      # Same non-blocking shape.
+      - name: Check a rebuild from the archives reproduces the committed data
+        id: check_rebuild_parity
+        continue-on-error: true
+        run: Rscript .github/scripts/check_rebuild_parity.R
+
+      # A board whose whole posting set has been identical for 12+ runs is a
+      # stale page or cache, and its postings keep counting as live (WY spells
+      # trust audit 2026-11-05). check_drift.R can't see it: the count is
+      # steady. Same non-blocking shape.
+      - name: Check for boards that haven't changed in weeks
+        id: check_frozen_boards
+        continue-on-error: true
+        run: Rscript .github/scripts/check_frozen_boards.R
+
+      # run_expectations.csv: what a person expects after a change lands,
+      # checked here instead of read off the log (workflow plan 2026-11-10,
+      # 2.1). Summary on the run page; failures go in the drift issue.
+      # Same non-blocking shape.
+      - name: Check this run against run_expectations.csv
+        id: check_run_expectations
+        continue-on-error: true
+        run: Rscript .github/scripts/check_run_expectations.R
+
+      # Closes the one real gap continue-on-error opens up: a bug that
+      # CRASHES one of the three monitoring steps above is indistinguishable
+      # from "ran fine, found nothing to report" unless something checks for
+      # it specifically -- steps.<id>.outcome is the raw pass/fail BEFORE
+      # continue-on-error suppresses it into a green conclusion, so this is
+      # the one place that distinction is still visible. Appends (not
+      # overwrites) /tmp/drift_report.md so a crash here rides along in the
+      # same Issue as any real drift findings, rather than being silent.
+      - name: Verify the monitoring steps themselves didn't crash
+        run: |
+          FAILED=""
+          [ "${{ steps.check_drift.outcome }}" = "failure" ] && FAILED="$FAILED check_drift.R"
+          [ "${{ steps.corroborate_drift.outcome }}" = "failure" ] && FAILED="$FAILED corroborate_drift.R"
+          [ "${{ steps.check_salary_drift.outcome }}" = "failure" ] && FAILED="$FAILED check_salary_drift.R"
+          [ "${{ steps.check_census_drift.outcome }}" = "failure" ] && FAILED="$FAILED check_census_drift.R"
+          [ "${{ steps.check_pay_coverage.outcome }}" = "failure" ] && FAILED="$FAILED check_pay_coverage.R"
+          [ "${{ steps.check_title_quality.outcome }}" = "failure" ] && FAILED="$FAILED check_title_quality.R"
+          [ "${{ steps.check_rebuild_parity.outcome }}" = "failure" ] && FAILED="$FAILED check_rebuild_parity.R"
+          [ "${{ steps.check_frozen_boards.outcome }}" = "failure" ] && FAILED="$FAILED check_frozen_boards.R"
+          [ "${{ steps.build_posting_spells.outcome }}" = "failure" ] && FAILED="$FAILED build_posting_spells.R"
+          [ "${{ steps.check_run_expectations.outcome }}" = "failure" ] && FAILED="$FAILED check_run_expectations.R"
+
+          if [ -z "$FAILED" ]; then
+            echo "All monitoring steps ran without crashing."
+            exit 0
+          fi
+
+          echo "Monitoring step(s) crashed:$FAILED -- see this run's logs for the actual error."
+          {
+            echo ""
+            echo "---"
+            echo ""
+            echo "**Monitoring self-check:** the following alerting step(s) crashed this run (continue-on-error kept the pipeline going, but this means their findings for this run -- if any -- may be incomplete or missing):$FAILED. See [this run's logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for the actual error."
+            echo ""
+          } >> /tmp/drift_report.md
+
+      - name: File or update a GitHub Issue if anything needs a human look
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -f /tmp/drift_report.md ]; then
+            echo "No report generated, nothing to file."
+            exit 0
+          fi
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title \"Scraper drift check\"" --json number --jq '.[0].number')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file /tmp/drift_report.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "Scraper drift check: sources need review" \
+              --body-file /tmp/drift_report.md
+          fi
+
+      # Tier 3: one issue per likely_broken source (live page has postings the
+      # parser missed), handed to an agent to open a fix PR -- Claude via
+      # claude-autofix.yml by default, or Copilot (AUTOFIX_ENGINE) --
+      # pr-tests.yml then runs the suite plus a live re-check of that one
+      # scraper. Also closes those issues once their source recovers. Runs
+      # even when nothing was flagged, since that's the recovery signal.
+      # Non-blocking like the rest of the monitoring.
+      - name: File per-source auto-fix issues for the auto-fix agent
+        # main only: a test dispatch from a branch still runs the drift check
+        # and its report, but files no issue and starts no agent (Mike,
+        # 2026-11-13: branch tests had been handing issues to Copilot).
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # User token (Copilot-licensed) -- the Actions token can't start a
+          # coding-agent session. Unset -> issues are filed but unassigned.
+          COPILOT_TOKEN: ${{ secrets.COPILOT_TOKEN }}
+          # claude (default) | copilot | none -- see autofix_engine() in drift_check.R.
+          AUTOFIX_ENGINE: ${{ vars.AUTOFIX_ENGINE }}
+          # "true" if a Claude credential is set: then an issue Copilot hasn't
+          # fixed in a week goes to claude-autofix.yml once (2026-11-11).
+          AUTOFIX_CLAUDE_FALLBACK: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
+        run: Rscript .github/scripts/file_autofix_issues.R
+
+      - name: Regenerate the Connect Cloud manifest
+        run: |
+          Rscript -e 'rsconnect::writeManifest(appDir = "Wy_Ed_Jobs")'
+
+      - name: Verify the manifest actually includes app.R's packages
+        run: |
+          Rscript -e '
+          m <- jsonlite::fromJSON("Wy_Ed_Jobs/manifest.json", simplifyVector = FALSE)
+          required <- c("shiny", "bslib", "shinyWidgets", "DT", "data.table", "leaflet", "plotly", "scales", "shinycssloaders")
+          missing <- setdiff(required, names(m$packages))
+          if (length(missing) > 0) {
+            stop(sprintf(
+              "manifest.json is missing %s -- writeManifest() only captures packages actually installed in this job, so this workflow'\''s own package-install step is now out of sync with app.R. Refusing to push a manifest that would break the Connect Cloud deploy the way it did on 2026-08-03.",
+              paste(missing, collapse = ", ")
+            ))
+          }
+          cat("Manifest includes all", length(required), "app.R packages.\n")
+          '
+
+      - name: Commit and push if anything changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add \
+            Wy_Ed_Jobs/combinedclean.csv \
+            Wy_Ed_Jobs/oews_role_wages.csv \
+            Wy_Ed_Jobs/ipeds_staff_salaries.csv \
+            Wy_Ed_Jobs/uw_salary_book.csv \
+            Wy_Ed_Jobs/qcew_county_school_pay.csv \
+            Wy_Ed_Jobs/allsum.csv \
+            Wy_Ed_Jobs/allnow.csv \
+            Wy_Ed_Jobs/allsum_he.csv \
+            Wy_Ed_Jobs/allnow_he.csv \
+            Wy_Ed_Jobs/hedata.xlsx \
+            Wy_Ed_Jobs/k12jobanalysis.csv \
+            Wy_Ed_Jobs/facultydata.csv \
+            Wy_Ed_Jobs/k12_district_weekly_totals.csv \
+            Wy_Ed_Jobs/he_institution_weekly_totals.csv \
+            Wy_Ed_Jobs/salarymap2.csv \
+            Wy_Ed_Jobs/salarymap.csv \
+            Wy_Ed_Jobs/job_duration_spells.csv \
+            Wy_Ed_Jobs/he_job_duration_spells.csv \
+            Wy_Ed_Jobs/k12_salary_history.csv \
+            Wy_Ed_Jobs/manifest.json \
+            Archived_HE_Data/*.xlsx \
+            Archivek12_Data/*.csv
+          [ -f schoolspring_endings.csv ] && git add schoolspring_endings.csv || true
+          [ -f posting_status.csv ] && git add posting_status.csv || true
+          for f in posting_spells_k12.csv posting_durations_k12.csv posting_spells_he.csv posting_durations_he.csv \
+                   frozen_boards.csv advertised_windows.csv Wy_Ed_Jobs/posting_first_seen.csv; do [ -f $f ] && git add $f || true; done
+          [ -f coverage_calendar.csv ] && git add coverage_calendar.csv || true
+          if git diff --cached --quiet; then
+            echo "No data changes this run -- nothing to commit."
+          else
+            git commit -m "Automated weekly data refresh ($(date -u +%Y-%m-%d))"
+            git push
+          fi

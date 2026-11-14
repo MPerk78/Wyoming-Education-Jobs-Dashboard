@@ -1,0 +1,245 @@
+# append_weekly_rows()/check_total_matches_parts() unit tests, plus an
+# equivalence test proving the new incremental-append path reproduces
+# exactly what the old from-scratch archive rebuild produced, using the
+# REAL archived data already in this repo (Archivek12_Data/,
+# Archived_HE_Data/) rather than synthetic fixtures -- this is the one
+# regression that actually matters here: a subtle bug in the incremental
+# logic silently drifting the growing historical database out of sync
+# with what the raw archive actually says happened.
+
+# append_weekly_rows()'s own tests run in edjobs (test-history-accumulator.R) since 0.10.0.
+
+# ---------------------------------------------------------------------------
+# Equivalence: incremental append vs. from-scratch rebuild, on real archives
+# ---------------------------------------------------------------------------
+
+k12_archive_dir <- here::here("Archivek12_Data")
+he_archive_dir <- here::here("Archived_HE_Data")
+
+sorted_archive_dates <- function(dir, pattern, date_regex = "[0-9]{4}-[0-9]{2}-[0-9]{2}") {
+  files <- list.files(dir, pattern = pattern, full.names = TRUE)
+  dates <- regmatches(files, regexpr(date_regex, files))
+  data.frame(file = files, date = dates, stringsAsFactors = FALSE)[order(dates), ]
+}
+
+# Row names get reset after sorting -- otherwise two data frames with
+# identical values in identical (sorted) order can still fail
+# expect_equal() over a spurious row.names mismatch, since sorting
+# preserves each row's original (pre-sort) row name rather than
+# renumbering, and the two sides being compared were built via different
+# code paths with different original row orders.
+sort_df <- function(df) {
+  out <- df[do.call(order, as.list(df)), , drop = FALSE]
+  rownames(out) <- NULL
+  out
+}
+
+test_that("incrementally appending the latest week reproduces a full rebuild through that week (K-12)", {
+  skip_if_not(dir.exists(k12_archive_dir), "Archivek12_Data not found -- skipping")
+  archive <- sorted_archive_dates(k12_archive_dir, "^combined_.*\\.csv$")
+  skip_if(nrow(archive) < 2, "need at least 2 archived weeks to test incremental append")
+
+  latest <- archive[nrow(archive), ]
+  prior_files <- archive$file[-nrow(archive)]
+
+  # "Old" accumulated state: full rebuild through every week EXCEPT the
+  # latest, using only the archive functions under test (not app.R/the Rmd).
+  old_dir <- withr::local_tempdir()
+  file.copy(prior_files, old_dir)
+  old_state <- rebuild_k12_history_from_archive(old_dir)
+
+  old_k12jobs_path <- withr::local_tempfile()
+  old_allsum_path <- withr::local_tempfile()
+  old_weekly_totals_path <- withr::local_tempfile()
+  write.csv(old_state$k12jobs, old_k12jobs_path, row.names = FALSE)
+  write.csv(old_state$allsum, old_allsum_path, row.names = FALSE)
+  write.csv(old_state$k12_district_weekly_totals, old_weekly_totals_path, row.names = FALSE)
+
+  # This week's newly classified rows, built the same way the Rmd's
+  # incremental path builds them -- directly from the latest raw archive
+  # file, not from re-reading everything.
+  raw_latest <- read.csv(latest$file, colClasses = c("Archive_Date" = "character"))
+  raw_latest <- raw_latest[, setdiff(names(raw_latest), "X"), drop = FALSE]
+  # mirror Wy_ED_Jobs.Rmd / rebuild_k12_history_from_archive(): drop
+  # byte-identical RAW rows (before classify_k12_position() overwrites the
+  # raw `position` column) so a job listed once per building counts once
+  raw_latest <- distinct(raw_latest)
+  raw_latest$Archive_Date <- as.character(as.Date(raw_latest$Archive_Date))
+  has_source_ids <- "posting_id" %in% names(raw_latest)
+  if (!has_source_ids) raw_latest$posting_id <- NA_character_
+
+  # Then the pipeline's own steps: posting_id, collapse_duplicate_posting_ids()
+  # (snapshots that carry posting_id), and the shared builders.
+  this_week_raw <- raw_latest %>%
+    mutate(
+      District = canonicalize_k12_district(District),
+      title = fix_title_encoding(title),
+      posting_id = build_k12_posting_id(
+        source_id = posting_id,
+        title = title,
+        location = location,
+        date_posted = date_posted,
+        url = url,
+        district = District
+      )
+    )
+  if (has_source_ids) this_week_raw <- collapse_duplicate_posting_ids(this_week_raw, "latest")
+  oews <- read.csv(here::here("Wy_Ed_Jobs", "oews_role_wages.csv"), stringsAsFactors = FALSE,
+                   colClasses = c(Area_Code = "character", SOC = "character", Year = "character"))
+  district_county <- read.csv(here::here("Wy_Ed_Jobs", "salarymap2.csv"), stringsAsFactors = FALSE)[, c("District", "County")]
+  this_week_combinedclean <- wy_k12_combinedclean(this_week_raw, oews, district_county)
+  this_week_k12jobs <- build_k12_teacher_rows(this_week_combinedclean)
+
+  this_week_weekly_totals <- this_week_combinedclean %>%
+    count(District, Archive_Date, name = "n")
+
+  this_week_k12sumdistrict <- summarize_k12_posting_counts(this_week_k12jobs)
+  this_week_k12sum <- this_week_k12sumdistrict %>%
+    group_by(Broad_Category, Archive_Date) %>%
+    summarize(sum = sum(sum), .groups = "drop") %>%
+    mutate(District = "Total") %>%
+    select(Broad_Category, Archive_Date, District, sum)
+  check_total_matches_parts(this_week_k12sum, this_week_k12sumdistrict, group_cols = c("Broad_Category", "Archive_Date"))
+  this_week_allsum <- bind_rows(this_week_k12sum, this_week_k12sumdistrict)
+
+  # Incremental result: old accumulated state + this week's new rows.
+  incremental_k12jobs <- append_weekly_rows(old_k12jobs_path, this_week_k12jobs)
+  incremental_allsum <- append_weekly_rows(old_allsum_path, this_week_allsum)
+  incremental_weekly_totals <- append_weekly_rows(old_weekly_totals_path, this_week_weekly_totals)
+
+  # Ground truth: full rebuild through the latest week, via the same
+  # from-scratch logic the pipeline used before this change.
+  full_dir <- withr::local_tempdir()
+  file.copy(archive$file, full_dir)
+  full_state <- rebuild_k12_history_from_archive(full_dir)
+
+  # Row order legitimately differs (append puts new rows at the end;
+  # full rebuild's group_by/summarize doesn't preserve chronological
+  # order) -- sort both before comparing. Also round-trip BOTH sides
+  # through write.csv()/read.csv() before comparing, not just sides that
+  # happen to already be on disk: R's text-mode read.csv() normalizes an
+  # embedded "\r\n" inside a quoted field (present in some real scraped
+  # Location/Posted_Date values) down to "\n", which the incremental side
+  # already goes through (it reads the existing accumulated file back)
+  # but the full-rebuild side doesn't unless we do it here too. Comparing
+  # one CSV-round-tripped side against one pure-in-memory side would flag
+  # that normalization as a false equivalence failure -- what actually
+  # matters is that both end up identical once persisted, since that's
+  # the only form either one is ever read back in by the real pipeline.
+  norm <- function(df) {
+    df$Archive_Date <- as.character(df$Archive_Date)
+    tmp <- withr::local_tempfile()
+    write.csv(df, tmp, row.names = FALSE)
+    sort_df(read.csv(tmp, stringsAsFactors = FALSE))
+  }
+
+  expect_equal(norm(incremental_k12jobs), norm(as.data.frame(full_state$k12jobs)), ignore_attr = TRUE)
+  expect_equal(norm(incremental_allsum), norm(as.data.frame(full_state$allsum)), ignore_attr = TRUE)
+  expect_equal(norm(incremental_weekly_totals), norm(as.data.frame(full_state$k12_district_weekly_totals)), ignore_attr = TRUE)
+})
+
+test_that("incrementally appending the latest week reproduces a full rebuild through that week (Higher Ed)", {
+  skip_if_not(dir.exists(he_archive_dir), "Archived_HE_Data not found -- skipping")
+  skip_if_not_installed("readxl")
+  archive <- sorted_archive_dates(he_archive_dir, "^hedata_.*\\.xlsx$")
+  skip_if(nrow(archive) < 2, "need at least 2 archived weeks to test incremental append")
+
+  latest <- archive[nrow(archive), ]
+  prior_files <- archive$file[-nrow(archive)]
+
+  old_dir <- withr::local_tempdir()
+  file.copy(prior_files, old_dir)
+  old_state <- rebuild_he_history_from_archive(old_dir)
+
+  old_faculty_path <- withr::local_tempfile()
+  old_allsum_he_path <- withr::local_tempfile()
+  old_weekly_totals_path <- withr::local_tempfile()
+  write.csv(old_state$facultydata, old_faculty_path, row.names = FALSE)
+  write.csv(old_state$allsum_he, old_allsum_he_path, row.names = FALSE)
+  write.csv(old_state$he_institution_weekly_totals, old_weekly_totals_path, row.names = FALSE)
+
+  raw_latest <- readxl::read_xlsx(latest$file)
+  raw_latest$Archive_Date <- as.character(as.Date(raw_latest$Archive_Date))
+  raw_latest <- raw_latest %>% mutate(Institution = canonicalize_he_institution(Institution))
+
+  this_week_he_cat <- raw_latest %>% mutate(Job_Type = classify_he_job_type(Title))
+  # Archives from 2026-10-30 on carry Pay_*, which the pipeline keeps out of
+  # facultydata.csv.
+  this_week_facultydata <- this_week_he_cat %>%
+    filter(Job_Type %in% c("Instructor/Teacher/Faculty", "Adjunct/Part-Time Faculty")) %>%
+    mutate(Category = classify_he_faculty_category(Title)) %>%
+    select(-any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
+
+  this_week_weekly_totals <- raw_latest %>% count(Institution, Archive_Date, name = "n")
+
+  this_week_hesum <- this_week_facultydata %>%
+    group_by(Category, Archive_Date, Job_Type) %>%
+    summarize(sum = n(), .groups = "drop") %>%
+    mutate(Institution = "Total") %>%
+    select(Category, Archive_Date, Institution, Job_Type, sum)
+  this_week_hesuminst <- this_week_facultydata %>%
+    group_by(Category, Archive_Date, Institution, Job_Type) %>%
+    summarise(sum = n(), .groups = "drop")
+  check_total_matches_parts(this_week_hesum, this_week_hesuminst, group_cols = c("Category", "Archive_Date", "Job_Type"))
+  this_week_allsum_he <- bind_rows(this_week_hesum, this_week_hesuminst)
+
+  incremental_facultydata <- append_weekly_rows(old_faculty_path, as.data.frame(this_week_facultydata))
+  incremental_allsum_he <- append_weekly_rows(old_allsum_he_path, this_week_allsum_he)
+  incremental_weekly_totals <- append_weekly_rows(old_weekly_totals_path, this_week_weekly_totals)
+
+  full_dir <- withr::local_tempdir()
+  file.copy(archive$file, full_dir)
+  full_state <- rebuild_he_history_from_archive(full_dir)
+
+  # See the K-12 test's matching comment above for why both sides get
+  # round-tripped through write.csv()/read.csv() before comparing.
+  norm <- function(df) {
+    df$Archive_Date <- as.character(df$Archive_Date)
+    tmp <- withr::local_tempfile()
+    write.csv(df, tmp, row.names = FALSE)
+    sort_df(read.csv(tmp, stringsAsFactors = FALSE))
+  }
+
+  expect_equal(norm(incremental_facultydata), norm(as.data.frame(full_state$facultydata)), ignore_attr = TRUE)
+  expect_equal(norm(incremental_allsum_he), norm(as.data.frame(full_state$allsum_he)), ignore_attr = TRUE)
+  expect_equal(norm(incremental_weekly_totals), norm(as.data.frame(full_state$he_institution_weekly_totals)), ignore_attr = TRUE)
+})
+
+
+# ---- Posting_Source for runs archived before it was recorded -----------------
+
+test_that("backfill_k12_posting_source fills only what the archived row settles", {
+  src <- function(id, url, date) backfill_k12_posting_source(id, url, date)
+  # A source posting id names its platform, in any run.
+  expect_equal(src("applitrack:bighorn1:1534", "https://www.applitrack.com/bighorn1/x", "2026-11-06"), "AppliTrack (direct district board)")
+  expect_equal(src("schoolspring:laramie1.schoolspring.com:5857967", "https://x", "2026-10-01"), "SchoolSpring (direct district board)")
+  expect_equal(src("redrover:1:2", "https://x", "2026-10-01"), "Red Rover (direct district board)")
+  # WSBA's own page as the link is a WSBA listing.
+  expect_equal(src("fallback | a | b", "https://www.wsba-wy.org/vacancies", "2026-09-01"), "WSBA statewide vacancies")
+  # Before WSBA was read, the link's host tells the platform; any other link is the district's site.
+  expect_equal(src(c(NA, NA, NA, NA), c("https://www.applitrack.com/tcsd/onlineapp/", "https://albany1.tedk12.com/hire/index.aspx",
+                                        "https://www.lcsd2.org/jobs", NA), "2025-03-07"),
+               c("AppliTrack (direct district board)", "TedK12 (direct district board)", "District site (direct board)", NA))
+  expect_equal(src(NA, "https://www.applitrack.com/tcsd/onlineapp/", "2026-07-31"), "AppliTrack (direct district board)")
+  # From 2026-08-02 a fingerprint id with a board link could be a WSBA row linking it: left NA.
+  expect_true(is.na(src("fallback | a | b", "https://www.applitrack.com/tcsd/onlineapp/", "2026-08-03")))
+  expect_true(is.na(src(NA, "https://www.lcsd2.org/jobs", "2026-08-02")))
+})
+
+test_that("wy_k12_combinedclean keeps a recorded Posting_Source and names WSBA rows' Feed_District", {
+  rows <- data.frame(title = c("Math Teacher", "English Teacher", "Custodian"), Archive_Date = "2026-11-13", date_posted = "2026-11-01",
+                     location = "HS", url = c("https://www.applitrack.com/tcsd/onlineapp/x", "https://example.org/a", "https://www.lcsd2.org/jobs"),
+                     District = c("Teton County School District 1", "Snowy Range Academy", "Lincoln County School District 2"),
+                     posting_id = c("applitrack:tcsd:1", "fallback | 1", "fallback | 2"),
+                     Posting_Source = c("AppliTrack (direct district board)", WSBA_POSTING_SOURCE, NA),
+                     Also_On_Feed = c(TRUE, FALSE, NA), stringsAsFactors = FALSE)
+  oews <- read.csv(here::here("Wy_Ed_Jobs", "oews_role_wages.csv"), stringsAsFactors = FALSE,
+                   colClasses = c(Area_Code = "character", SOC = "character", Year = "character"))
+  county <- read.csv(here::here("Wy_Ed_Jobs", "salarymap2.csv"), stringsAsFactors = FALSE)[, c("District", "County")]
+  out <- wy_k12_combinedclean(rows, oews, county)
+  expect_equal(names(out), edjobs::K12_POSTING_COLUMNS)
+  expect_equal(out$Posting_Source, c("AppliTrack (direct district board)", WSBA_POSTING_SOURCE, NA))
+  expect_equal(out$Feed_District, c(NA, "Snowy Range Academy", NA))
+  expect_equal(out$Also_On_Feed, c(TRUE, FALSE, NA))
+  expect_equal(out$Posting_ID, rows$posting_id)
+})

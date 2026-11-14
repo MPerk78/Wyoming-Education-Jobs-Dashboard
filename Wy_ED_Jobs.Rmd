@@ -1,6 +1,6 @@
 ---
 title: "R Job Scrape"
-author: "Mark Perkins"
+author: "Mike Bostick and Mark Perkins"
 date: "2025-09-18"
 output: html_document
 
@@ -8,413 +8,164 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+# Every message and warning goes to the run log, even in chunks marked
+# message=FALSE/warning=FALSE (those settings only kept them out of the HTML,
+# which nobody reads). GitHub timestamps each log line, so the log shows how
+# long each step took (2026-11-13: a WY run stalled with nothing to go on).
+knitr::opts_hooks$set(message = function(o) { o$message <- NA; o },
+                      warning = function(o) { o$warning <- NA; o })
+source("state_config.R")   # edjobs::state_config(): this state, as data
+source("k12_he_classification.R")
 ```
 # This Markdown file contains all the code to scrape data from Wyoming's k12 and higher education job postings
 
 ## Part 1: Wyoming K12 Data
 
-### Loop K12 data pulled from all districts that use applitrack
-```{r loop with district sites on applitrack, message=FALSE, warning=FALSE, echo=TRUE}
-# Load required libraries
-library(rvest)
-library(RSelenium)
-library(dplyr)
-library(readr)
-
-# Read the CSV file
-csv_file <- "Frontline_Job_Links.csv"
-job_links <- read_csv(csv_file)
-
-# Start RSelenium with Firefox browser
-rD <- suppressMessages(rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL))
-remDr <- rD$client
-
-# Initialize list to store job data from all URLs
-all_jobs_data <- list()
-
-# Iterate over each row in the CSV file
-for (i in 1:nrow(job_links)) {
-  url <- job_links$JobSite[i]
-  school_district <- job_links$`School District`[i]  # Extract the School District
-  
-  # Load the page
-  remDr$navigate(url)
-  
-  # Wait for dynamic content to load (adjust time as needed)
-  Sys.sleep(10)  # Adjust as needed based on page loading time
-  
-  # Get page source and parse with rvest
-  page_source <- remDr$getPageSource()[[1]]
-  soup <- read_html(page_source)
-  
-  # Extract job listings
-  list_items <- soup %>%
-    html_nodes("ul.postingsList")
-  
-  # Debug: print the number of job listings found
-  cat("Number of job listings found at", url, ":", length(list_items), "\n")
-  
-  # Initialize list to store job data for the current URL
-  jobs_data <- list()
-  
-  if (length(list_items) == 0) {
-    # If no jobs found, create a placeholder row
-    jobs_data <- list(list(
-      title = "No jobs",
-      position = NA,
-      position2 = NA,
-      date_posted = NA,
-      location = NA,
-      closing_date = NA,
-      school_district = school_district
-    ))
-  } else {
-    # Iterate over each job listing
-    for (item in list_items) {
-      current_job <- list()
-      
-      # Extract job title
-      current_job$title <- item %>%
-        html_node("table.title td#wrapword") %>%
-        html_text(trim = TRUE)
-      
-      # Extract additional details
-      labels <- item %>%
-        html_nodes("li span.label") %>%
-        html_text(trim = TRUE)
-      
-      values <- item %>%
-        html_nodes("li span.normal") %>%
-        html_text(trim = TRUE)
-      
-      # Match labels and values
-      j <- 1
-      for (k in seq_along(labels)) {
-        label <- labels[k]
-        if (label == "Position Type:") {
-          current_job$position <- values[j]
-          if (j + 1 <= length(values) && !grepl(":", values[j + 1])) {
-            current_job$position2 <- values[j + 1]
-            j <- j + 1
-          } else {
-            current_job$position2 <- NULL
-          }
-        } else if (label == "Date Posted:") {
-          current_job$date_posted <- values[j]
-        } else if (label == "Location:") {
-          current_job$location <- values[j]
-        } else if (label == "Closing Date:") {
-          current_job$closing_date <- values[j]
-        }
-        j <- j + 1
-      }
-      
-      # Add the School District information
-      current_job$school_district <- school_district
-      
-      # Append current job data
-      jobs_data <- c(jobs_data, list(current_job))
-    }
-  }
-  
-  # Append jobs data for this district to overall results
-  all_jobs_data <- c(all_jobs_data, jobs_data)
-}
-
-# Close the RSelenium session
-remDr$close()
-rD$server$stop()
-
-# Convert list of all job data to data frame
-all_jobs_df <- bind_rows(all_jobs_data) %>%
-  mutate(
-    new_position = if_else(grepl("^\\d", position2), position, position),
-    new_position2 = if_else(grepl("^\\d", position2), NA_character_, position2),
-    new_date_posted = if_else(grepl("^\\d", position2), position2, date_posted),
-    new_location = if_else(grepl("^\\d", position2), date_posted, location),
-    new_closing_date = if_else(grepl("^\\d", position2), location, closing_date)
-  ) %>%
-  select(
-    title, 
-    new_position, 
-    new_position2, 
-    new_date_posted, 
-    new_location, 
-    new_closing_date, 
-    school_district
-  ) %>%
-  rename(
-    position = new_position,
-    position2 = new_position2,
-    date_posted = new_date_posted,
-    location = new_location,
-    closing_date = new_closing_date
-  )
-
-# Join with original job_links for extra metadata
-all_jobs_df <- left_join(all_jobs_df, job_links, by = c("school_district" = "School District"))
-
-# Save data frame to CSV file
-write.csv(all_jobs_df, "all_job_listings.csv", row.names = FALSE)
-
-```
-
-### Loop k12 data from districts that use Tedd k12
-```{r tedk12, message=FALSE, warning=FALSE, echo=TRUE}
-
-# Load required libraries
-library(rvest)
-library(RSelenium)
-library(dplyr)
-library(readr)
-library(purrr)
-
-# Read the CSV file containing the URLs
-tedjoblinks <- read.csv("tedk12_job_links.csv", stringsAsFactors = FALSE)
-
-# Initialize an empty data frame to store the job data
-all_ted_data <- data.frame(
-  title = character(),
-  date_posted = character(),
-  position = character(),
-  location = character(),
-  url = character(),
-  stringsAsFactors = FALSE
-)
-
-# Loop through each URL in the CSV file
-for (i in 1:nrow(tedjoblinks)) {
-  url <- tedjoblinks$Job.Link[i]  # Using the Job.Link column for URLs
-  
-  # Read the HTML content of the page
-  page <- read_html(url)
-  
-  # Extract job title, posting date, type, and location
-  jobs <- page %>%
-    html_nodes("tr") %>% # Assuming each job is within a <tr> element
-    map_df(~{
-      title <- .x %>%
-        html_node("td:nth-child(1) a") %>%
-        html_text(trim = TRUE)
-      
-      date_posted <- .x %>%
-        html_node("td:nth-child(2)") %>%
-        html_text(trim = TRUE)
-      
-      position <- .x %>%
-        html_node("td:nth-child(3)") %>%
-        html_text(trim = TRUE)
-      
-      location <- .x %>%
-        html_node("td:nth-child(4)") %>%
-        html_text(trim = TRUE)
-      
-      data.frame(
-        title = title,
-        date_posted = date_posted,
-        position = position,
-        location = location,
-        url = url,  # Add the URL to the data frame
-        stringsAsFactors = FALSE
-      )
-    })
-  
-  # Append the jobs data to the all_jobs_data data frame
-  all_ted_data <- bind_rows(all_ted_data, jobs)
-}
-
-# Remove rows with NA or "Job Title" in the job_title column
-all_ted_data <- all_ted_data %>%
-  filter(!is.na(title) & title != "Job Title")
-
-all_ted_data<-left_join(all_ted_data, tedjoblinks, by = c("url" = "Job.Link"))
-
-
-# Save the extracted data to a CSV file
-write.csv(all_ted_data, "all_tedk12_job_listings.csv", row.names = FALSE)
-
-```
-
-### Loop k12 data from all districts that use springer school
-```{r jobs from spring school, message=FALSE, warning=FALSE, echo=TRUE}
-
-# Load required libraries
-library(RSelenium)
-library(rvest)
+### Loop K12 data from every district on a direct scraping platform
+```{r loop with districts on a direct scraping platform, message=FALSE, warning=FALSE, echo=TRUE}
 library(dplyr)
 library(stringr)
-library(lubridate)
-library(purrr)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-# ----------------------------
-# Start RSelenium
-# ----------------------------
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
+# k12_district_registry.csv is the single source of truth for every K-12
+# district scraped from a real structured platform (Applitrack, TedK12,
+# SchoolSpring, RedRoverK12) -- District/Platform/Job_Link, plus Org_ID for
+# RedRoverK12's numeric org ID (not derivable from its URL slug alone).
+# Replaces three separate, independently-maintained link CSVs
+# (Frontline_job_links.csv, tedk12_job_links.csv, springer_job_links.csv)
+# that used to carry the SAME district under three different spellings in
+# practice ("Converse County School Distrcit 2", "Albany Count School
+# District 1", "Campbell County Scholl District 1") -- exactly the
+# canonicalize_k12_district() misspellings this project has had to patch
+# around downstream for months. One row per district here means one
+# spelling to get right, checked by tests/testthat/test-drift-check.R's
+# equivalent (registry-consistency is exercised via the pipeline's own
+# equivalence tests, not a dedicated schema test since this project's
+# existing convention is to test behavior, not file shape). A district
+# migrating platforms in the future (several already have -- Butte-style
+# moves aren't unique to Montana) is a one-row edit here, not a code change.
+#
+# fetch_applitrack_postings()/fetch_tedk12_postings()/
+# fetch_schoolspring_postings()/fetch_redrover_postings() (all
+# direct_api_scrapers.R) are unchanged from their original per-platform
+# loops -- only the dispatch is unified. Each district is still logged
+# individually via safe_scrape() so one district's outage (a few
+# Applitrack tenants genuinely return HTTP 500 from Applitrack's own
+# servers, independent of this scraper -- confirmed 2026-08-02) doesn't
+# block the rest of the registry.
+registry <- read.csv("k12_district_registry.csv", stringsAsFactors = FALSE)
 
-# ----------------------------
-# Read the CSV file containing the URLs
-# ----------------------------
-springerjoblinks <- read.csv("springer_job_links.csv", stringsAsFactors = FALSE)
+all_direct_data <- list()
 
-# ----------------------------
-# Initialize empty data frame
-# ----------------------------
-all_springer_data <- data.frame(
-  title = character(),
-  date_posted_text = character(),
-  date_posted = as.Date(character()),
-  position = character(),
-  location = character(),
-  url = character(),
-  district = character(),
-  stringsAsFactors = FALSE
-)
+for (i in seq_len(nrow(registry))) {
+  row <- registry[i, ]
 
-# ----------------------------
-# Helper functions
-# ----------------------------
-
-# Wait for an element to appear
-wait_for_element <- function(remDr, css_selector, timeout = 10) {
-  for (i in 1:timeout) {
-    element <- tryCatch(remDr$findElement(using = "css selector", css_selector), error = function(e) NULL)
-    if (!is.null(element)) return(element)
-    Sys.sleep(1)
-  }
-  return(NULL)
-}
-
-# Safely extract text
-safe_html_text <- function(node) {
-  tryCatch(html_text(node, trim = TRUE), error = function(e) NA_character_)
-}
-
-# Convert relative dates to actual dates
-resolve_relative_date <- function(text, reference_date = Sys.Date()) {
-  text <- str_trim(text)
-  case_when(
-    str_detect(text, regex("^today$", ignore_case = TRUE)) ~ reference_date,
-    str_detect(text, regex("^yesterday$", ignore_case = TRUE)) ~ reference_date - days(1),
-    str_detect(text, regex("\\d+\\s+days?\\s+ago", ignore_case = TRUE)) ~
-      reference_date - days(as.numeric(str_extract(text, "\\d+"))),
-    TRUE ~ suppressWarnings(as.Date(str_extract(text, "\\w{3} \\d{2}, \\d{4}"), format = "%b %d, %Y"))
+  district_jobs <- switch(row$Platform,
+    Applitrack = {
+      tenant_path <- applitrack_tenant_path(row$Job_Link)
+      df <- safe_scrape(
+        row$District,
+        scrape_fn = function() fetch_applitrack_postings(tenant_path),
+        expected_cols = c("title", "position", "position2", "date_posted", "location", "closing_date")
+      )
+      # A genuinely empty result is dropped, not padded with a placeholder
+      # row -- matching every other platform in this same loop (TedK12/
+      # SchoolSpring/RedRoverK12 below). The original Applitrack loop
+      # inserted a literal title = "No jobs" row here instead, which
+      # combinedclean.csv then carried straight into production as a fake
+      # posting -- classified "Other", counted in that district's weekly
+      # total, with no code anywhere filtering the literal string back out
+      # (confirmed: 3 such rows in the 2026-08-28 committed
+      # combinedclean.csv, for Fremont County SD24, Lincoln County SD1, and
+      # Sublette County SD9). safe_scrape() already logs an empty week to
+      # scrape_log.csv/drift_check.R same as it does for every other
+      # platform, so this placeholder was never actually needed to make an
+      # empty week visible.
+      # Each posting's url is its own AppliTrack page and its posting_id
+      # AppliTrack's job ID (applitrack_posting_url()), so postings sharing a
+      # title stay apart; the board URL and fingerprint only without an ID.
+      # Close_Date is the board's "Closing Date" as written.
+      if (nrow(df) > 0) {
+        df <- ensure_posted_pay_columns(df)
+        job_id <- if ("job_id" %in% names(df)) df$job_id else rep(NA_character_, nrow(df))
+        data.frame(title = df$title, date_posted = df$date_posted, position = df$position,
+                   location = df$location,
+                   url = dplyr::coalesce(applitrack_posting_url(tenant_path, job_id), row$Job_Link),
+                   posting_id = ifelse(is.na(job_id), NA_character_, paste0("applitrack:", tenant_path, ":", job_id)),
+                   District = row$District,
+                   Close_Date = if ("closing_date" %in% names(df)) df$closing_date else NA_character_,
+                   Pay_Min = df$Pay_Min, Pay_Max = df$Pay_Max, Pay_Unit = df$Pay_Unit,
+                   Pay_Text = df$Pay_Text, stringsAsFactors = FALSE)
+      } else {
+        NULL
+      }
+    },
+    TedK12 = {
+      df <- safe_scrape(
+        row$District,
+        scrape_fn = function() fetch_tedk12_postings(row$Job_Link),
+        expected_cols = c("title", "date_posted", "position", "location", "url")
+      )
+      if (nrow(df) > 0) {
+        data.frame(title = df$title, date_posted = df$date_posted, position = df$position,
+                   location = df$location, url = df$url, District = row$District,
+                   stringsAsFactors = FALSE)
+      } else {
+        NULL
+      }
+    },
+    SchoolSpring = {
+      domain_name <- schoolspring_domain(row$Job_Link)
+      df <- safe_scrape(
+        row$District,
+        scrape_fn = function() fetch_schoolspring_postings(domain_name),
+        expected_cols = c("Title", "Location", "Posted_Date", "Posting_ID", "Link")
+      )
+      if (nrow(df) > 0) {
+        df$District <- row$District
+        # Each posting's own record adds Close_Date (the deadline applicants
+        # see; NA for "Posted until filled"), Job_Status (raw archive only)
+        # and posted pay (add_schoolspring_details()). A failed detail
+        # request leaves only that posting's fields NA.
+        if ("Link" %in% names(df)) df <- add_schoolspring_details(df)
+        out <- normalize_id_backed_k12_postings(df)
+        out$Close_Date <- if ("Close_Date" %in% names(df)) df$Close_Date else NA_character_
+        out$Job_Status <- if ("Job_Status" %in% names(df)) df$Job_Status else NA_character_
+        out
+      } else {
+        NULL
+      }
+    },
+    RedRoverK12 = {
+      org_slug <- redrover_org_slug(row$Job_Link)
+      df <- safe_scrape(
+        row$District,
+        scrape_fn = function() fetch_redrover_postings(as.character(row$Org_ID), org_slug),
+        expected_cols = c("Title", "Location", "Posted_Date", "Posting_ID", "Link")
+      )
+      if (nrow(df) > 0) {
+        df$District <- row$District
+        normalize_id_backed_k12_postings(df)
+      } else {
+        NULL
+      }
+    },
+    stop("Unknown Platform in k12_district_registry.csv: ", row$Platform)
   )
-}
 
-# ----------------------------
-# Scrape a single URL
-# ----------------------------
-scrape_jobs <- function(remDr, url) {
-  remDr$navigate(url)
-  Sys.sleep(3)  # initial load
-
-  # Close pop-up if it exists
-  tryCatch({
-    close_btn <- remDr$findElement(using = "css selector", "#navigate-away-from-section-dialog-btn-cancel")
-    close_btn$clickElement()
-  }, error = function(e) NULL)
-
-  # Scroll and click "More Jobs" until fully loaded
-  max_attempts <- 30
-  attempts <- 0
-  last_count <- 0
-  buffer_clicks <- 3
-
-  repeat {
-    remDr$executeScript("window.scrollTo(0, document.body.scrollHeight);")
-    Sys.sleep(1.5)
-
-    page <- read_html(remDr$getPageSource()[[1]])
-    jobs_nodes <- html_nodes(page, xpath = "//div[contains(@class, 'card-body')]")
-    current_count <- length(jobs_nodes)
-
-    if (current_count == last_count) {
-      if (buffer_clicks > 0) {
-        buffer_clicks <- buffer_clicks - 1
-      } else break
-    } else {
-      last_count <- current_count
-      buffer_clicks <- 3
-    }
-
-    # Click "More Jobs" if present
-    more_btn <- tryCatch(wait_for_element(remDr, ".pds-secondary-btn"), error = function(e) NULL)
-    if (!is.null(more_btn)) {
-      more_btn$clickElement()
-      Sys.sleep(2)
-      attempts <- attempts + 1
-    } else break
-
-    if (attempts >= max_attempts) break
-  }
-
-  # Extract job info
-  months_vec <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
-  jobs_data <- map_df(jobs_nodes, ~{
-    title <- safe_html_text(html_node(.x, xpath = ".//div[contains(@class, 'card-title')]/div"))
-    paragraphs <- html_nodes(.x, "p") %>% map_chr(safe_html_text)
-
-    # Extract position and location by order of <p> elements
-    position <- if(length(paragraphs) >= 1) paragraphs[1] else NA_character_
-    location <- if(length(paragraphs) >= 2) paragraphs[2] else NA_character_
-    date_posted_text <- if(length(paragraphs) >= 3) paragraphs[3] else NA_character_
-
-    date_posted <- resolve_relative_date(date_posted_text)
-
-    tibble(
-      title = title,
-      position = position,
-      location = location,
-      date_posted_text = date_posted_text,
-      date_posted = date_posted,
-      url = url,
-      district = NA_character_
-    )
-  })
-
-  return(jobs_data)
-}
-
-
-# ----------------------------
-# Loop through each URL and scrape
-# ----------------------------
-for (i in 1:nrow(springerjoblinks)) {
-  url <- springerjoblinks$`Job.Link`[i]
-  message(paste("Processing URL:", url))
-  
-  job_data <- scrape_jobs(remDr, url)
-  
-  if (nrow(job_data) > 0) {
-    all_springer_data <- bind_rows(all_springer_data, job_data)
-    message(paste("Scraped", nrow(job_data), "jobs from:", url))
-  } else {
-    message("No jobs found at:", url)
+  if (!is.null(district_jobs) && nrow(district_jobs) > 0) {
+    # The board each row was read from (k12_posting_source_label(),
+    # direct_api_scrapers.R); archived with the row.
+    district_jobs$Posting_Source <- k12_posting_source_label(row$Platform)
+    all_direct_data[[length(all_direct_data) + 1]] <- district_jobs
   }
 }
 
-# ----------------------------
-# Merge with original CSV and clean up
-# ----------------------------
-all_springer_data <- left_join(all_springer_data, springerjoblinks, by = c("url" = "Job.Link"))
+direct_all <- bind_rows(all_direct_data)
 
-all_springer_data <- all_springer_data %>%
-  mutate(date_posted = resolve_relative_date(date_posted_text)) %>%
-  dplyr::select(-c(district, date_posted_text))
-
-# ----------------------------
-# Save to CSV
-# ----------------------------
-write.csv(all_springer_data, "all_springer_job_listings.csv", row.names = FALSE)
-
-# ----------------------------
-# Close RSelenium
-# ----------------------------
-remDr$close()
-rD$server$stop()
-
-
+# Save the extracted data to a CSV file
+write.csv(direct_all, "all_direct_k12_job_listings.csv", row.names = FALSE)
 
 ```
 
@@ -456,453 +207,561 @@ standardize_date <- function(x) {
 
 
 
-frontline<- read.csv("all_job_listings.csv")%>%
-  rename(url = JobSite)
+direct <- read.csv("all_direct_k12_job_listings.csv", stringsAsFactors = FALSE)
 
-frontline<-  dplyr::select(frontline, title, date_posted, position, location, url, school_district)%>%
-  rename(District = school_district)
+# The 12 districts not on any major platform were previously hand-
+# maintained in otherjobs.xlsx (no code in this repo ever wrote that
+# file -- it was 5 months stale). Replaced with a real pipeline: WSBA's
+# statewide vacancies page (clean structured data, but confirmed
+# incomplete -- misses ~60-75% of real postings, systematically dropping
+# classified/support/substitute/coaching roles) combined with each
+# district's own page (heuristic per-platform extraction, deduplicated
+# against that district's WSBA entries by normalized title). See
+# misc_district_scrapers.R's header comment for the full platform
+# breakdown and known limitations.
+library(edjobs)
+source("direct_api_scrapers.R")
+source("misc_district_scrapers.R")
 
-ted<- read.csv("all_tedk12_job_listings.csv")
+other <- safe_scrape(
+  "Miscellaneous K-12 districts (WSBA + own pages)",
+  scrape_fn = function() {
+    fetch_all_misc_district_postings(
+      chromote_session_factory = function() chromote::ChromoteSession$new()
+    )
+  },
+  expected_cols = c("title", "date_posted", "position", "location", "url", "District")
+)
 
-springer<- read.csv("all_springer_job_listings.csv")
+# Laramie Montessori Charter School: not a school district at all (so it
+# has no natural home in misc_district_registry, which is keyed by
+# District), but was found to have its own clean structured source
+# (Paylocity) while investigating Wyoming's charter schools -- see
+# direct_api_scrapers.R::fetch_paylocity_jobs(). Snowy Range Academy, the
+# other real charter school found, already surfaces via WSBA with no
+# extra code needed since WSBA already treats it as a standalone org.
+laramie_montessori <- safe_scrape(
+  "Laramie Montessori Charter School",
+  scrape_fn = function() fetch_paylocity_jobs("70f7d03b-6c9f-4106-8e70-9d781a8bbcba", "Laramie-Montessori-School-Inc"),
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
+)
+if (nrow(laramie_montessori) > 0) {
+  laramie_montessori <- data.frame(
+    title = laramie_montessori$Title,
+    date_posted = laramie_montessori$Posted_Date,
+    position = NA_character_,
+    location = laramie_montessori$Location,
+    url = laramie_montessori$Link,
+    District = "Laramie Montessori Charter School",
+    Posting_Source = k12_posting_source_label("paylocity"),
+    stringsAsFactors = FALSE
+  )
+  other <- dplyr::bind_rows(other, laramie_montessori)
+}
 
-other<- readxl::read_excel("otherjobs.xlsx")
-
-frontline <- frontline %>%
-  mutate(date_posted = standardize_date(date_posted))
-
-ted <- ted %>%
-  mutate(date_posted = standardize_date(date_posted))
-
-springer <- springer %>%
+direct <- direct %>%
   mutate(date_posted = standardize_date(date_posted))
 
 other <- other %>%
   mutate(date_posted = standardize_date(date_posted))
 
+is_wsba <- other$District %in% registry$District | (!is.na(other$url) & other$url == WSBA_VACANCIES_URL)
+wsba_rows <- remove_wsba_direct_duplicates(
+  other[is_wsba, , drop = FALSE],
+  direct,
+  report_path = "wy_discrepancy_report.csv"
+)
+# WSBA keeps listing postings the district has closed (20 of 23 checked on
+# 2026-11-05). Each kept WSBA row that links a district posting is checked on
+# its platform, and the closed ones are dropped (posting_status.R). A failed
+# check keeps the row; a failure of the whole step keeps them all.
+library(edjobs)
+wsba_checks <- tryCatch(
+  check_posting_pages(wsba_rows$url, Sys.Date(), session_factory = function() chromote::ChromoteSession$new()),
+  error = function(e) { message("WSBA posting checks skipped: ", conditionMessage(e)); NULL })
+if (!is.null(wsba_checks) && nrow(wsba_checks) > 0) {
+  n_before <- nrow(wsba_rows)
+  wsba_rows <- drop_closed_wsba_rows(wsba_rows, wsba_checks)
+  message(sprintf("WSBA posting checks: %d page(s) checked, %d closed WSBA row(s) dropped.",
+                  nrow(wsba_checks), n_before - nrow(wsba_rows)))
+  k <- match(wsba_checks$Check_URL, posting_status_check_url(other$url))
+  wsba_checks$Segment <- "K-12"
+  wsba_checks$District <- other$District[k]
+  wsba_checks$Title <- other$title[k]
+  wsba_checks$Last_Listed <- format(Sys.Date())
+}
+other_rows <- other[!is_wsba, , drop = FALSE]
+# A direct posting WSBA also lists counts once, from the district's board
+# (its WSBA row was dropped above); Also_On_Feed keeps that WSBA lists it.
+direct$Also_On_Feed <- direct_also_on_wsba(direct, other[is_wsba, , drop = FALSE])
+if (nrow(other_rows) > 0) other_rows$Also_On_Feed <- FALSE
+if (nrow(wsba_rows) > 0) wsba_rows$Also_On_Feed <- FALSE
 
-combined<- rbind(frontline, ted, springer, other)%>%
+combined <- dplyr::bind_rows(direct, other_rows, wsba_rows) %>%
   mutate(Archive_Date = Sys.Date())
 
-
+# fix_title_encoding() (edjobs) is applied here, once, at
+# the point titles first enter the pipeline -- not just inside
+# classify_k12_position()/classify_k12_subject() below, which only fixed a
+# private copy used for regex matching and discarded it. Without this, a
+# title with a raw Windows-1252 byte (an en dash in a time range, etc.) from
+# any non-Applitrack source (TedK12/SchoolSpring/RedRover/misc-district) would
+# classify correctly but still archive and display with the mangled byte,
+# since the archived CSV below and combinedclean's `title` column both come
+# from this same `combined` object. move_title_detail() then cuts detail a
+# board put in the title (a requirement, the pay, "Open Until Filled", a
+# file name) and fills Posted Pay from it where the row has none; before the
+# posting_id, so the ID is built from the cleaned title.
+combined <- combined %>%
+  mutate(title = fix_title_encoding(title)) %>%
+  move_title_detail() %>%
+  mutate(
+    posting_id = build_k12_posting_id(
+      source_id = posting_id,
+      title = title,
+      location = location,
+      date_posted = date_posted,
+      url = url,
+      district = canonicalize_k12_district(District)
+    )
+  )
 
 file_name <- paste0("combined_", Sys.Date(), ".csv")
 
 # Write the data to a CSV file with the new file name
-write.csv(combined, file=file.path('Archivek12_data',file_name))
+write.csv(combined, file=file.path('Archivek12_Data',file_name), row.names = FALSE)
 
-# Code current data to categorize positions in the "position" column of the "combinedclean" dataset
+# How SchoolSpring postings that left the board ended (filled / canceled /
+# review), from each posting's own record; posting-dates plan step 4. Reads
+# the raw archives just written; a failure here never stops the run.
+tryCatch(refresh_schoolspring_endings("Archivek12_Data", "schoolspring_endings.csv"),
+         error = function(e) message("SchoolSpring endings not updated: ", conditionMessage(e)))
 
+# BLS OEWS regional pay by role, the labeled fallback for postings that state
+# no pay (bls_oews_scraper.R). Refreshed only when BLS publishes a new year;
+# a failed check keeps the committed file. Counties come from last run's
+# salarymap2.csv (district -> "Albany County, Wyoming").
+library(edjobs)
+oews_path <- file.path("Wy_Ed_Jobs", "oews_role_wages.csv")
+tryCatch(refresh_oews_wages("WY", oews_path),
+         error = function(e) log_reference_result(oews_path, "error", conditionMessage(e)))
+
+# BLS QCEW average pay of public school employees by county (all roles), the
+# map popup's county context (qcew_school_pay.R). A failed fetch keeps the
+# existing file, and so does a partial or implausible one (write_reference_file()).
+library(edjobs)
+qcew_path <- file.path("Wy_Ed_Jobs", "qcew_county_school_pay.csv")
+tryCatch(write_reference_file(fetch_qcew_school_pay("56"), qcew_path),
+         error = function(e) log_reference_result(qcew_path, "error", conditionMessage(e)))
+oews_wages <- read.csv(oews_path, stringsAsFactors = FALSE,
+                       colClasses = c(Area_Code = "character", SOC = "character", Year = "character"))
+district_county <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), stringsAsFactors = FALSE)[, c("District", "County")]
+
+# Categorize positions in the "position" column of the "combinedclean" dataset.
+# classify_k12_position() lives in edjobs (attached by k12_he_classification.R above) so
+# this week's raw jobs-table classification and the accumulated-history
+# append below can't silently drift apart.
+
+# Drop byte-identical duplicate rows BEFORE classify_k12_position() below
+# overwrites the raw `position` column. Some direct-platform pages (e.g.
+# Sweetwater County SD1's Applitrack "?all=1" listing) render the same
+# opening once per building it applies to and the modern scraper emits N
+# identical rows for it -- build_k12_posting_id() already collapses those to
+# one posting_id, but k12_district_weekly_totals below is a raw count() of
+# rows, so the duplicates inflated a handful of districts' weekly totals
+# (Sweetwater SD1: 96 rows for 80 real openings). This must happen on the
+# raw row: older SchoolSpring snapshots carry the building name in `position`
+# (distinguishing 26 genuinely separate "one coach per school" postings that
+# share a title), and once classify_k12_position() replaces that with a
+# bucket they would collapse wrongly. The distinct key is the full row,
+# date_posted included -- two rows differing only by a re-dated date_posted
+# may be a real re-posting, which the WSBA dedup step deliberately keeps too.
+# rebuild_k12_history_from_archive() dedupes at the identical point so the
+# from-archive rebuild stays equivalent (test-history-accumulator.R).
+# Then (wy_k12_combinedclean(), history_accumulator.R, shared with the
+# from-archive rebuild): placeholder board entries ("Sample Certified
+# Position", account-creation templates) are kept in the raw archive above but
+# never counted as jobs; Pay_* is the pay the posting itself states
+# (extract_posted_pay()), NA where the source states none or the amount is
+# implausible for its unit (drop_implausible_pay(); the raw archive keeps it
+# as scraped); Est_* is the BLS regional median for the posting's role,
+# matched to its district's county (statewide where the county is unknown).
+source("history_accumulator.R")
 combinedclean <- combined %>%
-  mutate(
-    position = case_when(
-       # Paraprofessional-related positions
-      grepl("Paraprofessional|Para|Paraeducator", title, ignore.case = TRUE) ~ "Paraprofessional",
+  dplyr::distinct() %>%
+  collapse_duplicate_posting_ids("combinedclean") %>%
+  wy_k12_combinedclean(oews_wages, district_county)
 
-     # Substitute
-      grepl("Sub|Substitute", title, ignore.case = TRUE) ~ "Substitute",
-     
-      # Support Services-related positions
-      grepl("Counselor|Psychologist|Therapist|Pathologist|Occupational|Alternative Behavior Program|Audiologist|Lifeguard|Interpreter|Translator|Monitor|Safety Patrol|Social Worker|Technology Intern|Tutor|Instructional Facilitator|Resource Officer|Behavior|Occupational|Aide|Aid|Support", 
-            title, ignore.case = TRUE) ~ "Support Services",
-      
-      # Teacher-related positions
-      grepl("Teacher|Instructor|Interventionist|English|Math|Library|Media|Language Arts|Science|Educator", 
-            title, ignore.case = TRUE) ~ "Teacher",
-      
-      # Coach-related positions
-      grepl("Coach|Athletic|Sports|Track|Football|Basketball|Golf|Soccer|Wrestling|Cheer|BB|Volleyball|Aquatics|Ski", 
-            title, ignore.case = TRUE) ~ "Athletics",
+write.csv(combinedclean, file=file.path('Wy_Ed_Jobs','combinedclean.csv'), row.names = FALSE)
 
-      # Custodial/Maintenance-related positions
-      grepl("Custodian|Custodial|Maintenance|Cleaner|Snow Removal|Facility|Electrician|HVAC", 
-            title, ignore.case = TRUE) ~ "Custodial/Maintenance",
-      
-      # Transportation-related positions
-      grepl("Bus Driver|Driver|Transportation|Route|Bus|Mechanic|Bus Mechanic|Bus Monitor",
-            title, ignore.case = TRUE) ~ "Transportation",
+#--------------------------------------------------------------------------
+# Append this week's newly classified rows onto the existing accumulated
+# history, instead of reprocessing every archived raw snapshot from
+# scratch every run -- see history_accumulator.R's header for why (100+
+# archive files and growing, O(all history) work every week on a 30-minute
+# CI budget). append_weekly_rows() is idempotent (a same-day re-run
+# replaces, not duplicates, that day's rows) and asserts the new week's
+# columns match the existing file's before writing anything.
+#
+# For disaster recovery, or to independently verify this incremental path
+# hasn't drifted, scripts/rebuild_k12_history_from_archive.R rebuilds these
+# same files from scratch from the raw archive -- that's also what
+# tests/testthat/test-history-accumulator.R checks this incremental path
+# against, using the real archived data in this repo.
+#--------------------------------------------------------------------------
+source("history_accumulator.R")
 
-     
-      # Administration-related positions
-      grepl("Principal|Director|Coordinator|Administrator|Supervisor|Administrative", 
-            title, ignore.case = TRUE) ~ "Administration",
-      
-      # Staff-related positions
-      grepl("Secretary|Office Clerk|Office Manager|Desk Clerk|Aide", title, ignore.case = TRUE) ~ "Staff",
+this_week_k12jobs <- build_k12_teacher_rows(combinedclean)
 
-      # Food Services-related positions
-      grepl("Food|Cook|Nutrition|Cafeteria|Dishwasher", title, ignore.case = TRUE) ~ "Food Services",
+k12jobs <- append_weekly_rows(file.path("Wy_Ed_Jobs", "k12jobanalysis.csv"), this_week_k12jobs)
+write.csv(k12jobs, file=file.path('Wy_Ed_Jobs','k12jobanalysis.csv'), row.names = FALSE)
 
-      # Student Teaching-related positions
-      grepl("Daycare|After School|Head Start", title, ignore.case = TRUE) ~ "Child Care",
-      
-      # Other positions
-      TRUE ~ "Other"
-    )
-  )%>%
-  dplyr::select(title, date_posted, position, location, url, District)
-
-write.csv(combinedclean, file=file.path('Wy_Ed_Jobs','combinedclean.csv'))
+# Per-district weekly posting totals (ALL categories, not just Teacher) --
+# powers the sparkline trend shown next to each district's raw count on
+# the landing page's "Top K-12 Hiring Districts" table. Built from the
+# same combinedclean used above, just not filtered to position == "Teacher".
+this_week_district_totals <- combinedclean %>%
+  count(District, Archive_Date, name = "n")
+k12_district_weekly_totals <- append_weekly_rows(
+  file.path("Wy_Ed_Jobs", "k12_district_weekly_totals.csv"), this_week_district_totals)
+write.csv(k12_district_weekly_totals, file.path("Wy_Ed_Jobs", "k12_district_weekly_totals.csv"), row.names = FALSE)
 
 
-#Munge the archived data and send files to Shiny
-csv_files <- list.files("Archivek12_Data", pattern = "\\.csv$", full.names = TRUE)
+#Database for all dates by category
+# Dedup key is posting_id, not title+location: two real vacancies can have
+# identical display text but distinct source IDs (as SchoolSpring does).
+#
+# The Total row is computed as the SUM of the per-district counts below, not
+# as its own independent n_distinct() over every district's rows combined.
+# Some scrapers fall back to a generic location placeholder (literally the
+# string "District") when they can't extract a real school name, and two
+# different districts can both produce that same generic title+location
+# combination for two genuinely different real postings; deduping across
+# district boundaries would silently collapse those into one and undercount
+# the Total relative to its own parts.
+#
+# Both this week's Total and per-district rows are computed from
+# this_week_k12jobs alone (one Archive_Date), not the full accumulated
+# k12jobs -- the group_by already includes Archive_Date, so each week's
+# counts are independent of every other week's, and only this week's
+# slice needs to be computed fresh.
+this_week_k12sumdistrict <- summarize_k12_posting_counts(this_week_k12jobs)
 
-combined_k12_data <- csv_files %>%
-  lapply(function(file) read.csv(file, colClasses = c("Archive_Date" = "character"))) %>%
-  bind_rows() %>%
-  select(-X, -date_posted)
-
-combined_k12_data <- combined_k12_data %>%
-  mutate(Archive_Date = case_when(
-    grepl("/", Archive_Date) ~ as.Date(Archive_Date, format = "%m/%d/%Y"),
-    grepl("-", Archive_Date) ~ as.Date(Archive_Date, format = "%Y-%m-%d"),
-    TRUE ~ as.Date(NA)  # Corrected this line
-  ))
-
-dates <- as.data.frame(unique(combined_k12_data$Archive_Date))
-
-
-combined_k12_data$Archive_Date <- as.Date(combined_k12_data$Archive_Date)
-
-###################################################
-# Create Categories
-
-combinedclean <- combined_k12_data %>%
-  mutate(
-    position = case_when(
-       # Paraprofessional-related positions
-      grepl("Paraprofessional|Para|Paraeducator", title, ignore.case = TRUE) ~ "Paraprofessional",
-
-     # Substitute
-      grepl("Sub|Substitute", title, ignore.case = TRUE) ~ "Substitute",
-     
-      # Support Services-related positions
-      grepl("Counselor|Psychologist|Therapist|Pathologist|Occupational|Alternative Behavior Program|Audiologist|Lifeguard|Interpreter|Translator|Monitor|Safety Patrol|Social Worker|Technology Intern|Tutor|Instructional Facilitator|Resource Officer|Behavior|Occupational|Aide|Aid|Support", 
-            title, ignore.case = TRUE) ~ "Support Services",
-      
-      # Teacher-related positions
-      grepl("Teacher|Instructor|Interventionist|English|Math|Library|Media|Language Arts|Science|Educator", 
-            title, ignore.case = TRUE) ~ "Teacher",
-      
-      # Coach-related positions
-      grepl("Coach|Athletic|Sports|Track|Football|Basketball|Golf|Soccer|Wrestling|Cheer|BB|Volleyball|Aquatics|Ski", 
-            title, ignore.case = TRUE) ~ "Athletics",
-
-      # Custodial/Maintenance-related positions
-      grepl("Custodian|Custodial|Maintenance|Cleaner|Snow Removal|Facility|Electrician|HVAC", 
-            title, ignore.case = TRUE) ~ "Custodial/Maintenance",
-      
-      # Transportation-related positions
-      grepl("Bus Driver|Driver|Transportation|Route|Bus|Mechanic|Bus Mechanic|Bus Monitor",
-            title, ignore.case = TRUE) ~ "Transportation",
-
-     
-      # Administration-related positions
-      grepl("Principal|Director|Coordinator|Administrator|Supervisor|Administrative", 
-            title, ignore.case = TRUE) ~ "Administration",
-      
-      # Staff-related positions
-      grepl("Secretary|Office Clerk|Office Manager|Desk Clerk|Aide", title, ignore.case = TRUE) ~ "Staff",
-
-      # Food Services-related positions
-      grepl("Food|Cook|Nutrition|Cafeteria|Dishwasher", title, ignore.case = TRUE) ~ "Food Services",
-
-      # Student Teaching-related positions
-      grepl("Daycare|After School|Head Start", title, ignore.case = TRUE) ~ "Child Care",
-      
-      # Other positions
-      TRUE ~ "Other"
-    )
-  )%>%
-  dplyr::select(title, Archive_Date, position, location, url, District)
-
-combinedclean <- combinedclean %>%
-  mutate(District = case_when(
-    District == "Hot Springs School District 1" ~ "Hot Springs County School District 1",
-    District == "Crook County school District 1" ~ "Crook County School District 1",
-    TRUE ~ District
-  ))
-
-k12jobs <- combinedclean %>%
-  filter(position == "Teacher")
-
-# Define the category keywords with enhanced regex
-category_keywords <- list(
-  "Technical Education" = "\\b(Welding|Weld|CTE|Automotive|Auto(?!nomy)|Wood|Woods|Industrial Arts|Shop)\\b",
-  
-  "Agriculture Education" = "\\b(Agriculture|Ag Teacher|FFA)\\b",
-  
-  "Computer Science Education" = "\\b(Computer Science|Information Technology|\\bIT\\b|Technology Education(?! Teacher Assistant))\\b",
-  
-  "Early Childhood Education" = "\\b(Early Childhood|Pre[- ]?K(?!indergarten)|Preschool|Birth to age|Ages 3-5)\\b",
-  
-  "Elementary Education" = "\\b(Elementary|Kindergarten|1st|2nd|3rd|4th|5th|First|Second|Third|Fourth|Fifth|Grade [1-6])\\b",
-  
-  "English Language Arts Education" = "(?i)\\b(English(?!\\s+as\\s+a\\s+Second\\s+Language|\\s+Learner|\\s+Language\\s+Learner)|ELA|Language Arts(?!\\s*Coordinator))\\b",
-
-  "Family and Consumer Science" = "\\b(Family and Consumer Science|FCS|Home Economics)\\b",
-  
-  "Language Education" = "\\b(ESL|ELL|English as a Second Language|Bilingual|Spanish|French|Arapaho|Dual Language|World Language|Foreign Language)\\b",
-  "Mathematics Education" = "\\b(Mathematics|\\bMath\\b)\\b",
-  
-  "Music Education" = "\\b(Music|Orchestra|Band)\\b",
-  
-  "Health Science" = "\\b(Nurse Educator|Health Science)\\b",
-  
-  "Science Education" = "\\b(Science|Biology|Chemistry|Physics|Earth Science)\\b",
-  
-  "Social Studies Education" = "\\b(Social Studies|History|Geography|Civics|Political Science)\\b",
-  
-  "Special Education" = "\\b(Resource Teacher|Special Education|SPED|Exceptional Children|Deaf|Visually Impaired)\\b",
-  
-  "Physical Education" = "(?i)\\b(Physical Education|P\\.?E\\.?|PE\\s*/\\s*Health|Health\\s*/\\s*PE|Health and Physical Education)\\b",
-  
-  "Business and Economics" = "\\b(Business|Economics|Econ)\\b",
-  
-  "Substitute Teaching" = "\\b(Substitute)\\b",
-  
-  "Virtual Education" = "\\b(Virtual|Online|Remote)\\b",
-  
-  "Art Teacher" = "\\b(Art Teacher|\\bArt\\b)\\b",
-  
-  "STEM Teacher" = "\\b(STEM)\\b",
-  
-  "CTE Teacher" = "\\b(Career and Technical Education|CTE Teacher)\\b"
-)
-
-k12jobs <- k12jobs %>%
-  mutate(
-    Category = map_chr(str_to_lower(title), function(title) {
-      matched <- NULL
-      for (category in names(category_keywords)) {
-        pattern <- category_keywords[[category]]
-        if (str_detect(title, regex(pattern, ignore_case = TRUE))) {
-          matched <- category
-          break
-        }
-      }
-      if (is.null(matched)) "Uncategorized" else matched
-    })
-  )
-
-
-# Mutate the Category variable based on title using the keywords
-k12jobs <- k12jobs %>%
-  mutate(Category = case_when(
-    str_detect(title, regex(category_keywords[["Special Education"]], ignore_case = TRUE)) ~ "Special Education",  # Match Special Education first
-    str_detect(title, regex(category_keywords[["Technical Education"]], ignore_case = TRUE)) ~ "Technical Education",
-    str_detect(title, regex(category_keywords[["Agriculture Education"]], ignore_case = TRUE)) ~ "Agriculture Education",
-    str_detect(title, regex(category_keywords[["Computer Science Education"]], ignore_case = TRUE)) ~ "Computer Science Education",
-    str_detect(title, regex(category_keywords[["Early Childhood Education"]], ignore_case = TRUE)) ~ "Early Childhood Education",
-    str_detect(title, regex(category_keywords[["Elementary Education"]], ignore_case = TRUE)) ~ "Elementary Education",
-    str_detect(title, regex(category_keywords[["English Language Arts Education"]], ignore_case = TRUE)) ~ "English Language Arts Education",
-    str_detect(title, regex(category_keywords[["Family and Consumer Science"]], ignore_case = TRUE)) ~ "Family and Consumer Science",
-    str_detect(title, regex(category_keywords[["Language Education"]], ignore_case = TRUE)) ~ "Language Education",
-    str_detect(title, regex(category_keywords[["Mathematics Education"]], ignore_case = TRUE)) ~ "Mathematics Education",
-    str_detect(title, regex(category_keywords[["Music Education"]], ignore_case = TRUE)) ~ "Music Education",
-    str_detect(title, regex(category_keywords[["Physical Education"]], ignore_case = TRUE)) ~ "Physical Education",  # Match Physical Education second
-    str_detect(title, regex(category_keywords[["Health Science"]], ignore_case = TRUE)) ~ "Health Science",
-    str_detect(title, regex(category_keywords[["Science Education"]], ignore_case = TRUE)) ~ "Science Education",
-    str_detect(title, regex(category_keywords[["Social Studies Education"]], ignore_case = TRUE)) ~ "Social Studies Education",
-    str_detect(title, regex(category_keywords[["Business and Economics"]], ignore_case = TRUE)) ~ "Business and Economics",
-    str_detect(title, regex(category_keywords[["Substitute Teaching"]], ignore_case = TRUE)) ~ "Substitute Teaching",
-    str_detect(title, regex(category_keywords[["Virtual Education"]], ignore_case = TRUE)) ~ "Virtual Education",
-    str_detect(title, regex(category_keywords[["Art Teacher"]], ignore_case = TRUE)) ~ "Art Teacher",
-    str_detect(title, regex(category_keywords[["STEM Teacher"]], ignore_case = TRUE)) ~ "STEM Teacher",
-    str_detect(title, regex(category_keywords[["CTE Teacher"]], ignore_case = TRUE)) ~ "CTE Teacher",
-    TRUE ~ "Uncategorized"  # Default case for uncategorized titles
-  ))
-k12jobs <- k12jobs %>%
-  mutate(Broad_Category = case_when(
-    Category == "Agriculture Education" ~ "CTE",
-    Category == "Art Teacher" ~ "Art",
-    Category == "Business and Economics" ~ "CTE",
-    Category == "Computer Science Education" ~ "CTE",
-    Category == "Early Childhood Education" ~ "Early Childhood",
-    Category == "Elementary Education" ~ "Elementary",
-    Category == "English Language Arts Education" ~ "English Language Arts Secondary",
-    Category == "Family and Consumer Science" ~ "CTE",
-    Category == "Health Science" ~ "CTE",
-    Category == "Language Education" ~ "Lanugage",
-    Category == "Mathematics Education" ~ "STEM",
-    Category == "Music Education" ~ "Music",
-    Category == "Physical Education" ~ "Physical Education",
-    Category == "STEM Teacher" ~ "STEM",
-    Category == "Science Education" ~ "STEM",
-    Category == "Social Studies Education" ~ "Secondary Social Studies",
-    Category == "Special Education" ~ "Special Education",
-    Category == "Technical Education" ~ "CTE",
-    Category == "Uncategorized" ~ "Other",
-    Category == "Virtual Education" ~ "Other",
-    TRUE ~ "Other"  # Default case to handle any unexpected categories
-  ))
-
-write.csv(k12jobs, file=file.path('Wy_Ed_Jobs','k12jobanalysis.csv'))
-
-
-#Database for all dates by category 
-k12sum <- k12jobs %>%
+this_week_k12sum <- this_week_k12sumdistrict %>%
   group_by(Broad_Category, Archive_Date) %>%
-  summarize(
-    sum = n_distinct(title)
-  ) %>%
-  ungroup() %>%
+  summarize(sum = sum(sum), .groups = "drop") %>%
   mutate(District = "Total") %>%
   select(Broad_Category, Archive_Date, District, sum)
 
-k12sumdistrict <- k12jobs %>%
-  group_by(Broad_Category, Archive_Date, District) %>%
-  summarize(
-    sum = n_distinct(title)
-  ) %>%
-  ungroup()
+# Consistency check for the append logic itself, not the underlying data --
+# this week's Total must equal the sum of this week's own district rows
+# before either is ever written to the accumulated history. See
+# history_accumulator.R::check_total_matches_parts().
+check_total_matches_parts(this_week_k12sum, this_week_k12sumdistrict,
+                           group_cols = c("Broad_Category", "Archive_Date"))
 
-Allsum <- bind_rows(k12sum, k12sumdistrict)
-write.csv(Allsum, file=file.path('Wy_Ed_Jobs','allsum.csv'))
+this_week_allsum <- bind_rows(this_week_k12sum, this_week_k12sumdistrict)
+Allsum <- append_weekly_rows(file.path("Wy_Ed_Jobs", "allsum.csv"), this_week_allsum)
+write.csv(Allsum, file=file.path('Wy_Ed_Jobs','allsum.csv'), row.names = FALSE)
 
-#Database for all data now by category
-k12now <- k12jobs %>%
-  filter(Archive_Date == max(Archive_Date))
-
-k12nowsum <- k12now %>%
-  group_by(Broad_Category) %>%
-  summarize(
-    Sum = n_distinct(title)
-  ) %>%
+# Database for all data NOW by category -- always just this week's
+# snapshot, so unlike the datasets above this never needed the archive
+# rebuild in the first place; it's built straight from this week's own
+# district-level summary computed above.
+k12districtnowsum <- this_week_k12sumdistrict %>%
   ungroup() %>%
-  mutate(District = "Total")
-
-k12districtnowsum <- k12now %>%
-  group_by(Broad_Category, District) %>%
-  summarize(
-    Sum = n_distinct(title)
-  ) %>%
-  ungroup() %>%
+  rename(Sum = sum) %>%
   select(Broad_Category, Sum, District)
+
+k12nowsum <- k12districtnowsum %>%
+  group_by(Broad_Category) %>%
+  summarize(Sum = sum(Sum), .groups = "drop") %>%
+  mutate(District = "Total")
 
 Allnow <- bind_rows(k12nowsum, k12districtnowsum)
 
-write.csv(Allnow, file=file.path('Wy_Ed_Jobs','allnow.csv'))
+write.csv(Allnow, file=file.path('Wy_Ed_Jobs','allnow.csv'), row.names = FALSE)
 
-list<-unique(k12jobs$District)
-write.csv(list, "list.csv")
+list<-unique(this_week_k12jobs$District)
+write.csv(list, "list.csv", row.names = FALSE)
+```
+
+### K-12 salary data, from WSBA's publicly shared PDFs
+```{r wsba salary data, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(edjobs)
+source("salary_scrapers.R")
+
+teacher_salary <- safe_scrape(
+  "WSBA teacher salary settlements",
+  scrape_fn = fetch_wsba_teacher_salary,
+  expected_cols = c("District", "Base_Salary_Prior_Year", "Base_Salary_Current_Year", "Salary_Year")
+)
+
+superintendent_salary <- safe_scrape(
+  "WSBA superintendent salaries",
+  scrape_fn = fetch_wsba_superintendent_salary,
+  expected_cols = c("District", "Superintendent_Salary", "Superintendent_Contract_Days")
+)
+
+# Only the WSBA salary figures get refreshed from WSBA each run.
+# Other columns (geo/links, CCD staffing, Census, WDE salaries) are preserved.
+# District is already canonical in the file on disk.
+salarymap2 <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8")
+
+if (nrow(teacher_salary) > 0 && nrow(superintendent_salary) > 0) {
+  salarymap2 <- salarymap2 %>%
+    select(-any_of(c("Teacher_Base_Salary", "Teacher_Base_Salary_Prior_Year", "Salary_Year",
+                     "Superintendent_Salary", "Superintendent_Contract_Days", "Salary_Source"))) %>%
+    left_join(teacher_salary, by = "District") %>%
+    left_join(superintendent_salary, by = "District") %>%
+    rename(Teacher_Base_Salary = Base_Salary_Current_Year,
+           Teacher_Base_Salary_Prior_Year = Base_Salary_Prior_Year) %>%
+    # No "last updated" timestamp -- this data only changes once a year
+    # (WSBA republishes a new Salary_Year settlement document), so a date
+    # stamped fresh on every weekly pipeline run would just mislead people
+    # into thinking the dollar figures themselves refresh that often.
+    # Salary_Year is the real freshness signal.
+    mutate(Salary_Source = "WSBA (wsba-wy.org)")
+
+  write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
+
+  # Starts building a multi-year K-12 salary trend -- WSBA has no public
+  # historical archive (unlike IPEDS, checked directly 2026-08-05), so
+  # this only accumulates real history going forward, one snapshot per
+  # new Salary_Year.
+  archive_k12_salary_snapshot(salarymap2, file.path("Wy_Ed_Jobs", "k12_salary_history.csv"))
+} else {
+  message("WSBA salary fetch failed for one or both documents -- leaving salarymap2.csv untouched this run.")
+}
+
+# District-level data-completeness classification (misc_district_scrapers.R)
+# -- refreshed unconditionally every run, not gated on the salary fetch
+# above, since it's a static structural fact about which platform each
+# district is scraped from, not something that can itself fail to fetch.
+# Every district not in misc_district_coverage_tiers() is scraped from a
+# genuine structured job-board platform, hence the coalesce to "Full".
+source("misc_district_scrapers.R")
+salarymap2 <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8") %>%
+  select(-any_of("Data_Coverage")) %>%
+  left_join(misc_district_coverage_tiers(), by = "District") %>%
+  mutate(Data_Coverage = coalesce(Data_Coverage, "Full"))
+write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
+```
+
+### K-12 teacher FTE (staff headcount), from NCES's Common Core of Data via the Urban Institute API
+```{r ccd teacher fte data, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(edjobs)
+source("ccd_staff_scraper.R")
+
+teacher_fte <- safe_scrape(
+  "CCD district teacher FTE (WY)",
+  scrape_fn = fetch_ccd_teacher_fte,
+  expected_cols = c("District", "Teachers_Total_FTE", "Enrollment", "CCD_Year")
+)
+
+salarymap2 <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8")
+
+if (nrow(teacher_fte) > 0) {
+  # No "last updated" timestamp -- same reasoning as the WSBA/IPEDS salary
+  # chunks. CCD_Year is the real freshness signal for this data.
+  # Drop last run's copies first: since salarymap2.csv is now read back with
+  # every column kept, joining without this emitted Teachers_Total_FTE.x/.y,
+  # Enrollment.x/.y and CCD_Year.x/.y, which verify_schema.R rejects.
+  salarymap2 <- salarymap2 %>%
+    select(-any_of(c("Teachers_Total_FTE", "Enrollment", "CCD_Year", "CCD_Source"))) %>%
+    left_join(teacher_fte, by = "District") %>%
+    mutate(CCD_Source = "NCES Common Core of Data via Urban Institute Education Data Portal (educationdata.urban.org)")
+
+  write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
+} else {
+  message("CCD teacher FTE fetch failed -- leaving salarymap2.csv untouched this run.")
+}
+
+# Map rows that aren't regular CCD districts: charter schools (a charter
+# inside a host district has no district record; the 3 state-authorized ones
+# do, but report staff only at the school), Wyoming Boys School (a Department
+# of Family Services school) and Northeast Wyoming BOCES (a regional service
+# agency; its LEAID, staff summed over its schools). CCD ids for their staffing
+# and free/reduced lunch share (2026-11-09). Kept here, not in salarymap2.csv,
+# where a 12-digit id would round-trip as a number.
+WY_SCHOOL_LEVEL_IDS <- c(
+  "Snowy Range Academy" = "560073000216",               # Albany County SD 1 (Laramie)
+  "Laramie Montessori Charter School" = "560073000542", # Albany County SD 1 (Laramie)
+  "Cheyenne Classical Academy" = "568025700597",
+  "Wyoming Classical Academy" = "568025800598",
+  "Prairie View Community School" = "568025900599",
+  "Wyoming Boys School" = "568025100538",
+  "Northeast Wyoming BOCES" = "5680180"
+)
+# Rows with no Census poverty geography of their own whose students are local:
+# their surrounding district's rate stands in. Not the BOCES or Wyoming Boys
+# School, whose students come from many districts.
+WY_SURROUNDING_POVERTY <- c("Snowy Range Academy", "Laramie Montessori Charter School", "Cheyenne Classical Academy",
+                            "Wyoming Classical Academy", "Prairie View Community School",
+                            "STRIDE Learning Center", "Sweetwater County Child Developmental Center")
+salarymap2 <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8")
+entity_ids <- setNames(as.list(as.character(salarymap2$NCES_LEAID)), salarymap2$District)
+entity_ids[names(WY_SCHOOL_LEVEL_IDS)] <- as.list(WY_SCHOOL_LEVEL_IDS)
+entity_ids <- entity_ids[!vapply(entity_ids, function(x) is.na(x) || x == "NA", logical(1))]
+
+charter_staff <- safe_scrape(
+  "CCD school-level staffing (WY charters, Boys School, BOCES)",
+  scrape_fn = function() {
+    r <- find_latest_ccd_directory_year()
+    sch <- fetch_ccd_school_directory(56, r$year)
+    out <- parse_ccd_school_staffing(sch, entity_ids[names(WY_SCHOOL_LEVEL_IDS)])
+    out$CCD_Year <- rep(r$year, nrow(out))
+    out
+  },
+  expected_cols = c("District", "Teachers_Total_FTE", "Enrollment", "CCD_Year")
+)
+if (nrow(charter_staff) > 0) {
+  i <- match(charter_staff$District, salarymap2$District)
+  ok <- !is.na(i) & !is.na(charter_staff$Teachers_Total_FTE)
+  salarymap2$Teachers_Total_FTE[i[ok]] <- charter_staff$Teachers_Total_FTE[ok]
+  salarymap2$Enrollment[i[ok]] <- charter_staff$Enrollment[ok]
+  salarymap2$CCD_Year[i[ok]] <- charter_staff$CCD_Year[ok]
+}
+
+# Free/reduced-price lunch share beside SAIPE's child poverty rate
+# (fetch_ccd_frl_share(), ccd_staff_scraper.R); each entity's newest
+# reporting year, kept from last run when the fetch fails.
+frl <- safe_scrape(
+  "CCD free/reduced-price lunch share (WY)",
+  scrape_fn = function() fetch_ccd_frl_share(56, entity_ids),
+  expected_cols = c("District", "Free_Reduced_Lunch_Share", "FRL_Schools_Reporting", "FRL_Year")
+)
+if (nrow(frl) > 0) {
+  salarymap2 <- salarymap2 %>%
+    select(-any_of(c("Free_Reduced_Lunch_Share", "FRL_Schools_Reporting", "FRL_Year"))) %>%
+    left_join(frl, by = "District", relationship = "many-to-one")
+}
+write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
+```
+
+### County-level context (income, rent, mining/energy employment share, population trend), from the Census Bureau's ACS 5-Year Estimates
+```{r census county context data, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(edjobs)
+source("census_acs_scraper.R")
+
+# CENSUS_API_KEY must be set (a GitHub Actions secret in CI, .Renviron
+# locally) -- see census_acs_scraper.R's header for why this can't run
+# without one. safe_scrape() catches a missing/invalid key the same way it
+# catches any other fetch failure: logs it, leaves salarymap2.csv
+# untouched this run, rather than crashing the whole pipeline.
+county_context <- safe_scrape(
+  "Census ACS county context (WY)",
+  scrape_fn = fetch_census_county_context,
+  expected_cols = c("County", "Median_Household_Income", "Median_Gross_Rent",
+                     "Population", "ACS_Year", "Mining_Employment_Share", "Population_Change_Pct")
+)
+
+if (nrow(county_context) > 0) {
+  # Joins on County, not District -- one County value maps to multiple
+  # sibling districts (e.g. Sheridan County SD1 and SD2 both correctly
+  # get the same Sheridan County figures), same one-to-many relationship
+  # WSBA's own District-level salary data doesn't have but this genuinely
+  # does. No "last updated" timestamp, same reasoning as the WSBA/CCD/
+  # IPEDS chunks above -- ACS_Year is the real freshness signal, and this
+  # is 5-year-smoothed data that doesn't meaningfully change week to week.
+  # select(-any_of(...)) drops last run's copy of these columns first so
+  # a re-run doesn't produce Median_Household_Income.x/.y duplicates --
+  # only reached on a successful fetch, so a failed run leaves the
+  # existing columns (and every other column) fully untouched, same as
+  # every other salary/staffing chunk in this pipeline.
+  salarymap2 <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8") %>%
+    select(-any_of(c("Median_Household_Income", "Median_Gross_Rent", "Population",
+                      "ACS_Year", "Mining_Employment_Share", "Population_Change_Pct"))) %>%
+    left_join(county_context, by = "County")
+  write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
+} else {
+  message("Census ACS county context fetch failed -- leaving salarymap2.csv untouched this run.")
+}
+```
+
+### District-level child poverty rate, from the Census Bureau's SAIPE program
+```{r census saipe child poverty data, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(edjobs)
+source("census_acs_scraper.R")  # census_saipe_scraper.R reuses census_api_key()/clean_acs_value()/WY_STATE_FIPS from here
+source("census_saipe_scraper.R")
+
+child_poverty <- safe_scrape(
+  "Census SAIPE district child poverty rate (WY)",
+  scrape_fn = fetch_census_saipe_child_poverty,
+  expected_cols = c("District", "Child_Poverty_Rate", "SAIPE_Year")
+)
+
+if (nrow(child_poverty) > 0) {
+  # Joins on District, not County -- real district-level data (the closest
+  # free proxy to free/reduced-lunch eligibility at the actual district a
+  # posting is in), unlike the county-context chunk above. Fremont County
+  # School District 38 comes from SAIPE's elementary geography
+  # (fetch_census_saipe_child_poverty()).
+  prev_poverty <- read.csv(file.path("Wy_Ed_Jobs", "salarymap2.csv"), fileEncoding = "UTF-8")
+  salarymap2 <- prev_poverty %>%
+    select(-any_of(c("Child_Poverty_Rate", "SAIPE_Year", "Child_Poverty_Basis"))) %>%
+    left_join(child_poverty, by = "District", relationship = "many-to-one")
+  # A charter or early-childhood center has no SAIPE geography of its own: the
+  # district(s) it sits in stand in (surrounding_district_poverty(),
+  # ccd_staff_scraper.R; a split town's rates averaged), named in
+  # Child_Poverty_Basis so the dashboard says "surrounding district". A
+  # geocoder failure keeps last run's value and is logged (2026-11-09 review).
+  salarymap2$Child_Poverty_Basis <- NA_character_
+  district_rates <- data.frame(LEAID = as.character(salarymap2$NCES_LEAID), Child_Poverty_Rate = salarymap2$Child_Poverty_Rate,
+                               SAIPE_Year = salarymap2$SAIPE_Year, stringsAsFactors = FALSE)
+  district_rates <- district_rates[!is.na(district_rates$LEAID) & district_rates$LEAID != "NA", , drop = FALSE]
+  district_names <- setNames(salarymap2$District, as.character(salarymap2$NCES_LEAID))
+  geo_failed <- character(0)
+  for (i in which(salarymap2$District %in% WY_SURROUNDING_POVERTY & is.na(salarymap2$Child_Poverty_Rate))) {
+    p <- surrounding_district_poverty(salarymap2$Latitude[i], salarymap2$Longitude[i], district_rates, district_names)
+    if (p$status == "ok") {
+      salarymap2$Child_Poverty_Rate[i] <- p$rate
+      salarymap2$SAIPE_Year[i] <- p$year
+      salarymap2$Child_Poverty_Basis[i] <- p$basis
+    } else if (p$status == "failed") {
+      geo_failed <- c(geo_failed, salarymap2$District[i])
+      k <- match(salarymap2$District[i], prev_poverty$District)
+      for (col in intersect(c("Child_Poverty_Rate", "SAIPE_Year", "Child_Poverty_Basis"), names(prev_poverty))) {
+        if (!is.na(k)) salarymap2[[col]][i] <- prev_poverty[[col]][k]
+      }
+    }
+  }
+  log_scrape_result("Census geocoder (surrounding-district poverty, WY)",
+                    status = if (length(geo_failed)) "error" else "ok",
+                    n_rows = sum(!is.na(salarymap2$Child_Poverty_Basis)),
+                    error_message = if (length(geo_failed)) paste("geocoder failed for:", paste(geo_failed, collapse = "; ")) else NA_character_)
+  write.csv(salarymap2, file.path("Wy_Ed_Jobs", "salarymap2.csv"), row.names = FALSE)
+} else {
+  message("Census SAIPE child poverty fetch failed -- leaving salarymap2.csv untouched this run.")
+}
 ```
 
 
 ## Time to scrape Wyoming Higher Education Data
 ### This chunk scrapes LCCC's data
 ```{r Get Jobs from LCCC, message=FALSE, warning=FALSE, echo=TRUE}
-
-library(rvest)
-library(RSelenium)
 library(dplyr)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-# Start RSelenium with Firefox browser
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
+# LCCC is on the same NEOGOV platform as Casper/Central/Gillette (edjobs
+# fetch_neogov_postings(), the classic careers page; NEOGOV redirects the
+# agency slug to its own domain, governmentjobs.com here). Each posting's
+# page gives its exact posted date and closing date (Close_Date). Replaces
+# the old RSelenium scraper with direct HTTP calls.
+lccc_raw <- safe_scrape(
+  "Laramie County Community College",
+  scrape_fn = function() fetch_neogov_postings("lcccwy"),
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
+)
 
-# Function to scrape job postings from a given page URL
-scrape_jobs <- function(url) {
-  remDr$navigate(url)
-  
- # Scroll to bottom once
-remDr$executeScript("window.scrollTo(0, document.body.scrollHeight);")
-
-# Wait up to ~8 seconds for all job elements to appear
-for(i in 1:16) {     # 16 × 0.5 sec = 8 sec total
-  job_nodes <- remDr$findElements(using = "css selector",
-                                  value = ".item-details-link")
-  if(length(job_nodes) >= 30) break
-  Sys.sleep(0.5)
-}
-
-
-  # Re-fetch the page after waiting for all jobs to load
-  page_source <- remDr$getPageSource()[[1]]
-  soup <- read_html(page_source)
-  
-  # Safely try to fetch job titles, links, locations, and posted dates
-  job_titles <- tryCatch({
-    soup %>% html_nodes(".item-details-link") %>% html_text(trim = TRUE)
-  }, error = function(e) character(0))
-
-  job_links <- tryCatch({
-    soup %>% html_nodes(".item-details-link") %>% html_attr("href") %>%
-      paste0("https://www.governmentjobs.com/careers/lcccwy?page=", .)
-  }, error = function(e) character(0))
-
-  # **Update to capture the Location** correctly for all jobs, including the last one
-  job_location <- tryCatch({
-    soup %>% html_nodes(".list-meta li:nth-child(1)") %>% html_text(trim = TRUE)
-  }, error = function(e) character(0))
-  
-  
-  posted_date <- tryCatch({
-    soup %>% html_nodes(".list-entry-starts span") %>% html_text(trim = TRUE)
-  }, error = function(e) character(0))
-
-  # Ensure all vectors have the same length
-  max_length <- max(length(job_titles), length(job_links), length(job_location), length(posted_date))
-  
-  job_titles <- c(job_titles, rep(NA, max_length - length(job_titles)))
-  job_links <- c(job_links, rep(NA, max_length - length(job_links)))
-  job_location <- c(job_location, rep(NA, max_length - length(job_location)))
-  posted_date <- c(posted_date, rep(NA, max_length - length(posted_date)))
-
-  # Create dataframe
-  jobs_df <- data.frame(
-    Title = job_titles,
-    Location = job_location,
-    Link = job_links,
-    Posted_Date = posted_date,
-    stringsAsFactors = FALSE
-  )
-
-  return(jobs_df)
-}
-
-# Scrape multiple pages
-all_jobs <- list()
-
-all_jobs <- list()
-
-page <- 1
-repeat {
-  url <- paste0("https://www.governmentjobs.com/careers/lcccwy?page=", page)
-  cat("Scraping:", url, "\n")
-
-  jobs_df <- tryCatch({
-    scrape_jobs(url)
-  }, error = function(e) {
-    cat("Error scraping page", page, ":", e$message, "\n")
-    return(data.frame())
-  })
-
-  if (all(is.na(jobs_df$Title)) || nrow(jobs_df) == 0) {
-    cat("No job titles found on page", page, ". Assuming end of listings.\n")
-    break
-  } else {
-    all_jobs[[length(all_jobs) + 1]] <- jobs_df
-    cat("Scraped page", page, "\n")
-    page <- page + 1  # Don't forget to increment the page!
-  }
-
-  Sys.sleep(1)  # Be nice to the server
-}
-
-# Now outside the loop — combine and clean
-lccc <- bind_rows(all_jobs) %>%
+lccc <- lccc_raw %>%
   mutate(Institution = "Laramie County Community College") %>%
-  distinct(Title, .keep_all = TRUE)
-
-# Close Selenium
-remDr$close()
-rD$server$stop()
-
-# Cleanup and print results
-lccc <- lccc %>%
-  select(Title, Location, Posted_Date, Institution, Link)
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(lccc)
 
@@ -910,651 +769,161 @@ print(lccc)
 
 ### This pulls data from Casper College
 ```{r casper college, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-# Define the URLs for page 1 and page 2
-urls <- c(
-  "https://www.schooljobs.com/careers/caspercollege", 
-  "https://www.schooljobs.com/careers/caspercollege?page=2"
+casper_raw <- safe_scrape(
+  "Casper College",
+  scrape_fn = function() fetch_neogov_postings("caspercollege"),
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
-# Start RSelenium with Firefox browser
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
+casper <- casper_raw %>%
+  mutate(Institution = "Casper College") %>%
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
-# Initialize an empty data frame to store all job listings
-casper <- data.frame()
-
-# Loop over both pages to scrape data
-for (url in urls) {
-  
-  remDr$navigate(url)
-  Sys.sleep(10)  # Wait for dynamic content
-  
-  # Get page source and parse with rvest
-  soup <- read_html(remDr$getPageSource()[[1]])
-  
-  # Extract job titles and links
-  job_titles <- soup %>% 
-    html_nodes(".item-details-link") %>% 
-    html_text(trim = TRUE)
-  
-  job_links <- soup %>% 
-    html_nodes(".item-details-link") %>% 
-    html_attr("href") %>% 
-    paste0("https://www.schooljobs.com/careers/caspercollege", .)
-  
-  # Extract department details
-  departments <- soup %>% 
-    html_nodes(".item-details-link") %>% 
-    html_attr("data-department-name")
-  
-  if (length(departments) == 0) {
-    departments <- rep(NA, length(job_titles))
-  }
-  
-  # Extract job locations
-  job_locations <- soup %>% 
-    html_nodes(".list-meta li:nth-child(1)") %>% 
-    html_text(trim = TRUE)
-  
-  if (length(job_locations) == 0) {
-    job_locations <- rep(NA, length(job_titles))
-  }
-  
-  # Extract posted date text (RELATIVE — keep as-is)
-  Posted_Date <- soup %>% 
-    html_nodes(".list-entry-starts span") %>% 
-    html_text(trim = TRUE)
-  
-  # If no jobs found
-  if (length(job_titles) == 0) {
-    
-    page_jobs <- data.frame(
-      Title = "No Jobs",
-      Location = NA,
-      Posted_Date = NA,
-      Institution = "Casper College",
-      Link = url,
-      stringsAsFactors = FALSE
-    )
-    
-  } else {
-    
-    page_jobs <- data.frame(
-      Title = job_titles,
-      Location = job_locations,
-      Posted_Date = Posted_Date,
-      Institution = "Casper College",
-      Link = job_links,
-      stringsAsFactors = FALSE
-    )
-  }
-  
-  # Append results
-  casper <- rbind(casper, page_jobs)
-}
-
-# Remove duplicates
-casper <- unique(casper)
-
-# Final column order & cleanup
-casper <- casper %>%
-  select(Title, Location, Posted_Date, Institution, Link) %>%
-  filter(Title != "No Jobs")
-
-# Print results
 print(casper)
-
-# Close RSelenium
-remDr$close()
-rD$server$stop()
-
-
 
 ```
 
 
 ### This pulls jobs data from Western Wyoming
 ```{r western wyoming, echo=TRUE, message=FALSE, warning=FALSE}
-library(rvest)
-library(RSelenium)
 library(dplyr)
-library(stringr)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-#Convert date to days, weeks, more than 30 days
-convert_date_to_relative <- function(date_chr) {
-  date_parsed <- as.Date(date_chr, format = "%m/%d/%Y")
-  
-  if (is.na(date_parsed)) return(NA_character_)
-  
-  days_ago <- as.integer(Sys.Date() - date_parsed)
-  
-  if (days_ago < 1) {
-    "Posted today"
-  } else if (days_ago == 1) {
-    "Posted 1 day ago"
-  } else if (days_ago < 7) {
-    paste("Posted", days_ago, "days ago")
-  } else if (days_ago < 14) {
-    "Posted 1 week ago"
-  } else if (days_ago < 21) {
-    "Posted 2 weeks ago"
-  } else if (days_ago < 28) {
-    "Posted 3 weeks ago"
-  } else if (days_ago < 35) {
-    "Posted 4 weeks ago"
-  } else {
-    "Posted more than 30 days ago"
-  }
-}
+# Western is on the same PeopleAdmin platform as Eastern/Sheridan/
+# Northwest, not NEOGOV -- a prior investigation mistyped the domain as
+# "wwccwy.peopleadmin.com" (double-c), got NXDOMAIN, and wrongly concluded
+# Western had migrated to schooljobs.com/careers/westernwyoming (a real
+# NEOGOV agency slug that happens to return a valid "0 jobs found" page,
+# not Western's actual career site). The real domain is
+# "wwcwy.peopleadmin.com" (single-c) -- confirmed live with 46 real open
+# postings, silently missed by the NEOGOV version for an unknown period.
+western_raw <- safe_scrape(
+  "Western Wyoming Community College",
+  scrape_fn = function() fetch_peopleadmin_atom("https://wwcwy.peopleadmin.com/postings/all_jobs", "Western Wyoming Campus", location_from_author = FALSE),
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
+)
 
+western <- western_raw %>%
+  mutate(Institution = "Western Wyoming Community College") %>%
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
-# Start RSelenium
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
-
-extract_jobs <- function(page_url) {
-  remDr$navigate(page_url)
-  Sys.sleep(5)  # allow full page load
-  
-  page_source <- remDr$getPageSource()[[1]]
-  soup <- read_html(page_source)
-  
-  jobs <- soup %>% html_nodes("div.job-item.job-item-posting")
-  if(length(jobs) == 0) return(NULL)
-  
-  job_list <- lapply(jobs, function(job) {
-    # Title and Link
-    title_node <- job %>% html_node("div.col-md-4.job-title h3 a")
-    Title <- title_node %>% html_text(trim = TRUE)
-    Link  <- paste0("https://wwccwy.peopleadmin.com", title_node %>% html_attr("href"))
-    
-    # Right column text (single string)
-    right_text <- job %>% html_node("div.col-md-8") %>% html_text(trim = TRUE)
-    
-    # Posted_Date: first occurrence of MM/DD/YYYY
-    raw_date <- str_extract(right_text, "\\d{2}/\\d{2}/\\d{4}")
-    Posted_Date <- convert_date_to_relative(raw_date)
-
-    
-    # Location: last non-empty line that is NOT a date or code
-    lines <- str_split(right_text, "\\n")[[1]] %>% str_trim()
-    non_date <- lines[!str_detect(lines, "\\d{2}/\\d{2}/\\d{4}")]
-    non_empty <- non_date[nzchar(non_date)]
-    Location <- if(length(non_empty) > 0) tail(non_empty, 1) else NA
-    
-    data.frame(
-      Title = Title,
-      Location = Location,
-      Posted_Date = Posted_Date,
-      Link = Link,
-      stringsAsFactors = FALSE
-    )
-  })
-  
-  do.call(rbind, job_list)
-}
-
-# Scrape pages 1 and 2
-all_jobs <- do.call(rbind, lapply(1:2, function(p) {
-  url <- paste0("https://wwccwy.peopleadmin.com/postings/search?page=", p)
-  extract_jobs(url)
-}))
-
-# Add Institution column
-western <- all_jobs %>% mutate(Institution = "Western Wyoming Community College")%>%
-  dplyr::select(Title, Location, Posted_Date, Institution, Link)
-
-# Save CSV
-write.csv(western, "WWCC_job_listings.csv", row.names = FALSE)
-
-# Print
 print(western)
-
-# Close RSelenium
-remDr$close()
-rD$server$stop()
-
 
 ```
 
 
 ### This pulls data from Central Wyoming college
 ```{r central wyoming, message=FALSE, echo=TRUE, warning=FALSE}
-library(rvest)
-library(RSelenium)
 library(dplyr)
-library(purrr)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-# Start RSelenium with Firefox browser
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
+central_raw <- safe_scrape(
+  "Central Wyoming College",
+  scrape_fn = function() fetch_neogov_postings("cwc"),
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
+)
 
-# Function to extract job postings from a page
-extract_jobs <- function(page_url) {
-  # Navigate to the page
-  remDr$navigate(page_url)
-  
-  # Wait for dynamic content to load
-  Sys.sleep(10)  # Adjust as needed based on page loading time
-  
-  # Get page source and parse with rvest
-  page_source <- remDr$getPageSource()[[1]]
-  soup <- read_html(page_source)
-  
-  # Extract job details
-  job_titles <- soup %>% 
-    html_nodes(".list-item .item-details-link") %>% 
-    html_text(trim = TRUE)
-  
-  job_dates <- soup %>% 
-    html_nodes(".list-published .list-entry-starts span") %>% 
-    html_text(trim = TRUE)
-  
-  job_locations <- soup %>% 
-    html_nodes(".list-item ul.list-meta li:nth-child(1)") %>% 
-    html_text(trim = TRUE)
-  
-  # Combine data into a dataframe
-  jobs_df <- data.frame(
-    Title = job_titles,
-    Location = job_locations,
-    Posted_Date = job_dates,
-    stringsAsFactors = FALSE
-  )
-  
-  return(jobs_df)
-}
+central <- central_raw %>%
+  mutate(Institution = "Central Wyoming College") %>%
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
-# Initialize an empty data frame to store all jobs
-all_jobs <- data.frame()
-
-# Scrape both pages
-for (page in 1:3) {
-  page_url <- if (page == 1) {
-    "https://www.schooljobs.com/careers/cwc"
-  } else {
-    paste0("https://www.schooljobs.com/careers/cwc?page= ", page)
-  }
-  
-  page_jobs <- extract_jobs(page_url)
-  
-  if (nrow(page_jobs) > 0) {
-    all_jobs <- bind_rows(all_jobs, page_jobs)
-    cat("Scraped page", page, "\n")
-  } else {
-    cat("No data found on page", page, "\n")
-  }
-}
-
-# Add the current date to the dataframe
-central <- all_jobs %>%
-  mutate(Institution = "Central Wyoming College")%>%
-  mutate(Link = "https://www.schooljobs.com/careers/cwc")
-
-# Print the dataframe
 print(central)
-
-# Close RSelenium
-remDr$close()
-rD$server$stop()
-
 
 ```
 
 ### This pulls jobs data from Eastern Wyoming college
 ```{r Eastern, message=FALSE, warning=FALSE, echo=TRUE}
-library(rvest)
-library(RSelenium)
 library(dplyr)
-library(stringr)
-library(lubridate)
-library(purrr)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-convert_to_relative_date <- function(date_obj, reference_date = Sys.Date()) {
-  diff_days <- as.numeric(difftime(reference_date, date_obj, units = "days"))
-  
-  if(is.na(diff_days)) return(NA_character_)
-  else if(diff_days == 0) return("Today")
-  else if(diff_days == 1) return("Yesterday")
-  else if(diff_days < 7) return(paste(diff_days, "days ago"))
-  else if(diff_days < 30) return(paste(round(diff_days/7), "weeks ago"))
-  else return("More than 30 days ago")
-}
+# Eastern's own published Atom feed replaces the old RSelenium scraper
+# entirely -- see direct_api_scrapers.R::fetch_peopleadmin_atom(). No
+# browser, no pagination, no CSS selectors to drift.
+eastern_raw <- safe_scrape(
+  "Eastern Wyoming Community College",
+  scrape_fn = function() fetch_peopleadmin_atom("https://ewc.peopleadmin.com/postings/all_jobs", "Eastern Wyoming Campus", location_from_author = FALSE),
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
+)
 
-# Start RSelenium
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
-
-extract_jobs <- function(page_url) {
-  remDr$navigate(page_url)
-  Sys.sleep(10)
-  
-  soup <- read_html(remDr$getPageSource()[[1]])
-  
-  job_nodes <- soup %>% html_nodes(".job-item.job-item-posting")
-  if(length(job_nodes) == 0) return(NULL)
-  
-  job_list <- lapply(job_nodes, function(job) {
-    title_node <- job %>% html_node(".job-title a")
-    Title <- title_node %>% html_text(trim = TRUE)
-    Link  <- paste0("https://ewc.peopleadmin.com", html_attr(title_node, "href"))
-    
-    # Navigate to individual job page to get Open Date
-    remDr$navigate(Link)
-    Sys.sleep(5)
-    job_page <- read_html(remDr$getPageSource()[[1]])
-    
-    # Scrape Open Date from the <tr> where <th> = "Open Date"
-    open_date_text <- job_page %>%
-      html_nodes("tr") %>%
-      keep(~ html_node(.x, "th") %>% html_text(trim = TRUE) == "Open Date") %>%
-      html_node("td") %>%
-      html_text(trim = TRUE)
-    
-    Posted_Date <- if(!is.na(open_date_text) && open_date_text != "") mdy(open_date_text) else NA
-    
-    data.frame(
-      Title = Title,
-      Link = Link,
-      Posted_Date = Posted_Date,
-      stringsAsFactors = FALSE
-    )
-  })
-  
-  do.call(rbind, job_list)
-}
-
-# Example: scrape first 2 pages
-all_jobs <- do.call(rbind, lapply(1:2, function(p) {
-  url <- paste0("https://ewc.peopleadmin.com/postings/search?page=", p)
-  extract_jobs(url)
-}))
-
-# Add metadata and convert Posted_Date to relative
-eastern <- all_jobs %>%
-  mutate(
-    Location = "Eastern Wyoming Campus",
-    Institution = "Eastern Wyoming Community College",
-    Posted_Date = map_chr(Posted_Date, convert_to_relative_date)) %>%
-  dplyr::select(Title, Location, Posted_Date, Institution, Link)%>%
-  distinct()
+eastern <- eastern_raw %>%
+  mutate(Institution = "Eastern Wyoming Community College") %>%
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(eastern)
-
-# Close RSelenium
-remDr$close()
-rD$server$stop()
-
-
 
 ```
 
 ### This pulls data Gillette college
 ```{r gillette, message=FALSE, echo=TRUE, warning=FALSE}
-library(rvest)
-library(RSelenium)
 library(dplyr)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-# Start RSelenium with Firefox browser
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
+gillette_raw <- safe_scrape(
+  "Gillette College",
+  scrape_fn = function() fetch_neogov_postings("gillettecollege"),
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
+)
 
-# Function to extract job postings from a page
-extract_jobs <- function(page_url) {
-  # Navigate to the page
-  remDr$navigate(page_url)
-  
-  # Wait for dynamic content to load
-  Sys.sleep(10)  # Adjust as needed based on page loading time
-  
-  # Get page source and parse with rvest
-  page_source <- remDr$getPageSource()[[1]]
-  soup <- read_html(page_source)
-  
-  # Extract job details
-  job_titles <- soup %>% 
-    html_nodes(".list-item .item-details-link") %>% 
-    html_text(trim = TRUE)
-  
-  job_dates <- soup %>% 
-    html_nodes(".list-published .list-entry-starts span") %>% 
-    html_text(trim = TRUE)
-  
-  job_locations <- soup %>% 
-    html_nodes(".list-item ul.list-meta li:nth-child(1)") %>% 
-    html_text(trim = TRUE)
-  
-  # Combine data into a dataframe
-  jobs_df <- data.frame(
-    Title = job_titles,
-    Location = job_locations,
-    Posted_Date = job_dates,
-    stringsAsFactors = FALSE
-  )
-  
-  return(jobs_df)
-}
-
-# Initialize an empty data frame to store all jobs
-all_jobs <- data.frame()
-
-# Scrape both pages
-for (page in 1:5) {
-  page_url <- if (page == 1) {
-    "https://www.schooljobs.com/careers/gillettecollege"
-  } else {
-    paste0("https://www.schooljobs.com/careers/gillettecollege?page= ", page)
-  }
-  
-  page_jobs <- extract_jobs(page_url)
-  
-  if (nrow(page_jobs) > 0) {
-    all_jobs <- bind_rows(all_jobs, page_jobs)
-    cat("Scraped page", page, "\n")
-  } else {
-    cat("No data found on page", page, "\n")
-  }
-}
-
-# Add the current date to the dataframe
-gillette <- all_jobs %>%
-  mutate(Institution = "Gillette College")%>%
-  mutate(Link = "https://www.schooljobs.com/careers/gillettecollege")
+gillette <- gillette_raw %>%
+  mutate(Institution = "Gillette College") %>%
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(gillette)
 
-# Close RSelenium
-remDr$close()
-rD$server$stop()
-
 ```
-
 ### This pulls data from Sheridan College
 ```{r sheridan, echo=TRUE, message=FALSE, warning=FALSE}
-library(rvest)
-library(RSelenium)
 library(dplyr)
-library(purrr)
-library(stringr)
-library(lubridate)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-# Function to convert date to relative format
-convert_to_relative_date <- function(date_obj, reference_date = Sys.Date()) {
-  diff_days <- as.numeric(difftime(reference_date, date_obj, units = "days"))
-  
-  if(is.na(diff_days)) return(NA_character_)
-  else if(diff_days == 0) return("Today")
-  else if(diff_days == 1) return("Yesterday")
-  else if(diff_days < 7) return(paste(diff_days, "days ago"))
-  else if(diff_days < 30) return(paste(round(diff_days/7), "weeks ago"))
-  else return("More than 30 days ago")
-}
+# Sheridan is on the same PeopleAdmin platform as Eastern Wyoming --
+# confirmed by matching asset hashes/scripts -- so the same Atom feed
+# approach applies. Replaces the old RSelenium scraper (which navigated to
+# every individual job's detail page just to read its posting date).
+sheridan_raw <- safe_scrape(
+  "Sheridan College",
+  scrape_fn = function() fetch_peopleadmin_atom("https://jobs.sheridan.edu/postings/all_jobs", "Sheridan College Campus", location_from_author = FALSE),
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
+)
 
-# Start RSelenium
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
-
-extract_jobs <- function(page_url) {
-  remDr$navigate(page_url)
-  Sys.sleep(10)  # allow full load
-  
-  soup <- read_html(remDr$getPageSource()[[1]])
-  
-  # Get job titles and links
-  title_nodes <- soup %>% html_nodes(".col-md-4.job-title h3 a")
-  Titles <- title_nodes %>% html_text(trim = TRUE)
-  Links  <- title_nodes %>% html_attr("href") %>% paste0("https://jobs.sheridan.edu", .)
-  
-  if(length(Titles) == 0) return(NULL)
-  
-  job_list <- lapply(seq_along(Titles), function(i) {
-    # Visit detail page for the posting
-    remDr$navigate(Links[i])
-    Sys.sleep(5)  # wait for detail page
-    
-    detail_page <- read_html(remDr$getPageSource()[[1]])
-    
-    # Extract "Job Posting Date"
-    posted_date_text <- detail_page %>%
-      html_nodes("th") %>%
-      { .[str_detect(html_text(.), "Job Posting Date")] } %>%
-      html_node(xpath = "following-sibling::td") %>%
-      html_text(trim = TRUE)
-    
-    # Convert to Date
-    Posted_Date <- if(length(posted_date_text) == 1) mdy(posted_date_text) else NA
-    
-    data.frame(
-      Title = Titles[i],
-      Link = Links[i],
-      Posted_Date = Posted_Date,
-      stringsAsFactors = FALSE
-    )
-  })
-  
-  do.call(rbind, job_list)
-}
-
-# Scrape first 3 pages (adjust if needed)
-all_jobs_list <- lapply(1:3, function(p) {
-  url <- paste0("https://jobs.sheridan.edu/postings/search?page=", p)
-  extract_jobs(url)
-})
-
-# Remove NULL pages
-all_jobs_list <- all_jobs_list[!sapply(all_jobs_list, is.null)]
-all_jobs <- do.call(rbind, all_jobs_list)
-
-# Add metadata and convert to relative date
-sheridan <- all_jobs %>%
-  mutate(
-    Location = "Sheridan College Campus",
-    Institution = "Sheridan College",
-    Posted_Date = map_chr(Posted_Date, convert_to_relative_date))%>%
-  dplyr::select(Title, Location, Posted_Date, Institution, Link)%>%
-  distinct()
+sheridan <- sheridan_raw %>%
+  mutate(Institution = "Sheridan College") %>%
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
 print(sheridan)
-
-# Close RSelenium
-remDr$close()
-rD$server$stop()
 
 ```
 
 ### This pulls data from Northwest College
 ```{r Northwest, message=FALSE, warning=FALSE, echo=TRUE}
-library(lubridate)
 library(dplyr)
-library(purrr)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-convert_to_relative_date <- function(date_str, reference_date = Sys.Date()) {
-  # Convert to Date
-  actual_date <- mdy(date_str)  # assumes MM/DD/YYYY
-  diff_days <- as.numeric(difftime(reference_date, actual_date, units = "days"))
-  
-  # Convert to relative format
-  if(is.na(diff_days)) return(NA_character_)
-  else if(diff_days == 0) return("Today")
-  else if(diff_days == 1) return("Yesterday")
-  else if(diff_days < 7) return(paste(diff_days, "days ago"))
-  else if(diff_days < 30) return(paste(round(diff_days/7), "weeks ago"))
-  else return("More than 30 days ago")
-}
+# Northwest is also on the same PeopleAdmin platform, white-labeled under
+# the simplehire.com domain -- confirmed by matching asset hashes/scripts
+# despite the different-looking hostname and previously different
+# selectors. Same Atom feed approach as Eastern/Sheridan.
+northwest_raw <- safe_scrape(
+  "Northwest College",
+  scrape_fn = function() fetch_peopleadmin_atom("https://northwestcollege.simplehire.com/postings/all_jobs", "Northwest College Campus", location_from_author = FALSE),
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
+)
 
-# Start RSelenium with Firefox browser
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
+northwest <- northwest_raw %>%
+  mutate(Institution = "Northwest College") %>%
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
-# Function to extract job postings from a page
-extract_jobs <- function(page_url) {
-  # Navigate to the page
-  remDr$navigate(page_url)
-  
-  # Wait for dynamic content to load
-  Sys.sleep(10)  # Adjust as needed based on page loading time
-  
-  # Get page source and parse with rvest
-  page_source <- remDr$getPageSource()[[1]]
-  soup <- read_html(page_source)
-  
-  # Extract job titles, posted dates, and locations
-  job_titles <- soup %>%
-    html_nodes(".row.row-table .job-title h3 a") %>%
-    html_text()
-  
-  posted_dates <- soup %>%
-    html_nodes(".row.row-table .tbody-cell.col-3:nth-child(1)") %>%
-    html_text()
-  
-  locations <- soup %>%
-    html_nodes(".row.row-table .tbody-cell.col-3:nth-child(3)") %>%
-    html_text()
-  
-  # Combine data into a dataframe
-  jobs_df <- data.frame(
-    Title = job_titles,
-    Posted_Date = posted_dates,
-    Location = locations,
-    stringsAsFactors = FALSE
-  )
-  
-  return(jobs_df)
-}
-
-# Initialize an empty data frame to store all jobs
-all_jobs <- data.frame()
-
-# Scrape the first 3 pages
-for (page in 1:3) {
-  page_url <- paste0("https://northwestcollege.simplehire.com/postings/search?page=", page)
-  page_jobs <- extract_jobs(page_url)
-  
-  if (nrow(page_jobs) > 0) {
-    all_jobs <- bind_rows(all_jobs, page_jobs)
-    cat("Scraped page", page, "\n")
-  } else {
-    cat("No data found on page", page, "\n")
-  }
-}
-
-northwest<- all_jobs%>%
-  mutate(Institution = "Northwest College")%>%
-  mutate(Link = "https://northwestcollege.simplehire.com/postings/search?page=")%>%
-  select(Title, Location, Posted_Date, Institution, Link)
-
-northwest <- northwest %>%
-  mutate(
-    Posted_Date = map_chr(Posted_Date, convert_to_relative_date)
-  )
-
-# Print the dataframe
 print(northwest)
-
-# Close RSelenium
-remDr$close()
-rD$server$stop()
 
 ```
 
@@ -1562,89 +931,25 @@ rD$server$stop()
 
 ### This pulls data from the University of Wyoming
 ```{r university of Wyoming}
-library(RSelenium)
 library(dplyr)
-library(purrr)
-library(lubridate)
+library(edjobs)
+source("direct_api_scrapers.R")
 
-# Function to convert dates to relative format
-convert_to_relative_date <- function(date_str, reference_date = Sys.Date()) {
-  if(is.na(date_str) || date_str == "") return(NA_character_)
-  
-  actual_date <- mdy(date_str)  # MM/DD/YYYY
-  diff_days <- as.numeric(difftime(reference_date, actual_date, units = "days"))
-  
-  if(is.na(diff_days)) return(NA_character_)
-  else if(diff_days == 0) return("Today")
-  else if(diff_days == 1) return("Yesterday")
-  else if(diff_days < 7) return(paste(diff_days, "days ago"))
-  else if(diff_days < 30) return(paste(round(diff_days/7), "weeks ago"))
-  else return("More than 30 days ago")
-}
-
-# Start RSelenium
-rD <- rsDriver(browser = "firefox", port = 4444L, check = FALSE, chromever = NULL)
-remDr <- rD$client
-
-# Navigate to the job site
-url <- "https://eeik.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/requisitions?"
-remDr$navigate(url)
-Sys.sleep(5)  # wait for initial load
-
-# Scroll to load all jobs
-scroll_pause_time <- 3
-last_height <- remDr$executeScript("return document.body.scrollHeight")[[1]]
-
-repeat {
-  remDr$executeScript("window.scrollTo(0, document.body.scrollHeight);")
-  Sys.sleep(scroll_pause_time)
-  new_height <- remDr$executeScript("return document.body.scrollHeight")[[1]]
-  if (new_height == last_height) break
-  last_height <- new_height
-}
-
-# Extract job titles
-titles_elems <- remDr$findElements(using = 'css selector', ".job-tile__title")
-job_titles <- sapply(titles_elems, function(x) x$getElementText()) %>% unlist()
-
-# Extract job locations
-locations_elems <- remDr$findElements(using = 'css selector', "span[data-bind='html: primaryLocation']")
-job_locations <- sapply(locations_elems, function(x) x$getElementText()) %>% unlist()
-
-# Extract posted dates
-dates_elems <- remDr$findElements(
-  using = 'css selector',
-  "div.job-list-item__job-info-label--posting-date + div div.job-list-item__job-info-value"
-)
-posted_dates <- sapply(dates_elems, function(x) x$getElementText()) %>% unlist()
-
-# Check alignment
-length(job_titles); length(job_locations); length(posted_dates)
-
-# Combine into a dataframe
-UW <- data.frame(
-  Title = job_titles,
-  Location = job_locations,
-  Posted_Date = posted_dates,
-  stringsAsFactors = FALSE
+# UW's Oracle Cloud HCM recruiting platform exposes a public JSON REST API
+# (see direct_api_scrapers.R::fetch_uw_postings()) that fully replaces the
+# old RSelenium scraper -- no infinite-scroll simulation, no
+# findElements()-based text scraping, no waiting on JS to render.
+UW_raw <- safe_scrape(
+  "University of Wyoming",
+  scrape_fn = fetch_uw_postings,
+  expected_cols = c("Title", "Location", "Posted_Date", "Link")
 )
 
-# Convert Posted_Date to relative format
-UW <- UW %>%
-  mutate(
-    Institution = "University of Wyoming",
-    Link = url,
-    Posted_Date = map_chr(Posted_Date, convert_to_relative_date)
-  ) %>%
-  select(Title, Location, Posted_Date, Institution, Link)
+UW <- UW_raw %>%
+  mutate(Institution = "University of Wyoming") %>%
+  select(Title, Location, Posted_Date, Institution, Link, any_of(c(POSTED_PAY_COLUMNS, "Close_Date")))
 
-# Print results
 print(UW)
-
-# Close RSelenium
-remDr$close()
-rD$server$stop()
-
 
 ```
 
@@ -1656,8 +961,22 @@ library(writexl)
 library(tidyverse)
 library(readxl)
 
-# Combine all datasets
-hedata <- rbind(lccc, casper, western, central, eastern, gillette, sheridan, northwest, UW)
+# Combine all datasets. Pay_* is the pay the posting states: the NEOGOV
+# colleges (LCCC, Casper, Central, Gillette), the PeopleAdmin ones (Western,
+# Eastern, Sheridan, Northwest) and UW carry it (NA where a posting states
+# none). It's kept in hedata.xlsx and the raw archive, but not in the
+# accumulated facultydata.csv below.
+hedata <- list(lccc, casper, western, central, eastern, gillette, sheridan, northwest, UW) %>%
+  lapply(function(df) {
+    # bind_rows() won't mix a Date Posted_Date with a character one.
+    df$Posted_Date <- as.character(df$Posted_Date)
+    # Close_Date: PeopleAdmin's own close date (or "Open Until Filled");
+    # NA for the other colleges.
+    df$Close_Date <- if ("Close_Date" %in% names(df)) as.character(df$Close_Date) else rep(NA_character_, nrow(df))
+    ensure_posted_pay_columns(df)
+  }) %>%
+  bind_rows() %>%
+  select(Title, Location, Posted_Date, Institution, Link, Close_Date, all_of(POSTED_PAY_COLUMNS))
 
 hedata$Posted_Date<- as.character(hedata$Posted_Date)
 
@@ -1669,161 +988,372 @@ file_name <- paste0("hedata_", Sys.Date(), ".xlsx")
 
 write_xlsx(hedata, path = file_name)
 
-write_xlsx(hedata, path = file.path("Archived_HE_data", file_name))
+write_xlsx(hedata, path = file.path("Archived_HE_Data", file_name))
+
+# Timestamps straight to the run log (this chunk hides its messages): the
+# 2026-11-13 run sat 16+ minutes in this chunk and hit the job time limit,
+# with nothing in the log to say which step.
+log_step <- function(what) cat(format(Sys.time(), "%H:%M:%S"), "[munge he data]", what, "\n", file = stderr())
+log_step("posting status: start")
+
+# Posting status (posting_status.R): every posting with a checkable page that
+# dropped off its board since the last run (K-12 and higher ed), plus this
+# run's WSBA checks, recorded in posting_status.csv: whether the platform says
+# it closed, and the closing date it states. A failure here never stops the run.
+tryCatch(refresh_posting_status("Archivek12_Data", "Archived_HE_Data", "posting_status.csv",
+                                extra_checks = wsba_checks,
+                                session_factory = function() chromote::ChromoteSession$new()),
+         error = function(e) message("Posting status not updated: ", conditionMessage(e)))
+log_step("posting status: done; coverage calendar: start")
+
+# Coverage calendar (posting-dates plan step 2): every source's outcome this
+# run (ok / empty / error / not_logged), so a posting that stops appearing is
+# read as ended only when its source was healthy. Every source has been
+# scraped by now; a failure here never stops the run. Employers seen only on
+# WSBA's statewide page (BOCES, academies) take the WSBA feed's row.
+library(edjobs)
+tryCatch(refresh_coverage_calendar(
+  "coverage_calendar.csv", "scrape_log.csv",
+  k12_entities = read.csv("k12_district_registry.csv", stringsAsFactors = FALSE)$District,
+  data_k12 = unique(combined$District), data_he = unique(hedata$Institution),
+  feeds = c("WSBA statewide feed" = "^WSBA statewide vacancies$",
+            "WSBA + own-page districts (group)" = "^Miscellaneous K-12 districts")),
+  error = function(e) message("Coverage calendar not updated: ", conditionMessage(e)))
+log_step("coverage calendar: done; pay estimates: start")
+# Non-postings (a scraped "Job Title" header, "No Jobs" notices) stay in the
+# raw archive above but are dropped from everything shown or counted.
+# Implausible posted pay is blanked the same way (drop_implausible_pay()).
+hedata <- hedata %>% filter(!is_placeholder_posting(Title)) %>% drop_implausible_pay()
+# Est_* is the institution's IPEDS average for the posting's staff category
+# (ipeds_staff_salaries.csv from the previous run), the labeled fallback for
+# staff postings that state no pay. Added after the raw archive write, so
+# the archive stays as scraped.
+library(edjobs)
+staff_path <- file.path("Wy_Ed_Jobs", "ipeds_staff_salaries.csv")
+if (file.exists(staff_path)) {
+  he_unitids <- read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"))[, c("Name", "IPEDS_UNITID")]
+  hedata <- attach_ipeds_staff_estimates(hedata, read.csv(staff_path, stringsAsFactors = FALSE,
+                                                          colClasses = c(Year = "character")),
+                                         he_unitids$IPEDS_UNITID[match(canonicalize_he_institution(hedata$Institution), he_unitids$Name)])
+}
+# University of Wyoming staff postings use UW's own salary book instead
+# (uw_salary_book.R): the median salary of UW staff with the same title.
+source("uw_salary_book.R")
+uw_book_path <- file.path("Wy_Ed_Jobs", "uw_salary_book.csv")
+if (file.exists(uw_book_path) && "Est_Pay" %in% names(hedata)) {
+  hedata <- attach_uw_salary_book_estimates(hedata, read.csv(uw_book_path, stringsAsFactors = FALSE))
+}
 write_xlsx(hedata, path = file.path("Wy_Ed_Jobs", "hedata.xlsx"))
+log_step("pay estimates: done")
 
-csv_files <- list.files("Archived_HE_data", pattern = "\\.xlsx$", full.names = TRUE)
+# Fix historical institution-name typos before anything downstream keys off
+# Institution, so a college's history doesn't silently split across two
+# spellings (see canonicalize_he_institution() in k12_he_classification.R).
+# Applied to this week's raw hedata AFTER the xlsx archive writes above, so
+# the archived raw snapshot keeps whatever spelling the scraper actually
+# produced that week (the historical record of what really happened),
+# while everything derived from here on uses the canonical name.
+hedata <- hedata %>%
+  mutate(Institution = canonicalize_he_institution(Institution))
 
-combined_HE_data <- csv_files %>%
-  lapply(read_xlsx) %>%   
-  bind_rows()
+# Job_Type/Category classification lives in edjobs (attached by k12_he_classification.R, sourced
+# in setup). Adjunct/pooled titles get their own Job_Type, separate from
+# "Instructor/Teacher/Faculty", so a standing adjunct-pool posting isn't
+# counted the same as full-time faculty hiring.
+this_week_he_cat <- hedata %>%
+  mutate(Job_Type = classify_he_job_type(Title))
 
-combined_HE_data$Archive_Date <- as.Date(combined_HE_data$Archive_Date)
+# Pay_*, Est_* and Close_Date are left out of facultydata.csv: its accumulated history predates
+# pay capture, and append_weekly_rows() refuses a changed column set.
+this_week_facultydata <- this_week_he_cat %>%
+  filter(Job_Type %in% c("Instructor/Teacher/Faculty", "Adjunct/Part-Time Faculty")) %>%
+  mutate(Category = classify_he_faculty_category(Title)) %>%
+  select(-all_of(POSTED_PAY_COLUMNS), -any_of(c("Est_Pay", "Est_Pay_Unit", "Est_Occupation", "Est_Area", "Est_Year", "Est_Source", "Close_Date")))
 
-combined_cat <- combined_HE_data %>%
-  mutate(Job_Type = case_when(
-    # Instructor/Teacher/Faculty
-    grepl("Instructor|Instructional|Teacher|Faculty|Adjunct|Professor|Lecturer|Post Doc|Subject Matter Expert|Librarian|Educator", Title, ignore.case = TRUE) ~ "Instructor/Teacher/Faculty",
-    
-    # Student Positions
-    grepl("Student Worker|Student Position|Work Study|Students Only|Student Library Aid|Student Employment", Title, ignore.case = TRUE) ~ "Student Positions",
-    
-    # Healthcare
-    grepl("Nurse|Wellbeing|Health|Medicine|Medical Support Assistant", Title, ignore.case = TRUE) ~ "Healthcare",
-    
-    # Temporary Position
-    grepl("Pooled Position|Temporary|Monthly Pooled", Title, ignore.case = TRUE) ~ "Temporary Position",
-    
-    # Staff (consolidated all office assistant/associate roles)
-    grepl("Hourly|Administrative Assistant|Administrative Associate|Secretary|Library Assistant|Office Assistant|Office Associate", 
-          Title, ignore.case = TRUE) ~ "Staff",
-    
-    # Advising
-    grepl("Advisor|Advising|Enrollment Counselor|Financial Aid Counselor|Night ESL Class Aide|Part-time Academic Support Services Pool- Academic Support Tutor|Peer Tutor|Tribal Education Assistant", Title, ignore.case = TRUE) ~ "Advising and Student Services",
-    
-    # Professional
-    grepl("Admissions|Coordinator|Registrar|Executive Assistant|Professional|Statistician|Proctor|Exec Assistant|Exec Assistant to President|Grant Writer|Graphic Designer|Negotiator|Botanist|College Relations|Controller|Database|Officer|Auditor|Web Site|Special Assistant|Retention Mentor|Buyer Assistant|Buyer, Textbooks|GEAR UP Event & College Coordination|Ombudsperson - Office of the President|Data Analyst|Employee Relations Specialist|Finance Technician|Grant Support Specialist|Marketing & Comm Spec.|Program Specialist", 
-          Title, ignore.case = TRUE) ~ "Professional",
-    
-    # Administration
-    grepl("\\bDean\\b|Vice President|Provost|Chief|Business Manager|Enrollment Specialist|Finance Technician|HR Records Specialist", Title, ignore.case = TRUE) ~ "Administration",
-    
-    # Coaching or Athletics
-    grepl("coach|Athletic|Athletics", Title, ignore.case = TRUE) ~ "Coaching or Athletics",
-    
-    # Accounting/Finance
-    grepl("Accountant|Receivable|Accounts", Title, ignore.case = TRUE) ~ "Accounting/Finance",
-    
-    # Research & Science (only actual research/scientific roles)
-    grepl("Research Associate|Laboratory Technician|Research Scientist", Title, ignore.case = TRUE) ~ "Research & Science",
-    
-    # Technical
-    grepl("Control Specialist|Engineer|IT Support Technician|Information Security Analyst|Programmer Analyst|Network Specialist|Specialist|Data Operation Engineer|Design Engineer|GIS Specialist", Title, ignore.case = TRUE) ~ "Technical",
-    
-    # Maintenance & Service
-    grepl("Maintenance|Technician|Facilities|Grounds|HVAC|Plumber|Carpenter|Cook|Baker|Logistics Handler|Meat Plant Technician", Title, ignore.case = TRUE) ~ "Maintenance & Service",
-    
-    # Support Services
-    grepl("Safety|Security|Custodian|Laborer|Driver|Cleaner|Facilities|Grounds|Library Information Specialist|Museum Exhibit Specialist|Specialist, Student Services|Campus Services I|Children's Center Part-Time Aide|KEY Camp Counselor|Lifeguard|Resident Assistant|Outdoor Recreation Lab Room|Part-Time Bookstore Sales Clerk|Physics Work-Study Assistant|Student Service Assistant|Subject Matter Expert, Life Enrichment Class", 
-          Title, ignore.case = TRUE) ~ "Support Services",
-    
-    # Culinary
-    grepl("Chef|Cook|Dining", Title, ignore.case = TRUE) ~ "Culinary",
-    
-    # Management
-    grepl("Coordinator|Director|\\bDirector\\b|Manager|Supervisor|Assoc Director|Assoc Dir|Assist Dir|Asst Dir", 
-          Title, ignore.case = TRUE) ~ "Management",
-    
-    TRUE ~ "Other"
-  ))
+#--------------------------------------------------------------------------
+# Append this week's newly classified rows onto the existing accumulated
+# history, instead of reprocessing every archived raw xlsx snapshot from
+# scratch every run. See history_accumulator.R's header (also sourced in
+# the K-12 chunk above -- sourcing again here is a cheap no-op) and
+# scripts/rebuild_he_history_from_archive.R for the disaster-recovery /
+# verification path.
+#--------------------------------------------------------------------------
+source("history_accumulator.R")
 
-facultydata <- combined_cat %>%
-  filter(Job_Type == "Instructor/Teacher/Faculty") %>%
-  mutate(Category = case_when(
-    grepl("Law|Legal|College of Law", Title, ignore.case = TRUE) ~ "Legal",  # New category for law-related faculty
-    
-    grepl("\\bAgricultural Communications\\b|Agricultural", Title, ignore.case = TRUE) ~ "CTE",  # Keeping this up top
-    
-    grepl("Math", Title, ignore.case = TRUE) ~ "Math",
-   
-    grepl("Philosophy|English|Communication( Studies)?|Literature|Mass Communication", Title, ignore.case = TRUE) ~ "Humanities",  # More specific for Communication
-    
-    grepl("\\bComputer Science\\b|Computer|Zoology|Information Technology|Computing", Title, ignore.case = TRUE) ~ "CTE",
-    
-    grepl("Chemistry|Biology|Physics|Astronomy|Lab|Geology|Science|Artificial Intelligence", Title, ignore.case = TRUE) ~ "Science",
-    
-    grepl("History", Title, ignore.case = TRUE) ~ "History",
-    
-    grepl("Business|Accounting|Finance", Title, ignore.case = TRUE) ~ "CTE",
-    
-    grepl("Physical|Outdoor Activity|Athletic Trainer|Kinesiology|Strength", Title, ignore.case = TRUE) ~ "Physical Education",
-    
-    grepl("Health Technology|Nursing|Dental Hygiene|EMS|Medical|Medicine|Nutritional|Nutrition|Pharmacy", Title, ignore.case = TRUE) ~ "CTE",  # Removed generic "Health" to avoid misclassification
-    
-    grepl("Culinary|Hospitality|Tourism", Title, ignore.case = TRUE) ~ "Culinary/Hospitality",
-    
-    grepl("Technology|Equine|Industrial|Electrical|Instrumentation|CDL|Massage|Criminal Justice|Maintenance|Powerline|Substation|Construction|Diesel|Heavy Equipment|Supply Chain|Machine Tool|Welding|Mechanical|Engineering|Engineer|Energy|Printmaking", 
-          Title, ignore.case = TRUE) ~ "CTE",
-    
-    grepl("Art|Graphic Design|Theater|Theatre|Acting|Music|Ceramics", Title, ignore.case = TRUE) ~ "The Arts",
-    
-    grepl("Criminal Justice", Title, ignore.case = TRUE) ~ "Criminal Justice",
-    
-    grepl("Human Services|Family", Title, ignore.case = TRUE) ~ "Human Services",
-    
-    grepl("Psychology|Anthropology|Sociology|Politics|Behavior|Social Work", Title, ignore.case = TRUE) ~ "Social Science",
-    
-    grepl("Spanish", Title, ignore.case = TRUE) ~ "Language",
-    
-    grepl("Education|Curriculum|Educational|Early Childhood", Title, ignore.case = TRUE) ~ "Education",
-    
-    grepl("library|librarian", Title, ignore.case = TRUE) ~ "Library",
-    
-    TRUE ~ "Uncategorized"
-  ))
-write.csv(facultydata, "facultydata.csv")
-hesum <- facultydata %>%
-  group_by(Category, Archive_Date) %>%
-  summarize(
-    sum = n()
-  ) %>%
-  ungroup()%>%
-  mutate(Institution = "Total")%>%
-  select(Category, Archive_Date, Institution, sum)
+facultydata <- append_weekly_rows(file.path("Wy_Ed_Jobs", "facultydata.csv"), as.data.frame(this_week_facultydata))
+# Also shipped to the repo root (gitignored/local-only) mirroring the
+# Wy_Ed_Jobs/ copy, same as before.
+write.csv(facultydata, "facultydata.csv", row.names = FALSE)
+write.csv(facultydata, file.path("Wy_Ed_Jobs", "facultydata.csv"), row.names = FALSE)
 
-hesuminst<- facultydata%>%
-  group_by(Category, Archive_Date, Institution)%>%
-  summarise(
-    sum = n()
-  )%>%
-  ungroup()
+# Per-institution weekly posting totals (ALL categories/job types, not
+# just full-time faculty) -- powers the sparkline trend shown next to
+# each institution's raw count on the landing page's "Top Higher Ed
+# Hiring Institutions" table. Built from this week's hedata (already
+# canonicalized above) before the Job_Type/faculty-only filter.
+this_week_he_totals <- hedata %>%
+  count(Institution, Archive_Date, name = "n")
+he_institution_weekly_totals <- append_weekly_rows(
+  file.path("Wy_Ed_Jobs", "he_institution_weekly_totals.csv"), this_week_he_totals)
+write.csv(he_institution_weekly_totals, file.path("Wy_Ed_Jobs", "he_institution_weekly_totals.csv"), row.names = FALSE)
 
-Allsum_he<-rbind(hesum, hesuminst)
-write.csv(Allsum_he, file = file.path("Wy_Ed_Jobs", "allsum_he.csv"))
+# facultydata includes both full-time-ish and Adjunct/Part-Time faculty
+# (Job_Type column distinguishes them) so the "Current Faculty Trends"
+# chart can show a full-time/part-time stacked breakdown; the Longitudinal
+# Trends and New This Week views filter back down to Job_Type ==
+# "Instructor/Teacher/Faculty" in app.R to keep their existing, unchanged
+# meaning ("faculty hiring", not incl. the standing adjunct pool).
+#
+# Both this week's Total and per-institution rows are computed from
+# this_week_facultydata alone (one Archive_Date) -- same reasoning as the
+# K-12 allsum block above.
+this_week_hesum <- this_week_facultydata %>%
+  group_by(Category, Archive_Date, Job_Type) %>%
+  summarize(sum = n(), .groups = "drop") %>%
+  mutate(Institution = "Total") %>%
+  select(Category, Archive_Date, Institution, Job_Type, sum)
 
-henow<- facultydata%>%
-  filter(Archive_Date == max(Archive_Date))
+this_week_hesuminst <- this_week_facultydata %>%
+  group_by(Category, Archive_Date, Institution, Job_Type) %>%
+  summarise(sum = n(), .groups = "drop")
 
-henowsum <- henow %>%
-  group_by(Category) %>%
-  summarize(
-    Sum = n()
-  ) %>%
-  ungroup()%>%
-  mutate(Institution = "Total")
+check_total_matches_parts(this_week_hesum, this_week_hesuminst,
+                           group_cols = c("Category", "Archive_Date", "Job_Type"))
 
-henowinstsum<- henow %>%
-  group_by(Category, Institution)%>%
-  summarize(
-    Sum = n()
-  ) %>%
-  ungroup()%>%
-  select(Category, Sum, Institution)
+this_week_allsum_he <- bind_rows(this_week_hesum, this_week_hesuminst)
+Allsum_he <- append_weekly_rows(file.path("Wy_Ed_Jobs", "allsum_he.csv"), this_week_allsum_he)
+write.csv(Allsum_he, file = file.path("Wy_Ed_Jobs", "allsum_he.csv"), row.names = FALSE)
 
-Allnow_he<- rbind(henowsum, henowinstsum)
+# Database for all data NOW by category -- always just this week's
+# snapshot, built straight from this_week_facultydata (no history needed).
+henowsum <- this_week_hesum %>%
+  ungroup() %>%
+  rename(Sum = sum) %>%
+  select(Category, Job_Type, Sum, Institution)
 
-write.csv(Allnow_he, file = file.path("Wy_Ed_Jobs", "allnow_he.csv"))
+henowinstsum <- this_week_facultydata %>%
+  group_by(Category, Institution, Job_Type) %>%
+  summarize(Sum = n(), .groups = "drop") %>%
+  select(Category, Sum, Institution, Job_Type)
+
+Allnow_he <- rbind(henowsum, henowinstsum)
+
+write.csv(Allnow_he, file = file.path("Wy_Ed_Jobs", "allnow_he.csv"), row.names = FALSE)
 ```
 
+### Higher Ed faculty salary data, from IPEDS via the Urban Institute's Education Data Portal API
+```{r ipeds he salary data, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(edjobs)
+source("ipeds_salary_scraper.R")
 
+he_salary <- safe_scrape(
+  "IPEDS instructional staff salaries (WY)",
+  scrape_fn = fetch_ipeds_he_salaries,
+  expected_cols = c("Name", "Faculty_Avg_Salary", "Faculty_Avg_Salary_Professor",
+                     "Faculty_Count", "Salary_Year", "Salary_Note")
+)
 
+# IPEDS non-instructional staff pay by category (ipeds_staff_salaries.R), the
+# labeled fallback for HE staff postings that state no pay. The HE munge
+# step reads it on the next run; a failed fetch keeps the existing file.
+library(edjobs)
+local({
+  unitids <- na.omit(read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"))$IPEDS_UNITID)
+  staff_path <- file.path("Wy_Ed_Jobs", "ipeds_staff_salaries.csv")
+  tryCatch(write_reference_file(fetch_ipeds_staff_salaries(56, unitids), staff_path),
+           error = function(e) log_reference_result(staff_path, "error", conditionMessage(e)))
+})
+
+# University of Wyoming salary book (uw_salary_book.R), read by the HE munge
+# step on the next run. Downloaded only when UW links a new book; a failed
+# check keeps the committed file.
+source("uw_salary_book.R")
+uw_book_path <- file.path("Wy_Ed_Jobs", "uw_salary_book.csv")
+tryCatch(refresh_uw_salary_book(uw_book_path),
+         error = function(e) log_reference_result(uw_book_path, "error", conditionMessage(e)))
+
+# Static geo/link fields (Longitude, Latitude, Link, County) stay hand-
+# maintained -- only the salary figures get refreshed from IPEDS each run.
+# County (added 2026-08-06) is the join key the census county context
+# chunk below needs; kept here in this early select() so it survives
+# untouched through this chunk the same way Longitude/Latitude/Link do.
+# IPEDS_UNITID is carried through every select() in this chunk: it isn't
+# re-fetched each run, and dropping it here once broke the weekly run (the HE
+# spells generator joins on it).
+# Every other column is kept too (as MT): this chunk replaces only its own
+# salary columns. Keeping just the static fields here dropped the enrollment
+# trend and Pell columns whenever their own fetches failed later in the run
+# (rehearsal 2026-11-13: both got HTTP 524; the schema check stopped the run).
+HE_SALARY_COLUMNS <- c("Faculty_Avg_Salary", "Faculty_Avg_Salary_Professor", "Faculty_Count",
+                       "Salary_Year", "Salary_Note", "Salary_Source")
+salarymap <- read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"), fileEncoding = "UTF-8")
+
+if (nrow(he_salary) > 0) {
+  # No "last updated" timestamp -- same reasoning as the WSBA chunk above.
+  # IPEDS reports this annually (Salary_Year is the real freshness signal),
+  # so stamping today's date every weekly run would misrepresent how often
+  # the actual dollar figures change.
+  salarymap <- salarymap %>%
+    select(-any_of(HE_SALARY_COLUMNS)) %>%
+    left_join(he_salary, by = "Name") %>%
+    mutate(Salary_Source = "IPEDS via Urban Institute Education Data Portal (educationdata.urban.org)")
+
+  # Multi-year salary trend (current + 2 prior years) -- IPEDS is
+  # queryable by year indefinitely, unlike WSBA (no public historical
+  # archive; checked directly 2026-08-05). Pivoted to generic "N years
+  # ago" column names, not literal year numbers, so the schema stays
+  # stable as the calendar year rolls over -- app.R derives the real
+  # year labels from Salary_Year - 1, Salary_Year - 2.
+  salary_trend <- safe_scrape(
+    "IPEDS instructional staff salary 3-year trend (WY)",
+    scrape_fn = function() fetch_ipeds_he_salary_trend(n_years = 3),
+    expected_cols = c("Name", "Year", "Faculty_Avg_Salary")
+  )
+  if (nrow(salary_trend) > 0) {
+    latest_year <- max(salary_trend$Year)
+    salary_trend_wide <- salary_trend %>%
+      mutate(YearsAgo = latest_year - Year) %>%
+      filter(YearsAgo > 0) %>%
+      select(Name, YearsAgo, Faculty_Avg_Salary) %>%
+      tidyr::pivot_wider(names_from = YearsAgo, values_from = Faculty_Avg_Salary,
+                          names_glue = "Faculty_Avg_Salary_Y{YearsAgo}Ago")
+    salarymap <- salarymap %>%
+      select(-starts_with("Faculty_Avg_Salary_Y")) %>%
+      left_join(salary_trend_wide, by = "Name")
+  }
+
+  salarymap <- salarymap %>%
+    select(Name, any_of("IPEDS_UNITID"), Longitude, Latitude, Link, County, Faculty_Avg_Salary, Faculty_Avg_Salary_Professor,
+           Faculty_Count, Salary_Year, Salary_Note, Salary_Source,
+           starts_with("Faculty_Avg_Salary_Y"), everything())
+
+  write.csv(salarymap, file.path("Wy_Ed_Jobs", "salarymap.csv"), row.names = FALSE)
+} else {
+  message("IPEDS salary fetch failed -- leaving salarymap.csv untouched this run.")
+}
+```
+
+### Higher ed institution fall enrollment (FTE), from IPEDS via the Urban Institute's Education Data Portal API
+```{r ipeds he enrollment data, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(edjobs)
+source("ipeds_salary_scraper.R")  # ipeds_enrollment_scraper.R reuses fetch_ipeds_paginated()/IPEDS_UNITID_MAP from here
+source("ipeds_enrollment_scraper.R")
+
+he_enrollment <- safe_scrape(
+  "IPEDS fall enrollment FTE (WY)",
+  scrape_fn = fetch_ipeds_he_enrollment,
+  expected_cols = c("Name", "Enrollment", "Enrollment_Year")
+)
+
+# 5-year enrollment trend -- HE's analogue of the Census county context
+# chunk's Population_Change_Pct, just at the institution level. A second,
+# independent safe_scrape() call (like teacher_salary/superintendent_
+# salary in the WSBA chunk above) rather than folded into
+# fetch_ipeds_he_enrollment() itself, so a trend-fetch failure (a missing
+# 5-years-back vintage) doesn't also block this week's current Enrollment
+# figure from updating.
+he_enrollment_trend <- safe_scrape(
+  "IPEDS fall enrollment 5-year trend (WY)",
+  scrape_fn = fetch_ipeds_he_enrollment_trend,
+  expected_cols = c("Name", "Enrollment_Change_Pct")
+)
+
+if (nrow(he_enrollment) > 0) {
+  # No "last updated" timestamp -- same reasoning as every other salary/
+  # staffing chunk. Enrollment_Year is the real freshness signal, matching
+  # salarymap2.csv's CCD_Year for the equivalent K-12 figure.
+  #
+  # Students_Per_Teacher is NOT stored here -- it's computed on the fly in
+  # app.R's map_he (Enrollment / Faculty_Count), the same way map_k12
+  # already computes it from Enrollment / Teachers_Total_FTE rather than
+  # storing a derived ratio in salarymap2.csv.
+  salarymap <- read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"), fileEncoding = "UTF-8") %>%
+    select(-any_of(c("Enrollment", "Enrollment_Year"))) %>%
+    left_join(he_enrollment, by = "Name")
+  write.csv(salarymap, file.path("Wy_Ed_Jobs", "salarymap.csv"), row.names = FALSE)
+} else {
+  message("IPEDS fall enrollment fetch failed -- leaving salarymap.csv untouched this run.")
+}
+
+# Written as its own read-modify-write against the just-updated file above
+# (not folded into the same conditional block) so a trend-fetch failure
+# alone can't blank out last week's good Enrollment_Change_Pct values --
+# same "leave it alone, don't blank it out" behavior every other salary/
+# staffing chunk in this pipeline already has on a failed fetch.
+if (nrow(he_enrollment_trend) > 0) {
+  salarymap <- read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"), fileEncoding = "UTF-8") %>%
+    select(-any_of("Enrollment_Change_Pct")) %>%
+    left_join(he_enrollment_trend, by = "Name")
+  write.csv(salarymap, file.path("Wy_Ed_Jobs", "salarymap.csv"), row.names = FALSE)
+} else {
+  message("IPEDS fall enrollment trend fetch failed -- leaving salarymap.csv's Enrollment_Change_Pct untouched this run.")
+}
+```
+
+### Higher ed institution Pell Grant recipient share, from the US Dept. of Education's Federal Student Aid office via the Urban Institute's Education Data Portal API
+```{r fsa he pell share data, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(edjobs)
+source("ipeds_salary_scraper.R")     # fsa_pell_scraper.R reuses fetch_ipeds_directory_paginated()/IPEDS_UNITID_MAP from here
+source("ipeds_enrollment_scraper.R") # ...and fetch_ipeds_wy_enrollment_for_year()/parse_ipeds_he_enrollment() from here
+source("fsa_pell_scraper.R")
+
+he_pell_share <- safe_scrape(
+  "FSA Pell Grant recipient share (WY)",
+  scrape_fn = fetch_ipeds_he_pell_share,
+  expected_cols = c("Name", "Pell_Recipient_Share", "Pell_Year")
+)
+
+if (nrow(he_pell_share) > 0) {
+  # No "last updated" timestamp -- same reasoning as every other salary/
+  # staffing chunk. Pell_Year is the real freshness signal (and, since FSA
+  # lags IPEDS by a couple of years, will typically read a year or more
+  # older than Enrollment_Year/Salary_Year above -- expected, not a bug).
+  salarymap <- read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"), fileEncoding = "UTF-8") %>%
+    select(-any_of(c("Pell_Recipient_Share", "Pell_Year"))) %>%
+    left_join(he_pell_share, by = "Name")
+  write.csv(salarymap, file.path("Wy_Ed_Jobs", "salarymap.csv"), row.names = FALSE)
+} else {
+  message("FSA Pell Grant recipient share fetch failed -- leaving salarymap.csv untouched this run.")
+}
+```
+
+### Higher ed institution county-level context (income, rent, mining/energy employment share, population trend), from the Census Bureau's ACS 5-Year Estimates
+```{r census county context data he, message=FALSE, warning=FALSE, echo=TRUE}
+library(dplyr)
+library(edjobs)
+source("census_acs_scraper.R")
+
+# Reuses the exact same fetch_census_county_context() pipeline as the K-12
+# chunk earlier in this file -- salarymap.csv's County column (hand-
+# maintained the same way Latitude/Longitude already are, added
+# 2026-08-06 -- each of Wyoming's 9 public HE institutions is a single
+# campus with one real home county) was the only thing missing to make
+# this join possible; no new scraper needed. Fetched independently rather
+# than reusing the K-12 chunk's `county_context` variable, matching every
+# other chunk in this file being self-contained and re-runnable on its
+# own -- this data changes at most once a year, so a second cheap fetch
+# costs nothing.
+county_context_he <- safe_scrape(
+  "Census ACS county context for HE institutions (WY)",
+  scrape_fn = fetch_census_county_context,
+  expected_cols = c("County", "Median_Household_Income", "Median_Gross_Rent",
+                     "Population", "ACS_Year", "Mining_Employment_Share", "Population_Change_Pct")
+)
+
+if (nrow(county_context_he) > 0) {
+  # select(-any_of(...)) drops last run's copy first so a re-run doesn't
+  # produce .x/.y duplicates, only reached on a successful fetch -- same
+  # "never blank out last week's good values on a failed fetch" pattern
+  # the K-12 census chunk uses.
+  salarymap <- read.csv(file.path("Wy_Ed_Jobs", "salarymap.csv"), fileEncoding = "UTF-8") %>%
+    select(-any_of(c("Median_Household_Income", "Median_Gross_Rent", "Population",
+                      "ACS_Year", "Mining_Employment_Share", "Population_Change_Pct"))) %>%
+    left_join(county_context_he, by = "County")
+  write.csv(salarymap, file.path("Wy_Ed_Jobs", "salarymap.csv"), row.names = FALSE)
+} else {
+  message("Census ACS county context fetch failed -- leaving salarymap.csv untouched this run.")
+}
+```

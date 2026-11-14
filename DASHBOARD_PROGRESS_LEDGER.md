@@ -1,0 +1,751 @@
+# Wyoming Education Jobs Dashboard — Project Progress Ledger
+
+**Maintainers & Authors:** Mike Bostick & Mark Perkins  
+**Target Environment:** Posit Connect Cloud (Shiny for R)  
+**CI/CD Orchestration:** GitHub Actions (`.github/workflows/weekly-scrape.yml`)  
+**Production Cadence:** Automated weekly scrape & build every Friday 05:00 UTC (and manual `workflow_dispatch`)  
+**Repository Branch:** `main`
+
+---
+
+## 1. Executive Summary & Purpose
+
+This ledger serves as the authoritative, version-controlled record of feature development, pipeline hardening, data schema evolution, and cross-state feature synchronization between the **Wyoming Education Jobs Dashboard** and its sister project, the **Montana Education Jobs Dashboard**.
+
+Unlike ephemeral conversation logs or local scratch handoffs, this document lives within the repository root so any human contributor, collaborator, or autonomous coding agent can instantly understand the exact state of the system, what has been implemented, active guardrails, and upcoming priorities.
+
+---
+
+## 2. Feature & Architecture Parity Matrix (WY vs. MT)
+
+| Capability / Module | Wyoming (`Wy_Ed_Jobs`) | Montana (`Mt_Ed_Jobs`) | Parity Status | Implementation Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **K-12 Active Jobs Table** | Implemented | Implemented | **Full Parity** | Filterable by district, position, subject, broad category; exportable. |
+| **K-12 District Summary** | Implemented | Implemented | **Full Parity** | District profiles, student-teacher ratios, salary benchmarks. |
+| **K-12 Longitudinal Trends** | Implemented | Implemented | **Full Parity** | Multi-year vacancy volume time series with rolling averages. |
+| **K-12 Current Trends** | Implemented | Implemented | **Full Parity** | In-season bar/donut distributions by category & subject. |
+| **K-12 New This Week** | Implemented | Implemented | **Full Parity** | Delta detection vs. prior week's scrape snapshot. |
+| **K-12 Vacancy Spells & Time-to-Fill** | Implemented | Implemented | **Full Parity** | Interactive Shiny tab (`k12_spells`) with KPIs, histograms, and spell tables. |
+| **Higher Ed Vacancy Spells & Time-to-Fill** | Implemented | Implemented | **Full Parity** | Interactive Shiny tab (`he_spells`) with KPIs, duration histograms, discipline breakdown, and spell table. |
+| **Higher Ed Jobs Table** | Implemented | Implemented | **Full Parity** | Faculty, adjunct, and institutional staff postings. |
+| **Higher Ed Summary & Trends** | Implemented | Implemented | **Full Parity** | IPEDS instructional salary benchmarks & enrollment. |
+| **Geographic Leaflet Map** | Implemented | Implemented | **Full Parity** | Interactive position/subject keyword search ("special ed", "mathematics"), suggestion chips, dynamic radius scaling, layer controls (Positron, OSM, Esri Topo), and cluster pins. |
+| **Data Sources & Codebook Tab** | Implemented | Implemented | **Full Parity** | Direct CSV download buttons and interactive schemas. |
+| **Federal NCES LEA IDs** | Embedded (48/48) | Embedded (200/200) | **Full Parity** | 7-digit `NCES_LEAID` in registry, `salarymap2.csv`, and `job_duration_spells.csv`. |
+| **Federal IPEDS UNITIDs** | Embedded (8/8) | Embedded (23/23) | **Full Parity** | 6-digit `IPEDS_UNITID` in higher ed institutional registry and `salarymap.csv`. |
+| **Pipeline Dry-Run Test Harness** | Implemented | Implemented | **Full Parity** | Evaluates scrape combination chunks against mock data frames in CI. |
+| **Pipeline AST Defensive Linting**| Implemented | Implemented | **Full Parity** | Blocks syntax typos and enforces date coercions. |
+| **Connect Cloud Manifest Engine** | Implemented | Implemented | **Full Parity** | Enforces literal `null` metadata and users blocks for Connect Cloud. |
+
+---
+
+## 3. Implementation Chronology & Milestones
+
+### Milestone 1: Core Architecture & Vacancy Spells Model (Wyoming Origin)
+* **K-12 Vacancy Spells & Duration Panel:**
+  * Pioneered the empirical duration spell panel (`job_duration_spells.csv`) tracking time-to-fill, right-censored vacancies, and subject-area shortages across Wyoming school districts.
+  * Designed the interactive `k12_spells` dashboard module featuring:
+    - 4 reactive summary KPIs (Median Days Open, Long-Duration Vacancies, Active vs. Closed).
+    - Density/histogram distributions and role-level duration box plots.
+    - Exportable tabular panel for labor economists and empirical education policy analysts.
+* **Federal Universal Identifiers Integration:**
+  * Embedded official 7-digit `NCES_LEAID` Local Education Agency identifiers from NCES CCD into `k12_district_registry.csv`, `salarymap2.csv`, and `job_duration_spells.csv`.
+  * Embedded 6-digit `IPEDS_UNITID` for all Wyoming community colleges and the University of Wyoming in `salarymap.csv`.
+* **State Staffing Matrix Integration:**
+  * Integrated Wyoming Department of Education (WDE602) staffing salary reports, providing role-specific district average total compensation benchmarks (`Role_Avg_Salary`) alongside WSBA minimum base teacher salaries.
+
+### Milestone 2: Cross-State Scraper Defensive Engineering (October 2026)
+* **`safe_scrape()` Enhancements:**
+  * Hardened `safe_scrape()` in `scrape_helpers.R` to enforce character coercion on `date_posted` and `Posted_Date` fields upon return. This guarantees compatibility with `empty_df()` and blocks `bind_rows()` type collisions across heterogeneous scrapers.
+* **Pipeline Dry-Run Test Harness:**
+  * Implemented `tests/testthat/test-pipeline-orchestration-dryrun.R` executing mock chunk evaluations of data combination logic in ~0.3s.
+* **Attribution Harmonization:**
+  * Standardized project authorship across dashboard headers, data dictionaries, and codebooks to:  
+    *"Developed by Mike Bostick and Mark Perkins"*.
+
+### Milestone 3: Higher Education Vacancy Duration Spells & Script Parity
+* **Collegiate Vacancy Spells & Time-to-Fill (`he_job_duration_spells.csv` & `he_spells`):**
+  * Derived longitudinal collegiate duration spell panels from `facultydata.csv` tracking time-to-fill, right-censored vacancies, and academic discipline indicators across all Wyoming colleges and UW (711 spells).
+  * Implemented interactive `he_spells` module in `Wy_Ed_Jobs/app.R`:
+    - 4 reactive summary KPIs: Median Vacancy Duration (Days), Currently Open Searches, Persistent Searches (≥90d), Longest Duration Discipline.
+    - 4 reactive user filters: Vacancy Status, Appointment Type (Regular vs Adjunct), Academic Focus (STEM, Health Sciences, CTE), Institution Picker.
+    - 2 Plotly interactive visualizations: Median Days Open by Discipline horizontal bar chart and binned duration distribution histogram.
+    - Searchable DT data table with CSV and Excel export buttons.
+    - Direct CSV download button in the *Data Sources & Open Research Downloads* tab (`he_job_duration_spells.csv`).
+  * Created standalone automated generator scripts `scripts/generate_he_job_duration_spells.R` and `scripts/generate_job_duration_spells.R`.
+  * Added `he_job_duration_spells.csv` to `REQUIRED_SCHEMAS` in `schema_check.R`, verified with `test-schema-check.R`.
+  * Documented all schema variables in `DATA_DICTIONARY.md`, `data_dictionary.csv`, and `DATA_COOKBOOK.md`.
+  * Integrated automated spell generation step into `.github/workflows/weekly-scrape.yml`.
+
+### Milestone 4: Interactive Spells Hardening, Research Downloads Parity & UX Polish
+* **Interactive Vacancy Spells Resiliency:**
+  * Added zero-row / empty filter state handling across both K-12 and Higher Ed vacancy spells modules (`k12_spells`, `he_spells`):
+    - Reactive KPIs return clean zero counts (`0 Days`, `0 Open Spells`, `0 Persistent Spells`, `None`) instead of NaN or errors.
+    - Plotly duration and distribution charts render clean, informative placeholder notifications (`"No vacancy spells match the selected filter criteria"`) instead of leaving an empty white canvas.
+    - Duration distribution histograms regularized with `tidyr::complete()` across all 5 standard duration bins (`1–14 Days`, `15–30 Days`, `31–60 Days`, `61–90 Days`, `90+ Days` for K-12; `1–30 Days`, `31–60 Days`, `61–90 Days`, `91–180 Days`, `180+ Days` for Higher Ed), guaranteeing consistent axes and comparable geometries under dynamic filtering.
+    - Searchable DT spell tables render clean empty states without `req()` blocking.
+* **Homepage Interactive Drill-Down:**
+  * Enhanced "Top K-12 Hiring Districts This Week" and "Top Higher Ed Hiring Institutions This Week" tables with clickable employer action links.
+  * Clicking any top employer automatically selects that employer, switches to the filtered `k12_table` or `he_table`, and displays all active positions.
+  * Hardened `observeEvent(input$popup_view_jobs)` to seamlessly handle mapped institutions, direct scrape LEAs, and statewide locations.
+* **Open Research Downloads Completeness:**
+  * Added direct CSV downloads for both **K-12 Weekly Vacancies** (`download_weekly_totals`, serving `k12_district_weekly_totals.csv`) and **Higher Ed Weekly Vacancies** (`download_he_weekly_totals`, serving `he_institution_weekly_totals.csv`).
+  * Documented both series in `Wy_Ed_Jobs/data_dictionary.csv` and `DATA_DICTIONARY.md`.
+* **Data Quality Test Suite Expansion:**
+  * Registered `job_duration_spells.csv` and `he_job_duration_spells.csv` into `ALL_OUTPUT_CSVS` in `test-weekly-data-quality.R`, enforcing automated verification against NaN, Inf, and literal string leakage across 1,296 passing tests.
+* **Attribution Harmonization:**
+  * Harmonized home tab footer attribution to `"Developed by Mike Bostick and Mark Perkins"`.
+
+### Milestone 5: Tab Navigation Consolidation & Head-to-Head Comparator Modules
+* **Sidebar Navigation Consolidation:**
+  * Streamlined sidebar navigation from 16 tabs down to 10 tabs, removing sidebar clutter while preserving 100% of underlying analytical modules.
+  * Replaced flat tab list with organized `tabBox` subtab navigation:
+    - **Profiles & Compare** (`k12_summary` / `he_summary`): Subtab 1: Directory Table, Subtab 2: Head-to-Head Comparator.
+    - **Current Trends & New** (`k12_current` / `he_current`): Subtab 1: Category & Discipline Breakdown, Subtab 2: New This Week Postings.
+    - **Trends & Duration Spells** (`k12_trends` / `he_trends`): Subtab 1: Longitudinal Hiring Trends, Subtab 2: Vacancy Spells & Time-to-Fill.
+* **Side-by-Side District & College Comparator:**
+  * Built interactive Head-to-Head Comparators allowing users to select and benchmark up to 4 districts or colleges simultaneously.
+  * Dynamic comparative cards display active openings, vacancy rates, compensation (starting base, average total pay, IPEDS faculty compensation), student enrollment, student-to-staff ratios, and community socioeconomic metrics.
+  * Comparative Plotly visualizations for salary benchmarks, staffing scale, and appointment distributions.
+  * Real-time filtered openings table showing active postings across the selected employers.
+  * One-touch quick presets for "Top Hiring" and "Largest Enrollment" employers.
+* **Test Suite Expansion & Zero-Warning Cleanliness:**
+  * Added automated reactive tests in `test-app-reactives.R` verifying comparator card rendering, Plotly graphics, tabular filters, and preset button event handlers.
+  * Updated `LEAF_TABS` contract in `test-app-boot-smoke.R` to reflect the 10 consolidated destination tabs.
+  * Verified 1,312 passing tests (0 fails, 0 warnings, 1 skip on CRAN).
+
+### Milestone 6: Map Multi-Dimensional Filtering & Responsive Navigation (2026-10-28)
+* **Multi-Dimensional Map Filter Panel:**
+  * Built an integrated responsive control panel directly above the interactive Leaflet map featuring:
+    - **Employer Type:** Toggle K-12 Districts, Higher Ed Institutions, or both.
+    - **County Filter:** Dropdown populated from all 23 Wyoming counties with clean user-facing labels (e.g., "Albany County", "Laramie County").
+    - **Salary Benchmark Tier:** Filter by average educator compensation ($70,000+ Average Pay, $60,000 - $70,000, Under $60,000) harmonizing district teacher average pay (with starting base fallback) and IPEDS faculty average pay.
+    - **Posting Volume & Urgency:** Filter by employer hiring intensity (All Active Locations, High Volume 5+ openings, Multiple Openings 2+, New Postings This Week).
+    - **1-Click Reset:** Single-click "Reset Filters" action button restoring all controls to default statewide view.
+* **Dynamic Filter Result Badge:**
+  * Real-time indicator displaying matching location counts and cumulative active openings across the filtered locations (`Showing X of Y active locations (Z current openings across filtered locations)`).
+  * Informative warning state with guidance to broaden filters when zero locations match the selected criteria.
+* **Responsive Geo-Spatial Viewport Centering:**
+  * Automatically pans and bounds-zooms the Leaflet map viewport to the selected county when a user chooses a county filter, and smoothly returns to the statewide Wyoming view when reset.
+* **Defensive Marker Lifecycle & Zero-Row Guarding:**
+  * Ensured `leafletProxy` reliably clears markers without generating orphaned popups or JavaScript errors on 0-row filter states.
+* **Automated Reactive Test Coverage:**
+  * Added comprehensive tests in `test-app-reactives.R` verifying default filtering, single and combined filter attributes, county zoom coordinates, empty state handling, and reset triggers (20 new tests, 1,332 total tests passing with 0 fails and 0 warnings).
+
+### Milestone 7: Research Data Dictionary Completeness & Automated Codebook Invariants (2026-10-28)
+* **100% Data Dictionary & Codebook Column Coverage:**
+  * Expanded `Wy_Ed_Jobs/data_dictionary.csv` to 131 variables across all 10 public research download CSVs on the Data Sources tab.
+  * Resolved documentation drift for `k12jobanalysis.csv` (76,000+ historical records), Census ACS variables (`Median_Household_Income`, `Median_Gross_Rent`, `Population`, `Mining_Employment_Share`), WDE staffing subgroups, and IPEDS historical faculty compensation.
+  * Synchronized [`DATA_DICTIONARY.md`](file:///Users/mikebostick/repos/Jobs_Dash_repos/Wyoming-Education-Jobs-Dashboard/DATA_DICTIONARY.md) markdown codebook with complete markdown tables and universal identifier definitions (`NCES_LEAID`, `IPEDS_UNITID`).
+* **Automated Codebook Invariant Test Harness:**
+  * Created [`tests/testthat/test-data-dictionary.R`](file:///Users/mikebostick/repos/Jobs_Dash_repos/Wyoming-Education-Jobs-Dashboard/tests/testthat/test-data-dictionary.R) enforcing:
+    - 100% column documentation: every column in every public download CSV must exist in `data_dictionary.csv`.
+    - Zero phantom columns: every documented column must exist in the target dataset.
+    - Non-empty descriptions and valid data types.
+    - Synchronized dataset inventories between Shiny UI download handlers and `data_dictionary.csv`.
+* **Data Quality Test Suite Registration:**
+  * Added `data_dictionary.csv` to `ALL_OUTPUT_CSVS` in `tests/testthat/test-weekly-data-quality.R`.
+  * Verified 1,390 passing tests across the entire test suite (0 fails, 0 warnings, 1 skip on CRAN).
+
+### Milestone 8: Categorization Engine Overhaul & Modernized UX Navigation Sync (2026-10-28)
+* **Categorization Engine & Precedence Overhaul:**
+  * Synchronized classification engine in `k12_he_classification.R` with comprehensive precedence overhaul:
+    - Prioritized Clerical (`Secretary`, `Clerk`, `Registrar`) before `Teacher`.
+    - Prioritized paraprofessionals (`Teacher Assistant`, `Teaching Assistant`, `Instructional Assistant`) into Paraprofessional rather than inflating Teacher counts.
+    - Prioritized Higher Ed administrative/Provost leadership roles (`Faculty Affairs`, `Faculty Development`, `Faculty Director`) before faculty classifications.
+    - Fixed misclassifications: `Zoology` now routed to `Science` instead of `Specialist`, `Political Science` and `Social Sciences` routed to `Social Science` instead of `Science`, and `Health Science`/`CNA` routed to CTE/Health instead of general Science.
+    - Expanded subject definitions: `Elementary Education` (`K-[1-6]`), `English Language Arts` (`Intervention Teacher`), `Language Education` (`Culture Teacher`), `Substitute Teaching` (`Guest Teacher`), `Health Science` (`CNA`, `Certified Nursing Assistant`), and Higher Ed faculty fields (`leadership fellows`, `financial planning`, `family financial`, `iv&v`, `verification & validation`).
+  * Rebuilt historical and current datasets from durable raw archives (`Archivek12_Data/` and `Archived_HE_Data/`):
+    - **Wyoming Higher Ed:** Uncategorized postings dropped from 3,522 (18.6%) down to **2,576 (13.6%)** (86.4% categorized).
+    - **Wyoming K-12:** Uncategorized dropped from 1,068 (8.1%) down to **518 (3.9%)** (96.1% categorized).
+    - Recovered and accurately categorized **1,496 postings** in Wyoming previously lost in generic or misclassified buckets.
+* **Shiny Dashboard UI/UX Overhaul:**
+  * **Simplified Information Architecture:** Streamlined sidebar navigation to eliminate ambiguous labels ("Profiles & Compare") in favor of clear, intuitive domain entities: `Home`, `Map`, `All Postings`, `Districts` / `Colleges & Universities`, `New Postings`, `Current Trends`, `Longitudinal Trends`, `Data`, `Report Mistake`.
+  * **1-Click Quick Filter Toolbar:** Added an instant filter button bar (`radioGroupButtons`: `[ 📋 All Active Postings ]` | `[ 🟢 New This Week ]`) directly above the primary DataTables on both K-12 and Higher Ed postings pages.
+  * **Elimination of Nested Sub-tabs:** Removed inner `tabBox` views inside the Current Trends pages in favor of clean single-card layouts.
+  * **Responsive Table Containment:** Applied `.trends-table-container` CSS bounding table widths to `980px`, adding clean borders, auto margins, styled headers, and fixed-width sparkline columns, eliminating horizontal table sprawling and whitespace overflow.
+  * **Dedicated New Postings Tabs:** Implemented dedicated `k12_new` and `he_new` sidebar views.
+* **Test Suite Verification & Parity:**
+  * Full test suite passing with 0 failures and 0 warnings.
+  * Connect Cloud manifest regenerated via `rsconnect::writeManifest(appDir = "Wy_Ed_Jobs")`.
+
+---
+
+## 4. Key Architectural Contracts & Invariants
+
+1. **Pipeline / Dashboard Decoupling:**
+   * `Wy_ED_Jobs.Rmd` is the sole pipeline entry point; it scrapes, munges, and saves derived CSVs to `Wy_Ed_Jobs/`.
+   * `Wy_Ed_Jobs/app.R` is the Shiny dashboard reading committed CSVs. It **never** scrapes live pages.
+2. **Posting Identity Contract (`Posting_ID`):**
+   * Assigned once prior to deduplication, longitudinal accumulation, or spell calculations.
+   * Uses real per-posting URLs when available; falls back to `title + location + date_posted` with an occurrence suffix.
+3. **Schema Integrity:**
+   * Every CSV consumed by `app.R` must be registered in `REQUIRED_SCHEMAS` inside `schema_check.R` and tested in `test-schema-check.R`.
+4. **Posit Connect Cloud Manifest Safety:**
+   * Empty lists in R become `{}` in JSON via `jsonlite::toJSON()`, which Connect Cloud rejects. Post-processing forces `metadata` and `users` to literal `null`.
+
+---
+
+## 5. Active & Upcoming Workstreams
+
+- [x] Initial design and release of Vacancy Spells panel.
+- [x] Universal `NCES_LEAID` and `IPEDS_UNITID` integration across all data layers.
+- [x] Harmonize attribution to Mike Bostick & Mark Perkins.
+- [x] Harden `safe_scrape()` against heterogeneous date type collisions.
+- [x] Add pipeline dry-run and AST linting tests to CI test suite.
+- [x] Create reproducible generator scripts `scripts/generate_job_duration_spells.R` and `scripts/generate_he_job_duration_spells.R`.
+- [x] Expand Higher Ed analytics to include vacancy duration metrics (`he_job_duration_spells.csv` and `he_spells` tab).
+- [x] Optimize test suite runtime for heuristic scrapers (mock `Sys.sleep()` in `test-eastern-wyoming-scraper.R`, cutting run time from 64s to <1s).
+- [x] Harden interactive Vacancy Spells modules against empty filter states and regularize duration distribution bins.
+- [x] Enable 1-click drill-down navigation from Homepage top hiring employers tables to filtered jobs tables.
+- [x] Add K-12 and Higher Ed weekly vacancy series downloads and codebook definitions.
+- [x] Add spell panels to automated data-quality invariant suite.
+- [x] Harmonize attribution across all dashboard views.
+- [x] Streamline sidebar navigation into consolidated tabBoxes (10 main tabs).
+- [x] Implement Head-to-Head District and College Comparator modules.
+- [x] Multi-dimensional map filtering (salary tiers, county cluster, posting volume/urgency) with dynamic count badge and auto-zoom.
+- [x] 100% data dictionary column coverage and automated codebook invariant test suite.
+- [x] Overhaul K-12 and Higher Ed categorization engine: eliminate misclassifications (Zoology, Pol Sci, Health Sci), audit precedence (clerical before teacher, paraprofessional before teacher, provost/admin before faculty), and expand subject coverage recovering 1,496 previously uncategorized jobs.
+- [x] Modernize dashboard UX navigation: clear tab titles (`Districts`, `Colleges & Universities`), flat Current Trends layout without nested tabs, 1-click `🟢 New This Week` filter button, and responsive table container styling.
+- [x] Comprehensive 8-dimension data quality audit & historical archive reprocessing across MT & WY:
+  * Full reprocessing from raw historical archives back to first scrape date (`rebuild_k12_history_from_archive.R` and higher ed rebuilds) propagating classification fixes across all historical time-series datasets (`allsum.csv`, `k12jobanalysis.csv`, `facultydata.csv`, `job_duration_spells.csv`).
+  * Repaired text encoding / HTML entity leakage (`&amp;`, `&quot;`, `&#39;`, `&lt;`, `&gt;`, `&nbsp;`) in job titles.
+  * Resolved non-instructional role precedence leaks: bare `Clerk` (Attendance, Records, Library Clerk) routed to `Staff` ahead of `Teacher`; `Library/Media Assistant` to `Paraprofessional`.
+  * Expanded discipline coverage: Arapaho/Arapahoe language, Drama/Theatre in Art, Choir/Chorus/Vocal in Music, Trade & Technical, Autism/ASD in SPED, Grade 1-7 primary grades.
+  * 100% test pass rate across both WY (1,424 tests) and MT (3,051 tests).
+- [x] Streamline dashboard navigation architecture across K-12 and Higher Ed:
+  * Promoted **Vacancy Spells** to a dedicated top-level sidebar tab for both K-12 (`k12_spells`) and Higher Education (`he_spells`) featuring 4 KPI ValueBoxes, duration distributions, and searchable spell listings.
+  * Unified **Current Trends** and **Longitudinal Trends** into a single cohesive **Trends** tab (`k12_trends`, `he_trends`) using a clean top-level `tabBox` with two panels: Current Snapshot (12-week sparklines and discipline breakdown) and Longitudinal Trends (multi-year timeline slider and interactive Plotly time series).
+  * Retired redundant standalone "New Postings" sidebar tab, relying on the 1-click `🟢 New This Week` quick-filter toggle in the main postings tables. Preserved reactive server endpoints (`output$k12_new_table`, `output$he_new_table`) for backwards compatibility.
+  * Standardized sidebar navigation into exactly 4 symmetrical items per education tier:
+    - K-12 CAREERS: `All Postings`, `Districts`, `Trends`, `Vacancy Spells`
+    - HIGHER EDUCATION: `All Postings`, `Colleges & Universities`, `Trends`, `Vacancy Spells`
+  * 100% test pass rate across both WY (1,424 tests) and MT (3,051 tests).
+- [x] Refine public-facing terminology and sidebar proportions:
+  * Replaced technical jargon like "scraped" with clean phrasing ("compiled", "weekly updates") across data provenance and Vacancy Spells modules.
+  * Single-word navigation clarity: Renamed tabs to concise, intuitive terms (`Jobs` for postings, `Colleges` for institutions, `Time-to-Fill` for duration metrics, `Feedback` for bug reporting).
+  * Narrowed sidebar container: Reduced sidebar width from default 230px to 180px (`width = "180px"`, `titleWidth = "180px"`), eliminating empty void space after tab labels and giving 50px more width to data tables and maps. Streamlined category headers to `K-12`, `HIGHER ED`, and `COMMUNITY`.
+- [x] Full Wyoming K-12 and Higher Education Statewide Infrastructure & Platform Drift Audit:
+  * **Fremont County School District 24** (Shoshoni, WY): Recovered from silent platform drift (AppliTrack throwing `HTTP 500 Internal Server Error`); migrated registry to RedRoverK12 (org `4335`, slug `fremont24`), restoring 2 active vacancies (`Elementary Special Education Paraprofessional`, `Substitute Teacher`) to direct pipeline.
+  * **Comprehensive K-12 Structured Registry Audit (38/38 - 100% Active)**:
+    - 21 AppliTrack districts: 100% operational, 313 live vacancies (Big Horn, Carbon, Converse, Fremont, Park, Sheridan, Sweetwater, Teton, Uinta, Washakie).
+    - 8 SchoolSpring districts: 100% operational, 220 live vacancies (Crook, Laramie 1 & 2, Natrona, Fremont 25, Albany, Campbell, Lincoln 2).
+    - 2 TedK12 districts: 100% operational, 18 live vacancies (Fremont 2, Goshen 1).
+    - 7 RedRoverK12 districts: 100% operational, 51 live vacancies (Johnson 1, Hot Springs 1, Fremont 38, Lincoln 1, Sublette 9, Platte 2, Fremont 24).
+    - Total structured pipeline: 568 live postings extracted across all 38 districts with 0 errors.
+  * **Heuristic District & Charter Audit (13/13 - 100% Active, 78 live postings)**:
+    - 10 public districts: Niobrara 1 (5), Park 16 (2), Platte 1 (13), Sheridan 3 (0), Sublette 1 (2), Uinta 4 (4), Uinta 6 (5), Washakie 2 (1), Weston 1 (14), Weston 7 (5).
+    - 3 charter schools: Cheyenne Classical (1), Wyoming Classical (21), Prairie View (5).
+  * **Higher Education Institutions (9/9 - 100% Active, 489 live postings)**:
+    - University of Wyoming (231), LCCC (84), Sheridan College (71), Western Wyoming CC (41), Gillette College (27), Central Wyoming College (13), Eastern Wyoming College (10), Casper College (8), Northwest College (4).
+  * **Charter Schools & WSBA (100% Active)**:
+    - Laramie Montessori Charter School (Paylocity): 2 live postings.
+    - WSBA Statewide Vacancy Portal: 110 live postings.
+  * Total suite: 1,424 tests PASS (0 failures, 0 warnings, 1 skip on CRAN).
+- [x] Interactive Leaflet Map Position & Keyword Search with Suggestion Chips and Multi-Basemap Controls:
+  * **Interactive Keyword / Subject Search**: Added instant full-text query matching (`match_job_query`) supporting compound terms, educational abbreviations ("special ed", "sped", "math", "pe", "cte"), and multi-word token matching across both K-12 and Higher Education postings.
+  * **Dynamic Employer Filtering & Marker Scaling**: Map marker locations automatically filter to only employers with active matching openings, dynamically scaling circle marker radius proportional to matching vacancy counts.
+  * **Rich Contextual Tooltips & Popups**: Hover tooltips and click popups highlight matching position counts, listing sample matching job titles alongside total vacancy counts and median salaries.
+  * **Dynamic Feedback Badging**: Added real-time count badge above the map displaying exact matching openings, matching locations, and active query terms (with red guidance badge when 0 matches found).
+  * **Instant Suggestion Chips**: Integrated 1-click filter chips for popular subject areas (`Special Ed`, `Mathematics`, `Elementary`, `Science`, `Music / Art`, `Bus Driver`, and `Clear`).
+  * **Multi-Basemap Layer Control**: Added interactive tile layer switcher offering CartoDB Positron (clean default), OpenStreetMap, and Esri World Topo Map.
+  * Total suite: 1,468 tests PASS (0 failures, 0 warnings, 1 skip on CRAN).
+- [x] Post-review fixes (2026-10-29):
+  * **Position classifier regressions from the precedence overhaul** (`classify_k12_position()`, identical in MT and WY): bare `Intern` matched inside "Internal Applicants Only" (teacher and bus-driver postings landed in Support Services); `Technician` was checked ahead of Custodial/Transportation/Food Services (cafeteria, maintenance, HVAC, facility technicians); `Director`/`Driver` ahead of Teacher sent "Band/Choir Director" to Administration and "Drivers Education Teacher" to Transportation. Fixed with a word-bounded `\bIntern\b`, a separate late Technician rule, and an early Teacher rule for ensemble directors and Drivers Ed; regression tests added in `test-k12-classification.R`. K-12 history and `job_duration_spells.csv` rebuilt from archive.
+
+- [x] Categorization & research-download data-quality audit (2026-10-30):
+  * **One shared classifier for both states.** The Higher Ed job-type and faculty-category functions had drifted between MT and WY (different rule order, Legal checked before Criminal Justice in WY); they are now identical in both repos, with each state's extra rules folded in.
+  * **K-12 position:** OPI Jobs for Teachers publishes its subject-area field as the title ("Elementary Curriculum", "Special Education", "Music"), so those teaching postings landed in Other. Titles that name only a subject or grade now classify as Teacher unless they name an assistant/advisor-type role. Also: `\bPara`/`\bSub` word boundaries, nurses and counseling after Teacher/Staff/Admin, and new keywords for guards, noon duty, grounds, superintendents, stipend sports, and kitchen staff. Other fell from 10.9% to 1.8% of archived K-12 rows; uncategorized teacher subjects are 1.5%.
+  * **K-12 subject:** bare "CTE" moved to the last-checked CTE bucket so "CTE – Agricultural/Business/FCS" reach their subjects; "Physical Ed", "Health Enhancement", "Reading", "World Languages", "Industrial Technology" and the "Special Educaiton" typo now match.
+  * **HE:** "latin" matched inside "Gal**latin** College" (every Gallatin pool landed in Language) and "ems" inside "Syst**ems**" (Information Systems faculty in Health Sciences); bare "Instructional" counted technologists, designers and campus child-center aides as faculty. HE job-type Other fell from 17.2% to 1.6% (MT) and 5.9% to ~0% (WY); WY uncategorized faculty fell from 13.6% to 3.7%.
+  * **Placeholder postings dropped** via shared `is_placeholder_posting()` in the pipeline and rebuild scripts: "Sample/Future Certified/Classified Position", account-creation templates, "Student Teaching Opportunities", "No open positions", a scraped "Job Title" header (EWC). Standing applicant pools are kept. Raw archives are unchanged.
+  * **Vacancy spells:** a same-title posting absent for more than 21 days now starts a new spell (WY had 244 merged re-postings with a median "duration" of 382 days); `Weeks_Observed` counts calendar weeks rather than scrape dates.
+  * **MT `salarymap2.csv`:** the read-back + registry join emitted `NCES_LEAID.x`/`.y` (a third copy would follow next run); collapsed to one `NCES_LEAID` and fixed at the source.
+  * **District name variants:** MT OPI location labels normalized ("BILLINGS" / "Billings, MT" → "Billings"); WY "#21" / "No.1" spellings canonicalized.
+  * Regression tests added for every fix; histories and spells rebuilt from archive.
+- [x] WY weekly run fix (2026-10-30): the weekly salary chunks now keep `IPEDS_UNITID` and no longer duplicate the CCD
+  columns (`.x`/`.y`). Both had been introduced by Oct 27 hand-edits to the committed CSVs that the pipeline didn't
+  reproduce. Verified with full local rehearsals of both weekly workflows.
+- [ ] Posted pay from the job posting itself (in progress):
+  * [x] Increment 1: shared `extract_posted_pay()` (amount/range, unit, source snippet; never converted between units).
+    AppliTrack postings carry `Pay_Min`/`Pay_Max`/`Pay_Unit`/`Pay_Text` into `combinedclean.csv`, with a "Posted Pay"
+    column in the Jobs table. About 91% of sampled live AppliTrack postings state an amount.
+  * [x] Increment 2 (2026-10-30): RedRover boards carry Pay_* from the GraphQL `payTypeId`/`minPay`/`maxPay` fields.
+  * [x] Increment 3 (2026-10-30): higher ed. The NEOGOV colleges (LCCC, Casper, Central Wyoming, Gillette) carry Pay_*
+    from each listing card's pay line, or its description preview when that line is blank, into `hedata.xlsx` and the
+    raw HE archive, with a "Posted Pay" column in the Higher Ed Jobs table. Live 2026-10-30: LCCC 57/84 (NEOGOV prints
+    "$0.00" for adjuncts with no stated pay, now read as none), Casper 7/8, Central 8/13, Gillette 21/22.
+    `facultydata.csv` keeps its schema (no Pay_*). PeopleAdmin colleges and UW: since added (2026-11-01, 55654d0;
+    11-06 run: UW 195/229, Sheridan 60/71, Western 34/42, Eastern 10/10, Northwest 1/4).
+  * [x] Pay-coverage monitor (2026-10-31): `check_pay_coverage.R` (non-blocking weekly step, in the monitoring
+    self-check) flags a source whose postings still arrive but whose share with stated pay fell to <=20% of its own
+    average (needs 2+ archived weeks with pay, avg share >=40%, 3+ postings), into the weekly drift issue. Pure logic
+    in `drift_check.R` (`flag_pay_coverage_drop()`), tested.
+  * [x] Map pay filter rebuilt on posted pay (2026-10-31): "Pay" bands in each posting's own unit (hourly: under $18 /
+    $18-25 / $25+; annual: MT under $50k / $50-60k / $60k+, WY under $60k / $60-70k / $70k+), nothing converted. A posting
+    counts by its posted pay (range midpoint), else its district/institution role figure, else the estimate below; day
+    rates and stipends only under "All". The band narrows each dot to its matching postings, and "View N matching jobs"
+    carries it to the Jobs tab.
+  * [x] BLS OEWS fallback (2026-10-31): `bls_oews_scraper.R` (shared) pulls May-2025 regional medians for 17 school roles
+    via the BLS API (bls.gov downloads refuse scripts), refreshing `oews_role_wages.csv` only when BLS publishes a new
+    year. Each K-12 posting gets `Est_*` from its district's county area (statewide where unknown or suppressed); coaches
+    get none. Jobs table: "Typical pay (BLS est.)" with role/area on hover, shown only where no pay is posted.
+  * [x] IPEDS staff fallback (2026-10-31): `ipeds_staff_salaries.R` (shared) -- each college's average pay for full-time
+    non-faculty staff by IPEDS category; HE staff postings get `Est_*` by title -> category. HE Jobs table: "Typical pay
+    (IPEDS est.)".
+  * [x] QCEW county context (2026-10-31): `qcew_school_pay.R` (shared) -- average pay of public school employees by
+    county (all roles), shown in the district map popup.
+  * [x] UW salary book (2026-10-31): IPEDS lumps each college's managers into one average, and UW reports only its top
+    111 there ($159K), so UW assistant directors and business managers showed $159K. `uw_salary_book.R` (WY only) parses
+    UW's published "Salary Information - Departmental Listing" (FY2026: 3,084 salaried staff, department/title/salary,
+    no names); UW staff postings get the median salary of UW staff with the same title, else the same role before the
+    first comma, with 3+ holders (Business Manager $60,894 from 40; Assistant Director $60,756 from 44). Unmatched UW
+    management titles show nothing rather than $159K. BLS OEWS was checked and rejected for this: postsecondary
+    administrators' 25th percentile is $81K (MT) / $108K (WY). HE Jobs column renamed "Typical pay (est.)", source on hover.
+  * [x] Hourly-pool, work-study, student and intern postings no longer get an annual IPEDS figure (shared
+    `is_salaried_staff_posting()`); e.g. UW Student Media hourly jobs had shown $68,490. "Executive Assistant" is office
+    support, not management.
+  * [ ] Declined: ACS county earnings (less specific than QCEW for the same question).
+  * [x] Pay data-quality safeguards (2026-11-01, both states). Posted amounts out of range for their unit
+    (`PAY_PLAUSIBLE_RANGE`) are blanked before they reach the dashboard (`drop_implausible_pay()`); the raw archives
+    keep them, and the weekly drift issue lists them. Extractor no longer reads application costs, money paid into a
+    benefits package, or loan-assistance lists as pay (real misreads from the 10-31 rehearsal). Reference tables behind
+    the estimates (OEWS, QCEW, IPEDS staff pay, the UW salary book) refresh through `write_reference_file()`, which keeps
+    the old file when a download is partial, mostly blank or out of range, and logs each refresh to `scrape_log.csv`;
+    `check_salary_drift.R` reports failed, rejected, missing or stale refreshes. Schema check and the blocking
+    data-quality sweep cover the new files and the Pay_*/Est_* columns.
+  * [x] Pay extractor fixes (2026-11-01, both states): a unit run into the next label ("$145/dayBENEFITS",
+    "$21.69/hrThe District") is read as day/hour, and an earlier amount's bonus wording no longer vetoes a salary
+    after it ("Signing bonus $1,000, $42,000 annual salary").
+  * [x] `posting_id` (2026-11-01): fallback IDs are joined with " | " instead of a carriage return, which put line
+    breaks inside the field; a stored fallback ID passed back in by the archive rebuild is re-derived from the fields,
+    so weekly runs and rebuilds give one posting the same ID (rebuilds had been writing spaces). `k12jobanalysis.csv`
+    and `combinedclean.csv` rewritten with the new IDs (no other column changed; weekly distinct-ID counts identical).
+  * [x] Repeated rows in `k12jobanalysis.csv` (129) and `facultydata.csv` (170) documented in DATA_DICTIONARY.md and
+    kept: older snapshots lost the field that told them apart, so they can be separate openings.
+  * [x] Classification audit (2026-11-01, both states; shared classifier). Every archived title since Oct 2025 checked
+    against its bucket. K-12: new "Activities/Extracurricular" bucket (FFA/FBLA/DECA/HOSA advisors, drama, the musical,
+    speech & debate, robotics, color guard, student council; cheer stays Athletics); every substitute posting is
+    Substitute (substitute paras were Paraprofessional); coach/kitchen/bus aides go to Athletics/Food Services/
+    Transportation instead of Support Services; "Teacher Aide" is Paraprofessional; bare "Aid" no longer matches inside
+    "Paid" and "Para" no longer matches "Paradise Valley"; janitors, LPNs, accountants, district IT staff and
+    grade-band-only titles ("Junior High 7-8") leave Other; "None at this time" is a placeholder. HE: faculty
+    applicant pools are Adjunct/Part-Time; postdocs and research scientists are Research & Science; custodians are
+    Maintenance & Service; UW "Hourly Pooled - <job>" is classified by the job (student/intern jobs are Student
+    Positions). Spells `is_support_staff` now includes Transportation and Food Services, as documented. Committed
+    combinedclean (position, and Est_* on changed rows) and the teacher/faculty histories, aggregates and spells
+    reclassified; raw archives unchanged. Tests: test-classification-misroutes.R (identical in both repos).
+  * [x] Real posting dates, step 1 (2026-11-03, both states; c75abaf): AppliTrack postings carry the board's own job
+    ID (`parse_applitrack_output()` `job_id`, identical to MT); `url` is the posting's own page
+    (`applitrack_posting_url()`) and `posting_id` is `applitrack:<tenant>:<job id>` instead of the title fingerprint.
+    Parser fix: fields are read per `<li>`; a one-value "Position Type" used to swallow the next field and shift every
+    later one (49 of 318 rows on 10-30 had no posted date, e.g. Teton #1, Carbon #1; earlier archives keep the shifted
+    values). New `Close_Date` (combinedclean + raw archive): AppliTrack "Closing Date" as written. The 10-30 week was
+    moved onto job IDs and corrected from the live boards (263/318; the rest had left the board). WSBA rows linking to
+    AppliTrack category pages keep the fingerprint. Fixture `applitrack_output_wy_teton_single_position_type.bin`.
+    Full weekly rehearsal passed. Next: WY's spells have the same trust problems as MT's (not audited; since audited
+    2026-11-05 and rebuilt at posting level, and re-checked 2026-11-10, see the Listing Duration item).
+  * [x] Real posting dates, rest of step 1 (2026-11-04, ported from MT; 8815499): SchoolSpring reads each
+    posting's own record (`add_schoolspring_details()`, before `normalize_id_backed_k12_postings()`): `Close_Date`
+    (deadline applicants see; "Posted until filled" NA), `Job_Status` (raw archive only) and posted pay from the board's
+    pay fields (WY 11-04: 132 of 214 postings; "Substitute" $150/$14.95/$1,132 and "Please see our Salary Schedule"
+    left without pay). PeopleAdmin (Western, Eastern, Sheridan, Northwest): the page's open date replaces the feed's
+    `<published>` where filled in (39 of 95 differed on 11-04; Sheridan leaves it blank on 32 of 71), and new HE
+    `Close_Date` ("Close Date"/"Closing Date"/Sheridan "Initial Review Date", else "Open Until Filled") in
+    `hedata.xlsx` and the raw archive, not `facultydata.csv`. Tests shared with MT (`test-peopleadmin-dates.R`,
+    SchoolSpring block in `test-direct-api-scrapers.R`, fixtures `schoolspring_job_*.json`). Full weekly rehearsal
+    passed.
+  * [x] Real posting dates, step 4 (2026-11-04, both states; 7d46347): `refresh_schoolspring_endings()`
+    (`direct_api_scrapers.R`) runs after the raw archive is written: every SchoolSpring job ID listed in the past
+    year but not today is looked up (`fetch_schoolspring_details()`), and `schoolspring_endings.csv` (repo root,
+    committed by the weekly workflow) keeps one row per ended posting: District, Title, board posted date,
+    First_Seen/Last_Seen, `Job_Status`, Status_Since, Last_Checked. Filled/canceled are final, review is rechecked
+    weekly, and a lookup still saying "posted" (our scrape missed a live posting) records nothing. First lookup:
+    WY 504 postings that left Aug-Oct (294 filled, 119 canceled, 91 review; Fremont 25 also mostly canceled), MT 99 (62 / 17 / 20). Districts use the statuses differently (MT Libby leaves all at review; WY Campbell County 1 closes 79 as
+    canceled vs 8 filled), so a pooled filled share is not a calibration constant
+    (`claude-notes/2026-11-03_posting-dates-plan.md`, "Step 4 findings"). District names go through `canonicalize_k12_district()` (August archives spell "Campbell County Scholl", "Albany Count"). Tests in
+    `test-schoolspring-scraper.R`. Full weekly rehearsal passed.
+  * [x] Real posting dates, step 2 (2026-11-04, both states; ddb1ccc): coverage calendar. `coverage_calendar.R` writes
+    `coverage_calendar.csv` (repo root, committed by the weekly workflow) after the HE archive: one row per run per
+    entity (registry districts/institutions, feeds, off-registry districts that log under their own name, anything
+    tracked before) with ok / empty / error / not_logged, row count and error, so a posting that stops appearing
+    counts as ended only when its source was healthy. Shared-board colleges take the parent board's row; postings
+    that come only via a statewide feed take the feed's row; a run with no log leaves the calendar untouched. WY never uploaded its scrape log as an artifact, so its
+    calendar starts with the 2026-11-06 run.
+    Bug fixed on the way: `log_scrape_result()` backslash-escaped quotes in error messages, which `read.csv` can't
+    parse, so rows after such a message were lost (MT 11-03: all 23 HE sources), including in the drift checks; it
+    now doubles quotes and `read_scrape_log()` repairs older logs. Tests `test-coverage-calendar.R`. Full weekly
+    rehearsal passed (`claude-notes/2026-11-03_posting-dates-plan.md`, "Step 2 findings").
+  * [x] Classification safeguards, items 7, 8, 10 (2026-11-04, both states; WY 91ca1ad): blocking checks in
+    `test-weekly-data-quality.R`: every committed position / Category / Broad_Category (combinedclean,
+    k12jobanalysis) and Job_Type / Category (facultydata) equals what today's classifier gives its title (so a
+    classifier change must ship with reclassified data; 0 differences in WY or MT today); k12jobanalysis holds only
+    Teacher rows; no placeholder title in combinedclean, k12jobanalysis, facultydata or hedata.xlsx; spell dummies
+    (`is_support_staff`, `is_admin`, `is_faculty`, `is_adjunct`) agree with the position they encode.
+  * [x] Classification safeguards, items 12 and 13 (2026-11-04, both states; f78d75c): rebuild parity and a
+    reclassify script. `build_k12_combinedclean()` / `build_k12_teacher_rows()` (`history_accumulator.R`) are shared
+    by `Wy_ED_Jobs.Rmd` and the rebuild, which therefore carries Close_Date and Est_*; the rebuild reproduces all
+    nine committed K-12/HE files exactly (row order aside; facultydata's 850 apparent differences were `\r\n` in
+    titles, which `read.csv()` reads as `\n`). `.github/scripts/check_rebuild_parity.R` checks it weekly
+    (non-blocking). `scripts/reclassify_committed_data.R` (dry run; `--apply`): guard that the HEAD classifier
+    reproduces the committed data, report of every move, files written in committed order and formats, spells
+    refreshed. Scratch test with a planted rule change: 148 history rows left, diff only those rows and counts.
+  * [x] Classification safeguards, items 5, 6 and 3 (2026-11-05, both states; WY a1f3e06): title monitoring and a golden
+    labeled set. `.github/scripts/check_title_quality.R` (weekly, non-blocking, into the drift issue; functions in
+    `drift_check.R`): (5) title-shape lint of this run's postings per source -- level and rank with no role, schedule
+    or detail sentences, field labels, markup, file names, blank or "Other" titles, over 200 characters, and pay
+    stated in the title while Posted Pay is blank (`extract_posted_pay()` on the title; hiring incentives ignored);
+    (6) a source whose Other share jumped against its last 8 archived weeks (today's classifier on both sides).
+    Rules and thresholds measured on every archived week in both states: the lint hits the 2026-11-01 audit's
+    misreads and no real title (long real titles reach ~190 characters); the Other-share replay flags 2 MT
+    (Florence-Carlton schedule lines) and 2 WY (Albany 2024-09 section headings) source-weeks, all real. First
+    run: MT 9 postings at 5 sources (Huntley Project, Livingston, OPI "Other", Turner, Ulm), WY 1 (Fremont #21).
+    (3) `tests/testthat/fixtures/classification_golden_set.csv` (identical in both repos): 528 real titles (285
+    K-12, 243 HE, both states, sampled across every bucket) with checked buckets, 50 judgment calls left out;
+    27 `known_miss` rows the classifier still gets wrong (e.g. Administrative Assistant -> Administration, GEAR UP
+    success coaches -> Coaching or Athletics, Laborer -> Support Services). `test-classification-golden-set.R`
+    fails on any other disagreement and when a known miss starts agreeing (clear its flag).
+  * [x] Time-to-Fill tabs paused and spells trust audit (2026-11-05; 63e7f52): the tabs are now "Listing
+    Duration" with MT's paused note, "No longer listed" instead of "Closed / Filled", duration KPIs and charts
+    removed (server outputs kept). Audit (`claude-notes/2026-11-05_wy-spells-trust-audit.md`): WY's spells are
+    much sounder than MT's -- 3% of closed spells end in a known artifact (MT 68%), 6% left-censored (MT 61%),
+    posted dates on 70% of rows, first seen a median 3 days after posting; the K-12 median stays 28 days under every
+    cleaning filter, and closed teacher postings ran a median 32 days from posted date to last sighting. Still not
+    time-to-fill. Open problems: title identity (133 spells merge same-title postings), frozen boards (17 runs at
+    12 districts; Fremont #38 the same postings for 57 weeks, also inflating weekly counts), coverage gaps only
+    visible as whole-district absences, HE pools (237 of 719 spells, median 196 days).
+  * [x] `Pay_Min`/`Pay_Max`/`Pay_Unit`/`Pay_Text` required in `hedata.xlsx` (`REQUIRED_SCHEMAS_XLSX`, 2026-11-09):
+    the weekly runs already write them; `app.R` pads a missing pay column with NA, so before this a dropped column
+    would have shown no posted pay without failing the schema step. `Est_Source` too (the HE table's
+    "Typical pay (est.)" reads it).
+
+  * [x] Posting-level spells (2026-11-05/06; f5956f0, data be25eab): MT's design (board-host source, per-posting IDs
+    keyed by platform and number, posted-date starts, healthy-source endings, Kaplan-Meier with delayed entry), plus
+    frozen-board, pool, moved-board and partial-run checks (UW's 208 -> 25 -> 200 rows in 2026-08 had read as 195
+    endings). Archives 2024-08 to 2026-10: K-12 median 25.5 days listed (24.5-26.5), teachers 23.5; HE 59.5, 47.5 without
+    UW. `scripts/build_posting_spells.R` runs weekly (non-blocking) and its tables are committed. Weekly frozen-board
+    check in the drift report (`check_frozen_boards.R`; none frozen now, 8 stretches in the history). Notes:
+    `claude-notes/2026-11-05_wy-posting-spells-rebuild.md`.
+  * [x] Confirmed closings from each posting's page (2026-11-06; f5956f0): `posting_status.R` (shared with MT) checks
+    the pages of postings that dropped off their board (AppliTrack, TalentEd, Red Rover, NEOGOV, Oracle) and records
+    `posting_status.csv`; spells use it. Rehearsal 11-06: 46 dropped postings, 42 confirmed closed, 1 still open (a
+    scraper miss), 3 unknown.
+  * [x] WSBA cleanup (2026-11-05/06; f5956f0): a WSBA row linking a job ID the district's board lists is a duplicate
+    (22 of 63 kept rows on 11-05); kept rows whose posting its platform says is closed are dropped (20 of 24 on 11-06,
+    15 of them teacher postings; Sweetwater's April postings among them). Notes:
+    `claude-notes/2026-11-05_wsba-duplicates-and-stale.md`.
+  * [x] Fremont #25 and Sheridan #3 (2026-11-07; f5956f0): Fremont #25 moved to Red Rover (org 4029; 32 postings with
+    posted pay instead of 4 via WSBA). Sheridan #3's page lists bare titles after its form links; the Apptegy parser
+    reads that shape (format 5, fixture added). Both had been "empty" in the first coverage calendar.
+  * [x] TalentEd per-posting links (2026-11-06; f5956f0): rows keep `ViewJob.aspx?JobID=<n>` (as MT's do).
+  * [x] Title-shape fixes and Cabon (2026-11-05; f5956f0, data be25eab): Fremont #21's "- Open Until Filled" cut at
+    ingestion (shared `split_title_detail()`); "Cabon County School District 2" -> Carbon #2, in the WSBA parser too, and
+    the committed rows corrected.
+  * [x] Drift-issue WSBA wording, weekly-totals downloads, golden-set fixes (2026-11-06/07; f5956f0, data be25eab):
+    as in MT; 2 combinedclean rows Administration -> Staff.
+  * [x] Six more golden-set misroutes (2026-11-08; 8436dbc): as in MT (most of the 17 moved titles are WY's, e.g.
+    "Office and Records Assistant" -> Staff); committed data unchanged.
+  * [x] Classification safeguards 9 and 11 (2026-11-08; f357ca5): as in MT. 1 combinedclean row (Temporary Business
+    Office Support Clerk) Support Services -> Staff; posting spells refreshed, which also carry the morning's 17
+    moved archive titles (spells Other 85 -> 71, Staff 283 -> 297).
+  * [x] WSBA/district-page dedup key (2026-11-08; e2826cb): `dedup_title_key()` drops dates, file names, "Job
+    Description", school years and expands JH/HS/MS/Asst/SPED before the exact match. 7 more duplicate pairs in the
+    last 30 archives, none distinct merged (subset matching measured and rejected); live: Weston #1 16 -> 15, Park #16
+    4 -> 3. Sheridan #3's double count was mostly the 11-07 parser fix; 1 ambiguous row left.
+
+  * [x] Eleven HE golden-set known misses (2026-11-09; 68a86ad): laborers, stationary engineer, lab/husbandry/
+    paleontology, "(Student)" titles, counselor/financial assistance, classroom support, night watch, enterprise
+    architect. Archive diff: 21 HE titles move, all intended; golden set 548 of 551; HE posting spells refreshed.
+    Review tools added 11-08 (archive diff, spells invariant, guard rows; toolkit footgun 16, `sibling_sync.R`).
+
+  * [x] Sheridan #3 both-teams posting; "Coord" -> Administration (2026-11-09; f83f897): a district title naming no
+    gender gives way to WSBA's Boys and Girls rows (Mike: two positions); live misc scrape 188 -> 187.
+
+  * [x] "Posted / listed" first-seen fallback (2026-11-09; c57a8a9): 74 of 725 K-12 postings had no date; they now show "First seen <date>" or
+    "On the board since at least <date>" (already up when we first scraped that board), from the posting spells
+    (`posting_first_seen.csv` in the app folder, committed weekly). Mike: first-seen dates will match posted dates
+    more closely the longer the dashboards run. Checked in the rendered app.
+  * [x] Reposts (2026-11-09; not built, measured): a listing that ends and reappears next week under a new ID with
+    the same title looks like an ending plus a new posting (MT 101 / WY 358 strict pairs). Not linked: of the 23 WY
+    SchoolSpring pairs whose old record has a final status, 8 were "filled", i.e. a new vacancy, not the same job.
+    Built instead (Mike, option 1): those endings are "outcome unknown" (censored) in the duration estimates
+    (7066848): K-12 median 25.5 -> 26.5 days, college 59.5 unchanged. A platform-reported "filled" keeps its ending.
+
+  * [x] Shared role-hint classifier support (2026-11-09; eec6601): same code as MT; WY passes no hint, no WY change.
+
+  * [x] College data integrity (2026-11-09; 2439826): 114 of 470 college postings (LCCC, Gillette, Central Wyoming,
+    Casper) had relative posted dates ("Posted 3 weeks ago") shown as written; the app now shows "About <date>" or
+    "Before <date>". Also measured, no change needed: standing adjunct and student postings (Western since 2018) are
+    open by the can-apply standard, marked "Listed since", excluded from durations; titles that name only past years: 0.
+  * [x] Copilot Internet access (repo Settings, Mike, 2026-11-09): uwyo.edu. The setting now matches
+    `.github/copilot-allowlist.txt`.
+  * [x] Last golden-set known misses (2026-11-09): `classify_k12_position()` reads "_" as a space (an uploaded
+    file's name: "Dish_Server_Cashier 26 - Copy", Livingston) and Food Services takes word-bounded "Dish" and
+    "Cashier" (not bare "Server", which can be IT). Archive diff over both states (7,825 K-12 titles): only those 2
+    titles move, Other -> Food Services; committed data unchanged, MT posting spells refreshed (Food Services 49 -> 50
+    postings). Golden set 551 of 551.
+  * [x] Fremont County School District 38 child poverty (2026-11-09): SAIPE files Arapahoe as an *elementary*
+    district in the Census school-district map, so the unified-only request missed it (the 08-06 note called it
+    absent from SAIPE). `fetch_census_saipe_child_poverty()` now also asks for the elementary geography (2024:
+    16.8%; a 204 with no body adds no rows). Live: 48 of 48 districts have a rate; the 5 charter rows are next.
+  * [x] Free/reduced lunch share and every posting on the map (2026-11-09): `Free_Reduced_Lunch_Share` (+
+    `FRL_Year`, `FRL_Schools_Reporting`) from CCD's school directory beside SAIPE child poverty, in the District
+    Summary, detail card and popup (each entity's newest reporting year; blank under 80% of students reporting;
+    >= 99.5% labeled "likely free meals for all"). Rehearsal: 50 of 57 map rows (the 3 state charters report no
+    counts). The 5 charters get staffing from CCD school records and their surrounding district's SAIPE rate
+    (`Child_Poverty_Basis`, Census geocoder). New map rows for WSBA's non-district employers: Northeast Wyoming
+    BOCES, STRIDE Learning Center, Sweetwater County Child Developmental Center (street-level location), Wyoming
+    Boys School; "Laramie Montesorri School" (Paylocity) -> Laramie Montessori Charter School
+    (`canonicalize_k12_district()`, committed data rewritten; rebuild parity holds). Snowy Range and Laramie
+    Montessori had Laramie County SD 1's NCES id (now blank: schools inside Albany SD 1). Rehearsal
+    (`claude-notes/2026-11-09_rehearsal-wy-frl-employers.log`) found 2 failures only next week's data shows (0
+    enrollment -> students-per-teacher 0; data dictionary), both fixed and the full suite re-run on that output:
+    497 pass.
+  * [x] Converse County SD 1 and SD 2 map dots swapped back (2026-11-09): since `fb48a72` each carried the other's
+    coordinates (SD 2, Glenrock, sat at Douglas; SD 1 at Glenrock), ~40 km apart; ids and links were right. Found by
+    the toolkit's new `tools/reference_audit.R` (map dot vs the district's CCD schools).
+  * [x] Review fixes (2026-11-10): a CCD outage now logs an error and keeps last run's lunch values (shared
+    `fetch_ccd_frl_share()`); the charters' and centers' surrounding-district rate uses the shared, tested
+    `surrounding_district_poverty()` (a split town averaged; a geocoder failure keeps last run's value and is logged);
+    the lunch-share and SAIPE joins have `relationship = "many-to-one"`; the District Summary's numeric columns sort as
+    numbers (all had sorted as text, server-side); one wording for the free-meals note; golden-set guard row for the
+    Cashier rule. Rehearsal (`claude-notes/2026-11-09_rehearsal-wy-review-fixes.log`): all steps passed; app tests and
+    boot smoke pass on its output; full suite 499.
+  * [x] Two spell artifacts from the 11-10 audit (2026-11-10, d0de23d; MT 6f52b4a): `fix_title_encoding()` decodes every
+    numeric HTML entity (`decode_numeric_entities()`; it missed the hex `&#x27;`, so Albany's "Girls&#x27;" broke
+    identity and Natrona's "Boy&#x27;s" showed on the dashboard), and `relisted_next_run()` ignores punctuation
+    ("Paraeducator- SPED" relisted as "Paraeducator - SPED"). Spells rebuilt: K-12 endings 7,680 -> 7,631 (48 more
+    relistings censored), medians unchanged (K-12 26.5, HE 59.5; Part-Time Teacher 17.5 -> 24.5 on 47 endings);
+    reclassify: 1 combinedclean title changes. Classifier archive diff (both states): no bucket moves. Rehearsal
+    (`claude-notes/2026-11-10_rehearsal-wy-entity-relist.log`): all steps passed, 81 sources ok, post-run suite 2,218.
+  * [x] Pay units and advertised windows (2026-11-10, df9bc07; MT 775ff7b; `claude-notes/2026-11-10_data-integrity-sweep.md`):
+    `extract_posted_pay()` reads a bare $7.25-$60 beside a pay word as hourly ("starting wage of $16.04", "Step 1:
+    $13.37"; all 633 stated-unit amounts in that range were hourly; over every archived pay text exactly 12 change, all
+    no unit -> hour). `parse_neogov_card_pay()`: when the pay field's unit is rejected, the card's description is used
+    (Gillette's "Adjunct - $900.00 Hourly" is "$900 per credit hour"; fixture `neogov_gillettecollege_p1_2026-11-10.html`).
+    Spells: a posting listed more than a week past its stated date gets no advertised window (Sheridan's 3 past
+    "Initial Review Date"s, 6 stale K-12 dates, one from 2023). Rehearsal
+    (`claude-notes/2026-11-10_rehearsal-wy-pay-windows.log`): all steps passed, 81 sources ok, no posted pay left
+    without a unit, post-run suite 2,230.
+  * [x] Run expectations and the scheduled-run guard (2026-11-10, eade3b4; MT d1f3879; workflow plan
+    `claude-notes/2026-11-10_workflow-review-and-plans.md` items 2.1-2.2, approved by Mike): `run_expectations.csv`
+    (20 rows, from the 11-13 watch-list) is checked by the new non-blocking step `check_run_expectations.R`
+    (`run_expectations.R`, same file in both repos): summary on the run page, failures in the drift issue. On the
+    committed 11-06 data, as of 11-13: 7 pass, 8 fail, 5 error, all of the failures being things the 11-09/10 pushes
+    should change. A `guard` job skips a scheduled run when main already has that day's data commit; checked against
+    history (skips 11-06, runs 11-13). WY gains the concurrency group. Live run of the step, suite 2,252 (0 failed).
+    Review fixes before push (jobs-dashboard reviewer): the committed-file test no longer requires a row's file to
+    exist (WY's posting_status.csv rows would have stopped the 11-13 pre-run suite); the guard fetches main's live tip
+    (a queued run's checkout is main as of its creation: MT 11-10 started at 6f52b4a, 9 s after c2dec92 landed);
+    .xlsx columns are typed like .csv; rows that passed on zero matched rows now count what must be there (21 rows).
+    Suite 2,258 (0 failed).
+
+  * [x] Standing substitute lists in the drift check (2026-11-10; same change in MT; MT issue #13, Lone Rock): an
+    LLM-read list of substitute pools no longer makes a source likely_broken unless the source's own titles over its
+    last 8 archived runs include a substitute posting (49 of 59 direct sources here do). `drop_standing_pool_titles()`,
+    `recent_source_titles()` (drift_check.R); `corroborate_drift.R` passes the history. Suite 2,270 (0 failed).
+  * [x] apt mirror fallback in CI (2026-11-11; same change in MT and in edjobs' package CI): from ~15:20 UTC 11-11
+    hosted runners could not resolve *.ubuntu.com (probe on ubuntu-22.04/24.04/26.04; Microsoft and CRAN hosts
+    resolved), so every `apt-get update` hung until the job timed out. New `.github/actions/apt-mirror-fallback`, run
+    before R setup in `setup-r-env` (PR checks, Copilot, autofix) and in `weekly-scrape.yml`: apt timeouts always,
+    and `mirrors.edge.kernel.org` when azure.archive.ubuntu.com does not resolve (probe: apt-get update 5.6 s).
+  * [x] Claude as the auto-fix fallback (2026-11-11; same change in MT): both states assign new auto-fix issues to
+    Copilot (`AUTOFIX_ENGINE=copilot`; `COPILOT_TOKEN` is one fine-grained PAT for both repos, expires 2027-02-09).
+    An issue still flagged at a later weekly run, at least 5 days old, with no open Copilot PR carrying changes and no
+    merged fix, goes to `claude-autofix.yml` once (`autofix_escalation_decision()`, `autofix_linked_prs()` in
+    drift_check.R; marker comment records the hand-over). Only when a Claude credential is set
+    (`AUTOFIX_CLAUDE_FALLBACK` in weekly-scrape.yml). `claude-autofix.yml` has `allowed_bots: "github-actions"`
+    (every earlier run failed "Workflow initiated by non-human actor"). Checked with a fake `gh` (hand-over, no
+    credential, already handed over, too new, PR awaiting review, unreadable comments). Suites (NOT_CRAN=true): MT 3,932,
+    WY 2,047, 0 failed.
+    First real Claude run (WY #7, run 43079089307, 2026-11-11): Claude signed in and finished (11 turns, $0.35), but
+    the guard step's `git add -A -- . ':!.autofix'` exits 1 because `.autofix` is gitignored, so no run could ever
+    reach its PR/report step. Now `git add -A` then `git reset -- .autofix`.
+    Merged 11-11 (PR #12 -> bb94853). Re-test from main (WY run 43086225793): ran end to end, the guard passed and
+    Claude posted a "needs a human" report on WY #7. But every Bash call failed ("Sandbox dependencies not available:
+    socat not installed"), so the workflow now apt-installs `socat` and `bubblewrap` before Claude runs.
+  * [x] Phase 4 close-out review and its fixes (2026-11-13; `claude-notes/2026-11-13_phase4-full-review.md`, outcome
+    at its end). `/full-review` of edjobs v0.5.0..v0.11.0 and both states' phase 4: nothing blocking. edjobs 0.12.0
+    (PR bostickmike/edjobs#10, branch `phase4-review-fixes`; 1,386 tests, check clean): two latent spells/history bugs,
+    ISO-only date parsing, page caps, JSON-LD dates in Mountain time, per-page posting-status log lines, tests for six
+    untested exports. Drift baselines (Mike): zero weeks count between a source's first and last weeks with rows;
+    trailing zero weeks and calendar-failed weeks (`failed_source_weeks()`) are left out (replayed since 09-01: WY 9
+    flags either way, MT 20 -> 19). Run logging in both states: every message/warning to the run log, render
+    interrupted at 40 min with R's call stack (`.github/scripts/render_with_stack.R`), partial-outputs artifact on
+    failure. EDJOBS_VERSION 0.12.0. Decided by Mike: keep the TedK12 board-URL rule (0 rows affected since 08-11).
+    WY: `k12_posting_source_label()` warns and labels instead of stopping; spells source (Mike, measured): rows
+    archived as read from WSBA are the WSBA feed (all 47 on 11-13 linked district sites/files, so none had been a feed
+    row), direct rows keep host + tenant. Rebuilt spells: endings in durations 7,731 and median 28.5 days unchanged,
+    29 spells fixed, ~18 WSBA postings split once at 11-06/11-13 (no bridge, Mike). Suite 1,358 passed; `check_drift.R`
+    run live on 11-13's data. Not yet rehearsed on 0.12.0. To land: edjobs #10 merged and tagged, rehearse, PR.
+  * [x] Upkeep workflow: keepalive and token expiry (2026-11-13; same change in MT; edjobs 0.12.1, bostickmike/edjobs#11): new
+    `.github/workflows/upkeep.yml` (Wednesdays, a day with no weekly run now or on the planned twice-weekly days) calls
+    edjobs' reusable `upkeep.yml`. It re-enables every active workflow through the API, so GitHub's 60-day inactivity
+    rule can't silently stop the weekly schedule (a disabled schedule sends no failure email), and opens one issue per
+    secret 30 days before its date in the new `.github/token-expiry.csv` (`COPILOT_TOKEN` 2027-02-09, read from
+    GitHub itself on each run; `CLAUDE_CODE_OAUTH_TOKEN` 2027-11-11, approximate: set 11-11, about a year).
+    Self-sustaining checks 1 and 2 of `claude-notes/2026-11-12_twice-weekly-and-daily-presence-scope.md`; check 5
+    waits for the daily presence check. Tested from this branch on a temporary push trigger: dry run with a 400-day
+    window, then a real run (all workflows still `active`, `dynamic/` Copilot workflows skipped).
+  * [x] Daily presence check, phase 0 (2026-11-13; same change in MT; edjobs 0.13.0): new
+    `.github/workflows/presence.yml` (daily, 13:17 UTC) calls edjobs' reusable `presence.yml`, which reads each
+    AppliTrack, SchoolSpring, TedK12 and Red Rover board once (all 38 districts; list pages only, each district's
+    own `resolve_scraper_call()`)
+    and commits `presence_checks.csv` (one row per board per day) and `presence_sightings.csv` (one row per unbroken
+    stretch of sightings, keyed by `k12_link_posting_id()`) to the `presence` branch, never main.
+    `k12_link_posting_id()` moved to edjobs (deleted here). First live run from the Mac (11-13): 30 boards, all
+    answered, 528 postings, all keyed, 43 s; 523 of the 530 keys on these boards in that morning's weekly archive
+    were seen. Red Rover's 8 boards, added the same day (Mike: "can't you do MT red rover like WY and add them
+    both?"; it is a plain API here, not Chrome): all answered, 78 postings, all keyed, about 1 s. OPI/WSBA
+    fingerprints measured for a later step (`claude-notes/2026-11-13_presence-redrover-opi-wsba.md`).
+    Phase 0 (shadow, 2 weeks): nothing reads the files yet. Measured at the end, in a dated claude-notes audit:
+    agreement with the weekly run on its run days, flapping (missing one day, back the next), errors per board,
+    runtime and cron lateness. Then phase 1: the spells read the sightings for day-precision endings.
+  * [x] Red Rover fetcher moved to edjobs (2026-11-13; edjobs 0.14.0, same change in MT): `fetch_redrover_postings()`,
+    `parse_redrover_json()`, `redrover_org_slug()` and the pay helpers deleted here; MT now reads its Red Rover boards
+    through the same API. The shared parser drops standing application forms ("Classified/Certified/Volunteer
+    Application"), as MT's did; no WY archive has ever carried one, so WY's output is unchanged.
+  * [x] WSBA in the daily presence check (2026-11-13; edjobs 0.15.0; Mike: "look a bit harder at OPI and WSBA"):
+    `presence_feeds.R` defines WSBA as a statewide feed, keyed by `edjobs::wsba_vacancy_key()` (district, title,
+    WSBA's posted date; renamed from the plan's `wsba_posting_key()`, which WY already has), with the weekly run's own
+    `fetch_wsba_vacancies()`. Workflow pins v0.15.0 and sources `state_config.R direct_api_scrapers.R
+    k12_he_classification.R misc_district_scrapers.R presence_feeds.R`. Tested on GitHub from a throwaway branch (run
+    43538209249): 39 boards, all ok; WSBA 95 vacancies, all keyed. Not pipeline code: suite only.
+  * [x] Drift check: the LLM reading counts only titles the scraper missed (2026-11-13; edjobs 0.16.0, same change in
+    MT; Mike: "I do like the change"). `corroborate_drift.R` passes this run's titles for each flagged source to
+    `combine_verdict_with_llm(current_titles =)`. WY's Sublette 1 had been filed as likely_broken on 11-11 and 11-13
+    because the LLM read "Substitutes", the one item the scraper returned (WY issue 7, closed 11-13 as genuinely
+    quiet). Replayed on all 8 past flags with an LLM reading: the 6 MT ones unchanged (scraper returned 0), the 2
+    Sublette ones no longer filed.
+  * [x] Auto-fix only from main; Claude when Copilot refuses (2026-11-13; same change in MT; Mike: "limit auto fix to
+    main", "if copilot is refused then claude kicks in"). The weekly workflow's auto-fix filing step runs only on
+    main (branch test dispatches had been handing issues to Copilot). A new issue Copilot can't be assigned, or
+    opens no PR for within 5 minutes, is unassigned and dispatched to `claude-autofix.yml` at once. MT's ruleset no
+    longer requests Copilot reviews on every push (15 "insufficient remaining quota" reviews on MT PRs since 11-12).
+  * [x] edjobs 0.17.0 (2026-11-14; pin bump only): the package adds the CyberSchool family routine
+    (`fetch_cyberschool_postings()`), the first CMS-family routine; MT's Highwood, Power and Vaughn moved to it. No
+    WY district runs on CyberSchool, and nothing WY calls changes. Suite on 0.17.0: 1,374 passed, 0 failed
+    (`claude-notes/2026-11-14_wy-suite-edjobs-0.17.0.log`). Notes: `claude-notes/2026-11-14_cyberschool-family/README.md`.
+**Open work (moved here from claude-notes handoff, 2026-11-03; this list is the source of truth):**
+- [ ] **R package migration (current focus, Mike 2026-11-10):** shared code moves to `bostickmike/edjobs`, pinned in
+  `EDJOBS_VERSION` (plan and status: `claude-notes/2026-11-10_r-package-migration-plan.md`). Phase 0 merged 11-11
+  (run expectations; edjobs 0.0.1). Phase 1 merged 11-11 (edjobs v0.2.0: scrape helpers, posting status, coverage
+  calendar, BLS OEWS, BLS QCEW, LLM extraction; MT PR #16, WY PR #8; full rehearsal in both states, WY test dispatch
+  on the branch passed). Phase 2 on branch `edjobs-phase2` (11-11, edjobs v0.4.0): the classifier and posted pay, IPEDS staff salaries,
+  41 shared drift/data-quality/auto-fix definitions, `check_file_schema()`, `check_total_matches_parts()`,
+  `rebuild_parity_row()`; this repo keeps its name corrections, posting identity, dispatch, baselines and schemas.
+  Suites on 0.4.0: WY 1,600 passed, 0 failed; full rehearsal passed every step, rebuild parity 9/9
+  (`claude-notes/2026-11-11_rehearsal-wy-edjobs-phase2.log`). Phase 2 merged 11-11 (WY PR #14 -> 51de3e1).
+  Phase 3 on branch `edjobs-phase3` (11-11, edjobs v0.5.0): the shared platform scrapers (AppliTrack fetch/parse,
+  SchoolSpring details and ending reasons, PeopleAdmin page pay and dates, NEOGOV card pay). Auto-fix for a scraper
+  that lives in edjobs: Copilot first on a companion edjobs issue, then the Claude fallback, which checks edjobs out
+  in `.edjobs/` and opens its PR there. Suite on 0.5.0: WY 1,504 passed, 0 failed; full rehearsal passed every
+  step, rebuild parity 9/9 (`claude-notes/2026-11-11_rehearsal-wy-edjobs-phase3.log`). Design rule from 11-11: build
+  for N states and one stackable schema (plan section 2a).
+  Phase 4, first slice, on branch `edjobs-phase4-spells` (11-11, edjobs v0.6.0): the posting-spells engine
+  (bridging, endings, starts, flags, durations, first-seen lookup) moved to edjobs; this repo keeps its panels
+  and its rules (`WY_SPELL_RULES` in `posting_spells.R`, a `spell_rules()` object). Rebuilt from the archives, every
+  pre-existing column of the committed spells is unchanged (11,834 K-12 + 3,621 HE postings); the files gain the shared
+  36-column schema (`POSTING_SPELL_COLUMNS`). Suite on 0.6.0: WY 1,435 passed, 0 failed.
+  Phase 4 slice 1 merged 11-11 (WY PR #16 -> 0c67509). Slice 2 on branch `edjobs-phase4-state-config` (edjobs
+  v0.7.0): `state_config.R` sets `edjobs::state_config()` (name, FIPS, app folder, this state's own reference
+  tables, which left the package's `REFERENCE_TABLE_RULES`); OEWS areas are a FIPS-keyed CSV in the package.
+  Suite on 0.7.0: WY 1,439 passed, 0 failed; full rehearsal passed every step, rebuild parity 9/9
+  (`claude-notes/2026-11-11_rehearsal-wy-edjobs-phase4.log`).
+  Slice 2 merged 11-11 (WY PR #17 -> a59accd). Slice 3 (edjobs v0.8.0): the drift-check functions MT and WY held
+  differently, except dispatch and the auto-fix issue body, come from the package (`flag_drift`,
+  `build_historical_counts`, the drift report, the live-check summary); `state_config.R` gains the WSBA feed's
+  labels and the drift baseline date. `check_drift.R` output on committed data is identical. Suite on 0.8.0:
+  WY 1,425 passed, 0 failed (1,423 after the rehearsal's run); full rehearsal passed every step, rebuild parity 9/9
+  (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.8.0.log`).
+  Slice 3 merged 11-12. Slice 4 (edjobs v0.9.0): scraper dispatch and the auto-fix issue body come from the
+  package (`resolve_scraper_call(name)`, `run_scraper_call()`, `gather_autofix_evidence()`,
+  `build_autofix_issue_body()`, `build_source_url_lookup()`); this state's sources and how each is scraped are
+  data in `state_config.R` (`scraper_sources`, `autofix`). On all 67 source names the resolved call, its description and
+  the evidence are identical to the local code's; the issue body changes only in wording. The URL lookup gains the WSBA feed's page.
+  Suite on 0.9.0: WY 1,415 passed, 0 failed (1,413 after the rehearsal's run); full rehearsal passed every step,
+  rebuild parity 9/9 (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.9.0.log`). Not exercised by a rehearsal:
+  `file_autofix_issues.R` and `live_check_autofix.R` (GitHub-only steps); `scripts/repro_scraper.R` was run live.
+  Slice 4 merged 11-12. Slice 5 (edjobs v0.10.0): the accumulated K-12 history comes from the package
+  (`build_k12_combinedclean()`, `build_k12_teacher_rows()`, `append_weekly_rows()`,
+  `summarize_k12_posting_counts()`), with one output schema for every state (`edjobs::K12_POSTING_COLUMNS`).
+  `combinedclean.csv` and `k12jobanalysis.csv` were rewritten from the archives in the shared columns, same row order, every existing cell unchanged (725 and 13,406 rows): `posting_id` is now `Posting_ID`, `Posting_Identity_Method` is derived from the id, and `Posting_Source`, `Feed_District`, `Also_On_Feed`, `Role_Hint` are NA until Wyoming records them (open: define WY's `Posting_Source`). Outside readers of the downloads must use `Posting_ID`.
+  Raw rows and the weekly archives keep their column names; posting id values are untouched. Suite on 0.10.0:
+  WY 1,403 passed, 0 failed (1,401 after the rehearsal's run); full rehearsal passed every step, rebuild parity 9/9
+  (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.10.0.log`). Design and open items:
+  `claude-notes/2026-11-12_phase4-k12-output-schema.md`.
+  Slice 5 merged 11-12 (PR #20 -> 9659bf0). Then the source columns (Mike 11-12: backfill what is feasible, NA
+  for the rest, record it going forward): every K-12 row is tagged with `Posting_Source` at scrape time and
+  archived with it; `Also_On_Feed` flags a direct posting WSBA also lists (`direct_also_on_wsba()`);
+  `Feed_District` is the organization WSBA names. History is backfilled where the archived row settles the source
+  (`backfill_k12_posting_source()`: the source id, WSBA's own link, and the link's host for every run before
+  2026-08-02, when WSBA was first read): `k12jobanalysis.csv` 12,705 of 13,406 rows, `combinedclean.csv` 532 of
+  725; every other cell unchanged. `Role_Hint` stays NA: WSBA titles carry the role and WSBA has no description
+  (checked 11-12). Suite 1,430 passed, 0 failed (1,428 after the rehearsal's run); full rehearsal passed every
+  step, rebuild parity 9/9; the rehearsed run tagged all 699 rows, 39 of them also on WSBA
+  (`claude-notes/2026-11-12_rehearsal-wy-posting-source.log`).
+  Slice 6 (edjobs 0.11.0, PR #9 there; WY PR #22, branch `edjobs-platform-fetchers`, 11-12): the platform fetchers
+  come from the package (`fetch_neogov_postings()`, `fetch_peopleadmin_atom()`, `fetch_schoolspring_postings()`,
+  `fetch_tedk12_postings()`, `schoolspring_domain()`); local copies, tests and fixtures deleted (three NEOGOV
+  card-pay tests moved). NEOGOV is one platform keyed by the agency slug (Mike's decision after the 11-12
+  measurement: every posting only an Attract site listed had expired; `claude-notes/2026-11-12_neogov-decision-research.md`),
+  and each posting's page gives its exact posted date and closing date: the four NEOGOV colleges' `Posted_Date`
+  is a date, not "Posted 2 weeks ago", and `Close_Date` reaches `hedata.xlsx` (Casper states closing dates; the
+  others are continuous). PeopleAdmin keeps the campus name as Location (`location_from_author = FALSE`; all
+  four feeds carry departments as authors, a one-argument switch if wanted). Suite on 0.11.0: 1,351 passed,
+  4 failed (one test whose needle dropped argument names; fixed, reran green); full rehearsal passed every step,
+  rebuild parity 9/9 (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.11.0.log`): 97 NEOGOV rows, 97 exact posted
+  dates, 0 relative, 5 closing dates, posted pay on 74. Three `run_expectations.csv` rows for the 11-13 run.
+  Review fixes before release (edjobs 579d632, `claude-notes/2026-11-12_review-edjobs-0.11.0.md`): NEOGOV cards'
+  Location and date read per card, a warning when a board returns no Locations, and a JSON-LD reader that takes
+  schema.org's text forms and catches errors per page. Re-rehearsed: every step passed, parity 9/9, suite
+  1,379/0 (`claude-notes/2026-11-12_rehearsal-wy-edjobs-0.11.0-fixes.log`); NEOGOV rows Casper 6, CWC 12,
+  Gillette 20, LCCC 59. PR checks pass once edjobs v0.11.0 is tagged.
+- [ ] Weston County SD 7 (decision needed): 36 students per teacher on the dashboard. CCD's enrollment grew from
+  222 (2020) to 859 (2024), almost all at Upton Elementary (96 -> 574 with 7 teachers), no school flagged virtual:
+  likely an online or home-based program counted under Upton's schools (found by `tools/reference_audit.R`, 11-09).
+  Options: a footnote on its row/popup, hide its students-per-teacher figure, or leave it.
+- [x] After the 2026-11-13 run writes them: remove `pending`'s salarymap2.csv entries in
+  `tests/testthat/test-data-dictionary.R` (Child_Poverty_Basis, Free_Reduced_Lunch_Share, FRL_Schools_Reporting,
+  FRL_Year). They were documented before any run wrote them, and the blocking pre-run suite would have stopped that
+  run (found by the MT rehearsal, 2026-11-09). Done 2026-11-13: run 43462550744 (a4801fa) wrote all four;
+  `pending` is now empty; test file passes (56).
+- [x] `posting_status_checked` run expectation widened 15-60 -> 20-120 (2026-11-13). The 11-13 run checked 75 pages
+  (64 postings dropped since 11-06 + 11 WSBA rows; 71 closed, 4 unknown: Gillette 3, LCCC 1, NEOGOV pages with no
+  closing date). Not a bug: same NEOGOV link format in both archives, and only 2 of the 64 have a same-titled listing
+  still up (both pages closed: relistings). The 15-60 guess predates K-12 archives carrying AppliTrack per-posting
+  links (from 10-30: checkable K-12 links ~45 -> ~370); dropped checkable postings per week were 16-48 before, 48 and
+  75 since. Evaluated on the 11-13 file: passes.
+- [x] HE salarymap.csv keeps its enrollment-trend and Pell columns when their fetches fail (2026-11-13). The IPEDS
+  salary chunk rewrote salarymap.csv with only its static columns, and the later chunks add theirs back only on a
+  successful fetch: in the first 0.12.0 rehearsal both got HTTP 524 from Urban Institute, so Enrollment_Change_Pct,
+  Pell_Recipient_Share and Pell_Year were lost and the schema check stopped the run. Now the chunk keeps every
+  column and replaces only its own (as MT). Simulated on the committed file (salary fetch ok, the rest failing):
+  25 columns, values identical. Re-rehearsal on 0.12.0: all steps passed
+  (`claude-notes/2026-11-13_rehearsal-wy-edjobs-0.12.0.log`; the failed one is `...-run1.log`).
+- [ ] Real posting dates, what's left (`claude-notes/2026-11-03_posting-dates-plan.md`): daily presence check for
+  day-precision ends (spells, coverage calendar and page-confirmed closings are done; plan
+  `claude-notes/2026-11-09_daily-presence-check-plan.md`). Phase 0 built 2026-11-13 (all 38 districts plus
+  WSBA's statewide list, edjobs 0.15.0; runs daily once the PR merges): the audit after two weeks, then phase 1 (the
+  spells read the sightings).
+- [ ] What the paused Listing Duration tabs show (both states; spells and durations now rebuilt weekly).
+  Decision (Mike, 2026-11-09): the tabs stay paused until we are sure the data is accurate. Proposed checks
+  (not yet agreed): (a) about 4 weekly runs after the 11-09/10 pushes (relistings censored, first-seen fallback,
+  page-confirmed closings) with no processing change that moves the medians by more than a few days (the OPI
+  dedup alone moved MT K-12 from 63 to 28 days; censoring relistings moved MT HE from 21.5 to 31.5); (b) the spells
+  trust audit (`claude-notes/2026-11-02_spells-trust-audit.md`) re-run on that data, with few endings left that a
+  known data artifact explains (68% on 11-02); (c) the OPI matcher check against fresh OPI data done.
+  WY (b) done 2026-11-10 on the 11-06 run's spells (`claude-notes/2026-11-10_wy-posting-spells-audit.md`): likely
+  artifacts K-12 241 of 7,680 endings in durations (3.1%; median 26.5 -> 27.5 days with them censored), HE 7 of 2,661
+  (0.3%; 59.5 unchanged); widest reading, re-advertised postings included, K-12 750 (9.8%, 31.5 days). Found: a
+  re-titled ad (same board + posted date) reads as an ending (209); `relisted_next_run()` keys on the exact title,
+  so punctuation edits escape it (41; MT same); `fix_title_encoding()` misses hex entities (`&#x27;`, both states).
+- [ ] Classification safeguards (`claude-notes/2026-11-01_classification-safeguards-proposal.md`): 3, 5, 6, 7, 8,
+  9, 10, 11, 12, 13 done; 2 measured, no effect, not built; 1 has a small ceiling (Other is 1.6% MT, 0.1% WY), suggest
+  parking (`claude-notes/2026-11-08_classifier-items-1-2-measured.md`). Golden set 551 of 551, no known misses (2026-11-09:
+  the 2 file-name titles fixed; "COMMUNICATIONS COORD." was already relabeled in 3389731). Left: 4. ("Activities/Extracurricular" confirmed in the 2026-11-06 data: 7.)
+- [ ] WSBA vs district-page near-duplicates left (exact key match only, on purpose): Weston #1 "Head Middle School
+  Girls Soccer Coach" / "MS Head Girls Soccer Coach" (word order; a word-order-blind key would merge "Assistant
+  Teacher" with "Teacher Assistant"); Park #16 "K-12 School Guidance Counselor" / "School Guidance Counselor" (subset).
+  Not duplicates: Platte #1's WSBA substitute rows (Glendo and Wheatland).
+

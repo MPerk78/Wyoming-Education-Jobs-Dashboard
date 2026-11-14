@@ -1,0 +1,3 @@
+secret,expires,renew
+COPILOT_TOKEN,2027-02-09,"Fine-grained PAT on bostickmike (one token for MT, WY and edjobs): github.com/settings/personal-access-tokens, regenerate, then gh secret set COPILOT_TOKEN in each repo. The upkeep run reads this token's real expiry from GitHub."
+CLAUDE_CODE_OAUTH_TOKEN,2027-11-11,"Set 2026-11-11; claude setup-token tokens last about a year (date approximate). Run claude setup-token, then gh secret set CLAUDE_CODE_OAUTH_TOKEN in MT and WY."
